@@ -1,0 +1,43 @@
+version: '3'
+
+networks:
+  symfony:
+
+volumes: 
+  db-data:
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker-config/backend.dockerfile
+    container_name: backend
+    working_dir: /var/www/html
+    volumes: 
+     - .:/var/www/html
+    ports:
+     - "3000:80"
+    environment: 
+     - http_proxy={http_proxy}
+     - https_proxy={https_proxy}
+     - HTTP_PROXY={HTTP_PROXY}
+     - HTTPS_PROXY={HTTPS_PROXY}
+    networks:
+     - symfony
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:10
+    container_name: postgres
+    tty: true
+    environment:
+     - POSTGRES_USER=postgres
+     - POSTGRES_PASSWORD=postgres
+     - POSTGRES_DB=validator-api
+    volumes: 
+     - db-data:/var/lib/postgresql/data/
+    ports: 
+     - "4000:5432"
+    networks:
+     - symfony
+    restart: unless-stopped
