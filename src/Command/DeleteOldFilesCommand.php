@@ -2,22 +2,19 @@
 
 namespace App\Command;
 
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Filesystem\Filesystem;
 use App\Entity\Validation;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Filesystem\Filesystem;
 
 class DeleteOldFilesCommand extends Command
 {
     protected static $defaultName = 'app:delete-old-files';
 
     /**
-     * Intervalle de temps pendant lequel les données d'une extraction seront conservées
+     * Time interval of 30 days
      */
     const EXPIRY_CONDITION = 'P1M';
 
@@ -42,7 +39,7 @@ class DeleteOldFilesCommand extends Command
         $dateExpire = $today->sub(new \DateInterval($this::EXPIRY_CONDITION));
 
         $repository = $this->em->getRepository(Validation::class);
-        $validations = $repository->findAllToBeDeleted($dateExpire->format('Y-m-d'));
+        $validations = $repository->findAllToBeArchived($dateExpire->format('Y-m-d'));
 
         $filesystem = new FileSystem();
 
@@ -54,6 +51,7 @@ class DeleteOldFilesCommand extends Command
             }
 
             $validation->setStatus(Validation::STATUS_ARCHIVED);
+            $this->em->persist($validation);
             $this->em->flush();
         }
 

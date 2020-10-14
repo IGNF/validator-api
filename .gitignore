@@ -23,3 +23,4 @@ yarn-error.log
 ###< symfony/phpunit-bridge ###
 
 .env.test
+validator-debug.log

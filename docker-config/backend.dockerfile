@@ -4,6 +4,10 @@
 FROM php:7.3-apache
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV http_proxy http://proxy.ign.fr:3128
+ENV https_proxy http://proxy.ign.fr:3128
+ENV HTTP_PROXY http://proxy.ign.fr:3128
+ENV HTTPS_PROXY http://proxy.ign.fr:3128
 
 # Common tools
 RUN apt-get update -qq && \
@@ -24,6 +28,11 @@ RUN apt-get install -y libpq-dev \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pdo pdo_pgsql pgsql
 
+RUN apt-get install -y \
+    libzip-dev \
+    zip \
+    && docker-php-ext-install zip
+
 # Apache Configuration
 COPY docker-config/vhost.conf /etc/apache2/sites-available/000-default.conf
 COPY docker-config/apache.conf /etc/apache2/conf-available/z-app.conf
@@ -37,6 +46,10 @@ RUN mkdir /usr/share/man/man1/ && \
 RUN echo 'export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))' >> ~/.bashrc && \
     echo 'export PATH=$PATH:$JAVA_HOME/bin' >> ~/.bashrc && \
     java -version
+
+# GDAL
+RUN apt install -y gdal-bin && \
+    ogrinfo --version
 
 # (Re)-Build app
 # COPY . .

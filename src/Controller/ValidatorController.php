@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Validation;
+use Hoa\Console\Parser;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -80,13 +81,13 @@ class ValidatorController extends AbstractController
             }
 
             $mimeTypes = new MimeTypes();
-            $tempPathName = $file->getPathName();
 
-            if ($mimeTypes->guessMimeType($tempPathName) != 'application/zip') {
+            if ($mimeTypes->guessMimeType($file->getPathName()) != 'application/zip') {
                 throw new BadRequestHttpException("Dataset must be in a compressed [.zip] file");
             }
 
-            $file->move('./../' . $validation->getDirectory(), $validation->getZipFilename());
+            $validation->setDatasetName(str_replace('.zip', '', $file->getClientOriginalName()));
+            $file->move('./../' . $validation->getDirectory(), $validation->getDatasetName() . '.zip');
 
             $em->persist($validation);
             $em->flush();
@@ -137,10 +138,11 @@ class ValidatorController extends AbstractController
 
             $arguments = $data['arguments'];
             if (!$arguments) {
-                throw new BadRequestHttpException("Argument [arguments] is missing");
+                throw new BadRequestHttpException("Argument [arguments] is missing or invalid");
             }
 
-            $this->checkArguments($arguments); // TODO: not implemented yet
+            $arguments = $this->parseArguments($arguments);
+            $arguments = json_encode($arguments, \JSON_UNESCAPED_UNICODE);
 
             $validation->reset();
             $validation->setArguments($arguments);
@@ -209,8 +211,23 @@ class ValidatorController extends AbstractController
         }
     }
 
-    private function checkArguments($arguments)
+    private function parseArguments($arguments)
     {
+        // removing multiple spaces
+        $arguments = preg_replace('/\s+/', ' ', $arguments);
+        $arguments = trim($arguments);
 
+        // parsing command
+        $parser = new Parser();
+        $parser->parse($arguments);
+
+        // checking for unauthorized options or command
+        $inputs = $parser->getInputs();
+        if (count($inputs) > 0) {
+            throw new BadRequestHttpException(sprintf("Invalid arguments: [%s]", implode(' ', $inputs)));
+        }
+
+        $switches = $parser->getSwitches();
+        return $switches;
     }
 }

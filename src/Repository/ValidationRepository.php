@@ -25,7 +25,7 @@ class ValidationRepository extends ServiceEntityRepository
      * @param string $expiryDate
      * @return array
      */
-    public function findAllToBeDeleted($expiryDate)
+    public function findAllToBeArchived($expiryDate)
     {
         return $this->createQueryBuilder('v')
             ->where('v.dateCreation < :expiryDate')

@@ -38,6 +38,11 @@ class Validation
     const STATUS_FINISHED = 'finished';
 
     /**
+     * A runtime error has occured
+     */
+    const STATUS_ERROR = 'error';
+
+    /**
      * Validation created 30 days ago and its files have been deleted automatically to save space on the server
      */
     const STATUS_ARCHIVED = 'archived';
@@ -45,7 +50,7 @@ class Validation
     /**
      * Temporary storage directory for dataset and validation results files
      */
-    const VALIDATIONS_DIRECTORY =  './var/data/validations';
+    const VALIDATIONS_DIRECTORY = './var/data/validations';
 
     /**
      * Unique identifier
@@ -56,16 +61,16 @@ class Validation
     private $uid;
 
     /**
-     * Name of the compressed file (zip) containing the dataset
+     * Name of the dataset, derived from the name of the compressed file (zip) containing the dataset
      *
      * @ORM\Column(type="string", length=100)
      */
-    // private $datasetFilename;
+    private $datasetName;
 
     /**
      * CLI Arguments for the Java executable program
      *
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="json", nullable=true)
      */
     private $arguments;
 
@@ -79,7 +84,7 @@ class Validation
     /**
      * Status
      *
-     * @ORM\Column(type="string", length=16, nullable=false, options={"default":"pending"}, columnDefinition="character varying(16) CHECK (status IN ('waiting_for_args','pending','processing','finished','archived'))")
+     * @ORM\Column(type="string", length=16, nullable=false, options={"default":"waiting_for_args"}, columnDefinition="character varying(16) CHECK (status IN ('waiting_for_args','pending','processing','finished','archived','error'))")
      */
     private $status;
 
@@ -133,17 +138,17 @@ class Validation
         return $this;
     }
 
-    // public function getDatasetFilename(): ?string
-    // {
-    //     return $this->datasetFilename;
-    // }
+    public function getDatasetName(): ?string
+    {
+        return $this->datasetName;
+    }
 
-    // public function setDatasetFilename(string $datasetFilename): self
-    // {
-    //     $this->datasetFilename = $datasetFilename;
+    public function setDatasetName(string $datasetName): self
+    {
+        $this->datasetName = $datasetName;
 
-    //     return $this;
-    // }
+        return $this;
+    }
 
     public function getArguments(): ?string
     {
@@ -241,11 +246,6 @@ class Validation
         return $directory;
     }
 
-    public function getZipFilename()
-    {
-        return $this->getUid() . '.zip';
-    }
-
     public function reset()
     {
         $this->setStatus($this::STATUS_PENDING);
@@ -272,7 +272,7 @@ class Validation
                 // a digit between 0 and 9
                 $uid .= chr(rand(48, 57));
             } else {
-                // a small letter between a and z
+                // a lowercase letter between a and z
                 $uid .= chr(rand(97, 122));
             }
         }
