@@ -63,11 +63,11 @@ class ValidatorController extends AbstractController
     /**
      * @Route(
      *      "/",
-     *      name="validator_api_post_dataset",
+     *      name="validator_api_upload_dataset",
      *      methods={"POST"}
      * )
      */
-    public function postDataset(Request $request)
+    public function uploadDataset(Request $request)
     {
         $em = $this->getDoctrine()->getManager();
         $validation = new Validation();
@@ -110,11 +110,11 @@ class ValidatorController extends AbstractController
     /**
      * @Route(
      *      "/{uid}",
-     *      name="validator_api_post_patch_arguments",
-     *      methods={"POST","PATCH"}
+     *      name="validator_api_update_arguments",
+     *      methods={"PATCH"}
      * )
      */
-    public function postPatchArguments(Request $request, $uid)
+    public function updateArguments(Request $request, $uid)
     {
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
