@@ -4,10 +4,6 @@
 FROM php:7.3-apache
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
-ENV http_proxy http://proxy.ign.fr:3128
-ENV https_proxy http://proxy.ign.fr:3128
-ENV HTTP_PROXY http://proxy.ign.fr:3128
-ENV HTTPS_PROXY http://proxy.ign.fr:3128
 
 # Common tools
 RUN apt-get update -qq && \

@@ -17,11 +17,8 @@ services:
       - .:/var/www/html
     ports:
       - "3000:80"
-    environment:
-      - http_proxy={http_proxy}
-      - https_proxy={https_proxy}
-      - HTTP_PROXY={HTTP_PROXY}
-      - HTTPS_PROXY={HTTPS_PROXY}
+    env_file:
+      - .env.local
     networks:
       - symfony
     restart: unless-stopped
@@ -30,10 +27,8 @@ services:
     image: postgres:10
     container_name: postgres
     tty: true
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=validator-api
+    env_file:
+      - .env.local
     volumes:
       - db-data:/var/lib/postgresql/data/
     ports:

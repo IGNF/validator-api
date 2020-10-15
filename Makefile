@@ -15,3 +15,7 @@ travis: compile-app run-tests
 
 deploy:
 	echo "TODO: deploying app"
+
+docker-compose-up:
+	chmod +x ./docker-config/docker-compose-up.sh
+	./docker-config/docker-compose-up.sh
