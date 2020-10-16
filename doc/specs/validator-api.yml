@@ -14,16 +14,20 @@ info:
     url: "http://www.cecill.info/licences/Licence_CeCILL-B_V1-fr.html"
 host: "https://api.ign.fr/validator-api"
 servers:
+  - url: http://172.18.11.169:3000/
   - url: http://localhost/validator-api
-  - url: http://172.17.132.71:3000/
   - url: https://api.ign.fr/validator-api
 basePath: "v1"
 tags:
+  - name: "validation"
+    description: "Une demande de validation"
 schemes:
   - "https"
 paths:
   /validator/validations/:
     post:
+      tags:
+        - validation
       operationId: upload_dataset
       summary: "Téléverser un jeu de données à faire valider"
       description: "Téléverser un jeu de données sur le serveur afin demander une validation plus tard"
@@ -79,6 +83,8 @@ paths:
                 $ref: "#/definitions/Error"
   /validator/validations/{uid}:
     get:
+      tags:
+        - validation
       operationId: get_validation
       summary: "Voir une validation"
       description: "Voir les détails d'une demande de validation"
@@ -89,6 +95,7 @@ paths:
           required: true
           schema:
             type: string
+          example: g7258vq1t639uagbv8rg7b97
       responses:
         200:
           description: Récupération réussie
@@ -110,6 +117,8 @@ paths:
                 $ref: "#/definitions/Error"
 
     patch:
+      tags:
+        - validation
       operationId: update_arguments
       summary: "Préciser les arguments de validator"
       description: "Préciser les arguments et les options pour le programme ligne de commandes Validator"
@@ -120,6 +129,7 @@ paths:
           required: true
           schema:
             type: string
+          example: g7258vq1t639uagbv8rg7b97
       requestBody:
         content:
           application/json:
@@ -129,6 +139,7 @@ paths:
                   type: string
                   description: les arguments du programme ligne de commandes Validator sous forme d'une chaîne de caractères
                   required: true
+                  example: "-s EPSG:2154 -m https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json"
       responses:
         200:
           description: "Mise à jour réussie"
@@ -188,6 +199,8 @@ paths:
                 $ref: "#/definitions/Error"
 
     delete:
+      tags:
+        - validation
       operationId: delete_validation
       summary: "Supprimer une validation"
       description: "Demander la suppression de la validation et ses fichiers d'entrée"
@@ -198,6 +211,7 @@ paths:
           required: true
           schema:
             type: string
+          example: g7258vq1t639uagbv8rg7b97
       responses:
         204:
           description: "Suppression réussie"

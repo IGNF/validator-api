@@ -141,7 +141,7 @@ class ValidatorController extends AbstractController
                 throw new BadRequestHttpException("Argument [arguments] is missing or invalid");
             }
 
-            $arguments = $this->parseArguments($arguments);
+            $arguments = $this->checkArguments($arguments);
             $arguments = json_encode($arguments, \JSON_UNESCAPED_UNICODE);
 
             $validation->reset();
@@ -211,6 +211,46 @@ class ValidatorController extends AbstractController
         }
     }
 
+    /**
+     * Returns the arguments in an associated array if they pass verification
+     *
+     * @param string $arguments
+     * @return array[string]
+     * @throws BadRequestHttpException
+     */
+    private function checkArguments($arguments)
+    {
+        $arguments = $this->parseArguments($arguments);
+
+        /**
+         * unauthorized arguments:
+         *  - config (c)
+         *  - input (i)
+         *  - version (v)
+         */
+        $unauthArgs = ['config', 'c', 'input', 'i', 'version', 'v'];
+
+        $postedUargs = [];
+        foreach ($unauthArgs as $uarg) {
+            if (array_key_exists($uarg, $arguments)) {
+                array_push($postedUargs, $uarg);
+            }
+        }
+
+        if (count($postedUargs) > 0) {
+            throw new BadRequestHttpException(sprintf("Invalid arguments: [%s]", implode(', ', $postedUargs)));
+        }
+
+        return $arguments;
+    }
+
+    /**
+     * Parses arguments string to a string array
+     *
+     * @param string $arguments
+     * @return array[string]
+     * @throws BadRequestHttpException
+     */
     private function parseArguments($arguments)
     {
         // removing multiple spaces
@@ -224,10 +264,10 @@ class ValidatorController extends AbstractController
         // checking for unauthorized options or command
         $inputs = $parser->getInputs();
         if (count($inputs) > 0) {
-            throw new BadRequestHttpException(sprintf("Invalid arguments: [%s]", implode(' ', $inputs)));
+            throw new BadRequestHttpException(sprintf("Invalid arguments: [%s]", implode(', ', $inputs)));
         }
 
-        $switches = $parser->getSwitches();
-        return $switches;
+        return $parser->getSwitches();
     }
+
 }

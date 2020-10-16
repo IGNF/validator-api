@@ -234,6 +234,11 @@ class Validation
         return $this;
     }
 
+    /**
+     * Get temporary file storage directory for the validation
+     *
+     * @return string
+     */
     public function getDirectory()
     {
         if ($_ENV['APP_ENV'] == 'test') {
@@ -246,6 +251,11 @@ class Validation
         return $directory;
     }
 
+    /**
+     * Reset all attributes because user has requested a validation with updated parameters
+     *
+     * @return Validation
+     */
     public function reset()
     {
         $this->setStatus($this::STATUS_PENDING);
