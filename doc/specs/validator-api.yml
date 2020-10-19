@@ -14,13 +14,13 @@ info:
     url: "http://www.cecill.info/licences/Licence_CeCILL-B_V1-fr.html"
 host: "https://api.ign.fr/validator-api"
 servers:
-  - url: http://172.18.11.169:3000/
+  - url: http://192.168.75.78:5000/
   - url: http://localhost/validator-api
   - url: https://api.ign.fr/validator-api
 basePath: "v1"
 tags:
   - name: "validation"
-    description: "Une demande de validation"
+    description: "Une demande de validation de documents"
 schemes:
   - "https"
 paths:
