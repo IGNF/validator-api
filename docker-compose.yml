@@ -11,6 +11,11 @@ services:
     build:
       context: .
       dockerfile: docker-config/backend.dockerfile
+      args:
+        - http_proxy
+        - https_proxy
+        - HTTP_PROXY
+        - HTTPS_PROXY
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
@@ -46,3 +51,13 @@ services:
     networks:
       - symfony
     restart: unless-stopped
+    depends_on:
+      - backend
+
+  scheduler:
+    image: mcuadros/ofelia:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker-config/scheduler-config.ini:/etc/ofelia/config.ini
+    depends_on:
+      - backend

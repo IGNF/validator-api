@@ -1,0 +1,17 @@
+version: "3"
+
+networks:
+  symfony:
+
+services:
+  postgres_test:
+    image: postgres:10
+    container_name: validator-api_postgres_test
+    tty: true
+    env_file:
+      - .env.test
+    ports:
+      - "4040:5432"
+    networks:
+      - symfony
+    restart: unless-stopped

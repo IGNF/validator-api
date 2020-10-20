@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\Validation;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,11 +20,15 @@ class ValidationsCommand extends Command
 
     private $validation;
 
-    public function __construct(ParameterBagInterface $params, EntityManagerInterface $em)
+    private $em;
+    private $logger;
+
+    public function __construct(ParameterBagInterface $params, EntityManagerInterface $em, LoggerInterface $logger)
     {
         parent::__construct();
         $this->params = $params;
         $this->em = $em;
+        $this->logger = $logger;
     }
 
     protected function configure()
@@ -41,8 +46,10 @@ class ValidationsCommand extends Command
 
         // exit if no pending validation found
         if (!$this->validation) {
+            $this->logger->info("Validation[null]: no validation pending, quitting");
             return 0;
         }
+        $this->logger->info("Validation[{uid}]: pending validation found", ['uid' => $this->validation->getUid()]);
 
         $this->validation->setStatus(Validation::STATUS_PROCESSING);
         $this->validation->setDateStart(new \DateTime('now'));
@@ -61,6 +68,7 @@ class ValidationsCommand extends Command
             $this->unzip();
 
             // executing validation program
+            $this->logger->info("Validation[{uid}]: executing Java validation program", ['uid' => $this->validation->getUid()]);
             $process = new Process($cmd);
             $process->run();
 
@@ -76,9 +84,12 @@ class ValidationsCommand extends Command
             $this->validation->setStatus(Validation::STATUS_FINISHED);
             $this->validation->setDateFinish(new \DateTime('now'));
 
+            $this->logger->info("Validation[{uid}]: validation carried out successfully", ['uid' => $this->validation->getUid()]);
+
         } catch (\Throwable $th) {
             $this->validation->setStatus(Validation::STATUS_ERROR);
             $this->validation->setMessage($th->getMessage());
+            $this->logger->error("Validation[{uid}]: {message}", ['uid' => $this->validation->getUid(), 'message' => $th->getMessage()]);
         }
 
         $this->em->persist($this->validation);
@@ -88,9 +99,9 @@ class ValidationsCommand extends Command
     }
 
     /**
-     * Reconstructs the arguments as a string
+     * Reconstructs the arguments as an array of strings
      *
-     * @return string
+     * @return array[string]
      */
     private function reconstructArgs()
     {
