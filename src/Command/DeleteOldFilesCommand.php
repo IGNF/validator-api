@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\Validation;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,11 +20,13 @@ class DeleteOldFilesCommand extends Command
     const EXPIRY_CONDITION = 'P1M';
 
     private $em;
+    private $logger;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, LoggerInterface $logger)
     {
         parent::__construct();
         $this->em = $em;
+        $this->logger = $logger;
     }
 
     protected function configure()
@@ -53,6 +56,8 @@ class DeleteOldFilesCommand extends Command
             $validation->setStatus(Validation::STATUS_ARCHIVED);
             $this->em->persist($validation);
             $this->em->flush();
+
+            $this->logger->error("Validation[{uid}]: Old files removed at {directory}", ['uid' => $validation->getUid(), 'directory' => $directory]);
         }
 
         return 0;

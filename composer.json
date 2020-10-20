@@ -1,4 +1,6 @@
 {
+  "name": "ignf/validator-api",
+  "description": "APIsation of Validator, a tool developped by IGNfab (IGN), that allows to validate and normalize datasets according to a file mapping and a FeatureCatalog.",
   "type": "project",
   "license": "proprietary",
   "require": {
