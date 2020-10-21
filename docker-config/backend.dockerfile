@@ -38,13 +38,13 @@ RUN a2enmod rewrite remoteip && \
 
 # Java 11
 RUN mkdir /usr/share/man/man1/ && \
-    apt install -y default-jre
+    apt-get install -y default-jre
 RUN echo 'export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))' >> ~/.bashrc && \
     echo 'export PATH=$PATH:$JAVA_HOME/bin' >> ~/.bashrc && \
     java -version
 
 # GDAL
-RUN apt install -y gdal-bin && \
+RUN apt-get install -y gdal-bin && \
     ogrinfo --version
 
 # (Re)-Build app

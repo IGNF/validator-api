@@ -235,6 +235,6 @@ definitions:
       code:
         type: integer
         description: code de l'erreur rencontrée
-      message:
+      error:
         type: string
         description: message précis de l'erreur rencontrée
