@@ -20,10 +20,25 @@ class ValidationRepository extends ServiceEntityRepository
     }
 
     /**
+     * Finds the next pending validation
+     *
+     * @return Validation
+     */
+    public function findNextPending()
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.status = :status')
+            ->setParameters(['status' => Validation::STATUS_PENDING])
+            ->orderBy('v.dateCreation', 'ASC')
+            ->getQuery()
+            ->getResult()[0];
+    }
+
+    /**
      * Finds all validations created 30 days ago (DeleteOldFilesCommand::EXPIRY_CONDITION)
      *
      * @param string $expiryDate
-     * @return array
+     * @return array[Validation]
      */
     public function findAllToBeArchived($expiryDate)
     {

@@ -42,7 +42,7 @@ class ValidationsCommand extends Command
     {
         // fetch one pending validation
         $repository = $this->em->getRepository(Validation::class);
-        $this->validation = $repository->findOneByStatus(Validation::STATUS_PENDING);
+        $this->validation = $repository->findNextPending();
 
         // exit if no pending validation found
         if (!$this->validation) {
@@ -82,7 +82,6 @@ class ValidationsCommand extends Command
 
             // finalization
             $this->validation->setStatus(Validation::STATUS_FINISHED);
-            $this->validation->setDateFinish(new \DateTime('now'));
 
             $this->logger->info("Validation[{uid}]: validation carried out successfully", ['uid' => $this->validation->getUid()]);
 
@@ -92,6 +91,7 @@ class ValidationsCommand extends Command
             $this->logger->error("Validation[{uid}]: {message}", ['uid' => $this->validation->getUid(), 'message' => $th->getMessage()]);
         }
 
+        $this->validation->setDateFinish(new \DateTime('now'));
         $this->em->persist($this->validation);
         $this->em->flush();
 

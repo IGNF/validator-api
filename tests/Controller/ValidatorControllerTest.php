@@ -10,6 +10,9 @@ use Liip\TestFixturesBundle\Test\FixturesTrait;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+/**
+ * Tests for ValidatorController class
+ */
 class ValidatorControllerTest extends WebTestCase
 {
     use FixturesTrait;
@@ -46,7 +49,7 @@ class ValidatorControllerTest extends WebTestCase
      */
     public function testGetValidation()
     {
-        $validation = $this->getReference('validation_1');
+        $validation = $this->getReference('validation_no_args');
 
         $this->client->request(
             'GET',
@@ -223,7 +226,7 @@ class ValidatorControllerTest extends WebTestCase
      */
     public function testUpdateArguments()
     {
-        $validation = $this->getReference('validation_1');
+        $validation = $this->getReference('validation_no_args');
 
         $data = ['arguments' => "-s EPSG:2154 -m https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"];
 
@@ -285,7 +288,7 @@ class ValidatorControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsNoArguments()
     {
-        $validation = $this->getReference('validation_1');
+        $validation = $this->getReference('validation_no_args');
         $data = [];
 
         $this->client->request(
@@ -309,7 +312,7 @@ class ValidatorControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsWrongParameters()
     {
-        $validation = $this->getReference('validation_1');
+        $validation = $this->getReference('validation_no_args');
 
         // '-' or '--' forgotten before argument's name
         $data = ['arguments' => "-s EPSG:2154 m https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"];

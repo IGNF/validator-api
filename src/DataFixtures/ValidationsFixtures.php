@@ -17,20 +17,58 @@ class ValidationsFixtures extends Fixture
     {
         $fs = new Filesystem();
 
+        // a validation with no args
         $validation = new Validation();
         $validation->setDatasetName(str_replace('.zip', '', $this::FILENAME));
+
         $fs->copy($this::DIR_DATA . "/" . $this::FILENAME, $validation->getDirectory() . "/" . $this::FILENAME);
         $em->persist($validation);
 
-        $this->addReference('validation_1', $validation);
+        $this->addReference('validation_no_args', $validation);
 
+        // a validation that has already been archived
         $valArchived = new Validation();
         $valArchived->setDatasetName(str_replace('.zip', '', $this::FILENAME));
         $valArchived->setStatus(Validation::STATUS_ARCHIVED);
+
         $fs->copy($this::DIR_DATA . "/" . $this::FILENAME, $valArchived->getDirectory() . "/" . $this::FILENAME);
         $em->persist($valArchived);
 
         $this->addReference('validation_archived', $valArchived);
+
+        // a validation with args
+        $args = [
+            's' => 'EPSG:2154',
+            'm' => 'https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json',
+        ];
+        $args = json_encode($args, \JSON_UNESCAPED_UNICODE);
+
+        $valWithArgs = new Validation();
+        $valWithArgs->setDatasetName(str_replace('.zip', '', $this::FILENAME));
+        $valWithArgs->setStatus(Validation::STATUS_PENDING);
+        $valWithArgs->setArguments($args);
+
+        $fs->copy($this::DIR_DATA . "/" . $this::FILENAME, $valWithArgs->getDirectory() . "/" . $this::FILENAME);
+        $em->persist($valWithArgs);
+
+        $this->addReference('validation_with_args', $valWithArgs);
+
+        // a validation with args, the model_url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed
+        $args = [
+            's' => 'EPSG:2154',
+            'm' => 'https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017-test.json',
+        ];
+        $args = json_encode($args, \JSON_UNESCAPED_UNICODE);
+
+        $valWithArgs2 = new Validation();
+        $valWithArgs2->setDatasetName(str_replace('.zip', '', $this::FILENAME));
+        $valWithArgs2->setStatus(Validation::STATUS_PENDING);
+        $valWithArgs2->setArguments($args);
+
+        $fs->copy($this::DIR_DATA . "/" . $this::FILENAME, $valWithArgs2->getDirectory() . "/" . $this::FILENAME);
+        $em->persist($valWithArgs2);
+
+        $this->addReference('validation_with_args_2', $valWithArgs2);
 
         $em->flush();
     }
