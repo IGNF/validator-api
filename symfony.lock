@@ -1,38 +1,41 @@
 {
-    "monolog/monolog": {
-        "version": "1.25.5"
+    "doctrine/data-fixtures": {
+        "version": "1.4.4"
+    },
+    "doctrine/doctrine-fixtures-bundle": {
+        "version": "3.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "3.0",
+            "ref": "e5b542d4ef47d8a003c91beb35650c76907f7e53"
+        },
+        "files": [
+            "src/DataFixtures/AppFixtures.php"
+        ]
+    },
+    "liip/functional-test-bundle": {
+        "version": "4.2.0"
+    },
+    "liip/test-fixtures-bundle": {
+        "version": "1.0.0"
     },
     "php": {
         "version": "7.3"
     },
-    "symfony/browser-kit": {
-        "version": "v4.4.15"
-    },
-    "symfony/css-selector": {
-        "version": "v4.4.15"
-    },
-    "symfony/dom-crawler": {
-        "version": "v4.4.15"
-    },
-    "symfony/monolog-bridge": {
-        "version": "v4.4.15"
-    },
-    "symfony/monolog-bundle": {
-        "version": "3.3",
+    "symfony/phpunit-bridge": {
+        "version": "4.3",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "master",
-            "version": "3.3",
-            "ref": "d7249f7d560f6736115eee1851d02a65826f0a56"
+            "version": "4.3",
+            "ref": "6d0e35f749d5f4bfe1f011762875275cd3f9874f"
         },
         "files": [
-            "config/packages/dev/monolog.yaml",
-            "config/packages/prod/deprecations.yaml",
-            "config/packages/prod/monolog.yaml",
-            "config/packages/test/monolog.yaml"
+            ".env.test",
+            "bin/phpunit",
+            "phpunit.xml.dist",
+            "tests/bootstrap.php"
         ]
-    },
-    "symfony/test-pack": {
-        "version": "v1.0.7"
     }
 }

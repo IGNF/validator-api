@@ -50,7 +50,7 @@ class Validation
     /**
      * Temporary storage directory for dataset and validation results files
      */
-    const VALIDATIONS_DIRECTORY = './var/data/validations';
+    const VALIDATIONS_DIRECTORY = 'var/data/validations';
 
     /**
      * Unique identifier

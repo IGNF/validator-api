@@ -21,6 +21,13 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ValidatorController extends AbstractController
 {
+    private $projectDir;
+
+    public function __construct($projectDir)
+    {
+        $this->projectDir = $projectDir;
+    }
+
     /**
      * @Route(
      *      "/{uid}",
@@ -34,6 +41,7 @@ class ValidatorController extends AbstractController
         $repository = $em->getRepository(Validation::class);
 
         try {
+            // this will never happen because without the uid in url path, the request becomes a GET request at the address /validator/validations, which is not allowed and will raise a 405 HTTP_METHOD_NOT_ALLOWED
             if (!$uid) {
                 throw new BadRequestHttpException("Argument [uid] is missing");
             }
@@ -87,7 +95,7 @@ class ValidatorController extends AbstractController
             }
 
             $validation->setDatasetName(str_replace('.zip', '', $file->getClientOriginalName()));
-            $file->move('./../' . $validation->getDirectory(), $validation->getDatasetName() . '.zip');
+            $file->move($this->projectDir . '/' . $validation->getDirectory(), $validation->getDatasetName() . '.zip');
 
             $em->persist($validation);
             $em->flush();
@@ -136,6 +144,9 @@ class ValidatorController extends AbstractController
                 throw new AccessDeniedHttpException("Validation has been archived");
             }
 
+            if (!array_key_exists('arguments', $data)) {
+                throw new BadRequestHttpException("Argument [arguments] is missing or invalid");
+            }
             $arguments = $data['arguments'];
             if (!$arguments) {
                 throw new BadRequestHttpException("Argument [arguments] is missing or invalid");
@@ -198,8 +209,8 @@ class ValidatorController extends AbstractController
 
             $filesystem = new FileSystem();
 
-            if ($filesystem->exists('./../' . $validation->getDirectory())) {
-                $filesystem->remove('./../' . $validation->getDirectory());
+            if ($filesystem->exists($this->projectDir . '/' . $validation->getDirectory())) {
+                $filesystem->remove($this->projectDir . '/' . $validation->getDirectory());
             }
 
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
