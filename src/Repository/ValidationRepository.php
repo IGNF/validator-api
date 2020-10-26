@@ -26,12 +26,18 @@ class ValidationRepository extends ServiceEntityRepository
      */
     public function findNextPending()
     {
-        return $this->createQueryBuilder('v')
+        $results = $this->createQueryBuilder('v')
             ->where('v.status = :status')
             ->setParameters(['status' => Validation::STATUS_PENDING])
             ->orderBy('v.dateCreation', 'ASC')
             ->getQuery()
-            ->getResult()[0];
+            ->getResult();
+
+        if (count($results) == 0){
+            return null;
+        }
+
+        return $results[0];
     }
 
     /**
