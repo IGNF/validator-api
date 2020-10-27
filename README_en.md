@@ -23,7 +23,7 @@ services:
   backend: # custom docker image for this symfony app. Checkout dockerfile for more info
     build:
       context: .
-      dockerfile: docker-config/backend.dockerfile
+      dockerfile: .docker/backend.dockerfile
     ...
     networks:
       - symfony
@@ -37,7 +37,7 @@ services:
   nginx:  # nginx for loadbalancing multiple instances of "backend", built from prexisting docker image
     image: nginx:latest
     volumes:
-      - ./docker-config/nginx.conf:/etc/nginx/nginx.conf # nginx config file
+      - ./.docker/nginx.conf:/etc/nginx/nginx.conf # nginx config file
     networks:
       - symfony
     depends_on:
@@ -47,7 +47,7 @@ services:
     image: mcuadros/ofelia:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker-config/scheduler-config.ini:/etc/ofelia/config.ini
+      - ./.docker/scheduler-config.ini:/etc/ofelia/config.ini
     depends_on:
       - backend
 
@@ -103,7 +103,7 @@ services:
   backend_test:
     build:
       context: .
-      dockerfile: docker-config/backend.dockerfile
+      dockerfile: .docker/backend.dockerfile
     env_file:
       - .env.test
     networks:

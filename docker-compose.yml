@@ -10,7 +10,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: docker-config/backend.dockerfile
+      dockerfile: .docker/backend.dockerfile
       args:
         - http_proxy
         - https_proxy
@@ -47,7 +47,7 @@ services:
     ports:
       - "5000:80"
     volumes:
-      - ./docker-config/nginx.conf:/etc/nginx/nginx.conf
+      - ./.docker/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - symfony
     restart: unless-stopped
@@ -58,6 +58,6 @@ services:
     image: mcuadros/ofelia:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker-config/scheduler-config.ini:/etc/ofelia/config.ini
+      - ./.docker/scheduler-config.ini:/etc/ofelia/config.ini
     depends_on:
       - backend

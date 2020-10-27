@@ -25,7 +25,7 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
 
 # PHP Configuration & Extensions
 RUN apt-get update
-COPY docker-config/php.ini /usr/local/etc/php/conf.d/app.ini
+COPY .docker/php.ini /usr/local/etc/php/conf.d/app.ini
 
 RUN apt-get install -y libpq-dev \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
@@ -39,8 +39,8 @@ RUN apt-get install -y \
     && docker-php-ext-install zip
 
 # Apache Configuration
-COPY docker-config/vhost.conf /etc/apache2/sites-available/000-default.conf
-COPY docker-config/apache.conf /etc/apache2/conf-available/z-app.conf
+COPY .docker/vhost.conf /etc/apache2/sites-available/000-default.conf
+COPY .docker/apache.conf /etc/apache2/conf-available/z-app.conf
 
 RUN a2enmod rewrite remoteip && \
     a2enconf z-app

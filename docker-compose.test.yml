@@ -7,7 +7,7 @@ services:
   backend_test:
     build:
       context: .
-      dockerfile: docker-config/backend.dockerfile
+      dockerfile: .docker/backend.dockerfile
       args:
         - http_proxy
         - https_proxy
