@@ -4,6 +4,7 @@
 FROM php:7.3-apache
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN rm /etc/apt/preferences.d/no-debian-php
 
 # Common tools
 RUN apt-get update -qq && \
@@ -12,8 +13,14 @@ RUN apt-get update -qq && \
     gnupg \
     unzip \
     make \
+    php-dev \
     zip && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+    apt-get update && apt-get install -y yarn && \
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # PHP Configuration & Extensions
@@ -23,6 +30,8 @@ COPY docker-config/php.ini /usr/local/etc/php/conf.d/app.ini
 RUN apt-get install -y libpq-dev \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pdo pdo_pgsql pgsql
+# RUN docker-php-ext-install xdebug
+# RUN docker-php-ext-enable xdebug
 
 RUN apt-get install -y \
     libzip-dev \

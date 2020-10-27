@@ -25,3 +25,4 @@ validator-debug.log
 /nbproject/
 
 /tests/TempData/*
+/*.lock

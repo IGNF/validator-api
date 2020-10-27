@@ -4,9 +4,28 @@ networks:
   symfony:
 
 services:
+  backend_test:
+    build:
+      context: .
+      dockerfile: docker-config/backend.dockerfile
+      args:
+        - http_proxy
+        - https_proxy
+        - HTTP_PROXY
+        - HTTPS_PROXY
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "3000:80"
+    env_file:
+      - .env.test
+    networks:
+      - symfony
+    restart: unless-stopped
+
   postgres_test:
     image: postgres:10
-    container_name: validator-api_postgres_test
     tty: true
     env_file:
       - .env.test
