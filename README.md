@@ -28,13 +28,13 @@ services:
     networks:
       - symfony
 
-  postgres: # instance de base de données postgres, construite à partir de l'image docker officielle de postgres
+  postgres: # instance de base de données postgres, construite à partir de l'image docker officielle
     image: postgres:10
     ...
     networks:
       - symfony
 
-  nginx:  # nginx pour le loadbalancing des instances multiples du "backend", construit à partir de l'image docker officielle de postgres
+  nginx:  # nginx pour le loadbalancing des instances multiples du "backend", construit à partir de l'image docker officielle
     image: nginx:latest
     volumes:
       - ./.docker/nginx.conf:/etc/nginx/nginx.conf # fichier de configuration de nginx
@@ -43,7 +43,7 @@ services:
     depends_on:
       - backend
 
-  scheduler:  # un outil comme crontab pour docker, on s'en sert pour programmer des tâches dans des conteneurs docker, construit à partir de l'image docker officielle de postgres
+  scheduler:  # un outil comme crontab pour docker, on s'en sert pour programmer des tâches dans des conteneurs docker, construit à partir de l'image docker officielle
     image: mcuadros/ofelia:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -63,7 +63,8 @@ volumes:
 
 ## Étapes
 
-1. Lancer les conteneurs docker : `docker-compose -d --build --scale backend=2` (actuellement l'application est configurée de fonctionner avec 2 instances du "backend". [Voir ici comment le modifier // TODO](#).)
+1. Lancer les conteneurs docker : `docker-compose up -d --build --scale backend=2`
+> Actuellement l'application est configurée de fonctionner avec 2 instances de "backend". [Voir ici comment le modifier](doc/md/backend_multiple_instances.md).
 2. Créer à la racine du projet un fichier nommé `.env.local` contenant les informations suivantes.
 
 ```ini

@@ -63,7 +63,10 @@ volumes:
 
 ## Steps
 
-1. Launch docker containers: `docker-compose -d --build --scale backend=2` (current configuration is set to launch 2 instances of "backend". [See here how to change that // TODO](#).)
+1. Launch docker containers: `docker-compose up -d --build --scale backend=2`
+
+> Current configuration is set to launch 2 instances of "backend". [See here how to change that](doc/md/backend_multiple_instances_en.md).
+
 2. Create a file named `.env.local` in the root directory of the project with the following information.
 
 ```ini
