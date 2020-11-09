@@ -130,6 +130,10 @@ class ValidatorController extends AbstractController
         try {
             $data = json_decode($request->getContent(), true);
 
+            if (!is_array($data)) {
+                throw new BadRequestHttpException("Request body must be a valid JSON string");
+            }
+
             if (!$uid) {
                 throw new BadRequestHttpException("Argument [uid] is missing");
             }
