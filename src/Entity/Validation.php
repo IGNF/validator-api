@@ -110,9 +110,9 @@ class Validation
     private $dateFinish;
 
     /**
-     * Results in jsonl format
+     * Results in json format
      *
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="json", nullable=true)
      */
     private $results;
 

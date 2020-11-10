@@ -78,6 +78,11 @@ class ValidationsCommand extends Command
 
             // fetching validation results
             $results = \file_get_contents(\sprintf("%s/validation/validation.jsonl", $this->validation->getDirectory()));
+
+            // jsonl to json_array
+            $results = \str_replace("}\n{", "},\n{", $results);
+            $results = "[" . $results . "]";
+
             $this->validation->setResults($results);
 
             // finalization

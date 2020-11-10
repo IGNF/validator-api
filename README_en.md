@@ -125,7 +125,7 @@ services:
 
 ## Steps
 
-1. Launch docker containers: `docker-compose -f docker-compose.test.yml -d --build`
+1. Launch docker containers: `docker-compose -f docker-compose.test.yml up -d --build`
 2. Create a file named `.env.test` in the root directory of the project with the following information. `APP_DEV` variable must be set to `test`.
 
 ```ini

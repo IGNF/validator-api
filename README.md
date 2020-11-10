@@ -124,7 +124,7 @@ services:
 
 ## Étapes
 
-1. Launcer les conteneurs docker : `docker-compose -f docker-compose.test.yml -d --build`
+1. Launcer les conteneurs docker : `docker-compose -f docker-compose.test.yml up -d --build`
 2. Créer à la racine du projet un fichier nommé `.env.test` contenant les informations suivantes. La variable `APP_DEV` doit obligatoirement valoir `test`.
 
 ```ini
