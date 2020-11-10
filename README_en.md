@@ -148,5 +148,5 @@ HTTPS_PROXY=
 
 3. Install PHP dependencies: `composer update`
 4. Create database: `php bin/console --env=test doctrine:database:create --if-not-exists`
-5. Update database schema: `echo yes | php bin/console --env=test doctrine:migrations:migrate`
+5. Update database schema: `php bin/console --env=test doctrine:migrations:migrate --no-interaction`
 6. Launch tests: `vendor/bin/simple-phpunit`

@@ -1,0 +1,13 @@
+language: php
+php:
+  - "7.3"
+
+services:
+  - docker
+
+script:
+  - docker-compose -f docker-compose.test.yml up -d --build
+  - docker exec -it validator-api_backend_test_1 composer update
+  - docker exec -it validator-api_backend_test_1 php bin/console --env=test doctrine:database:create --if-not-exists
+  - docker exec -it validator-api_backend_test_1 php bin/console --env=test doctrine:migrations:migrate --no-interaction
+  - docker exec -it validator-api_backend_test_1 vendor/bin/simple-phpunit

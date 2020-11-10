@@ -145,7 +145,7 @@ HTTPS_PROXY=
 
 > Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_test_1 ...`
 
-1. Installer les dépendances PHP : `composer update`
-2. Créer la base de données : `php bin/console --env=test doctrine:database:create --if-not-exists`
-3. Mettre à jour le schéma de la base de donnnées : `echo yes | php bin/console --env=test doctrine:migrations:migrate`
-4. Lancer les tests : `vendor/bin/simple-phpunit`
+3. Installer les dépendances PHP : `composer update`
+4. Créer la base de données : `php bin/console --env=test doctrine:database:create --if-not-exists`
+5. Mettre à jour le schéma de la base de donnnées : `php bin/console --env=test doctrine:migrations:migrate --no-interaction`
+6. Lancer les tests : `vendor/bin/simple-phpunit`
