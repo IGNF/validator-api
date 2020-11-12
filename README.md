@@ -15,8 +15,7 @@ L'APIsation de l'outil [Validator](https://github.com/IGNF/validator), developp�
 
 ## Docker-Compose
 
-<img src="doc/images/architecture.jpg"
-     alt="architecture"/>
+<img src="doc/images/architecture.svg" alt="architecture"/>
 
 L'application est composée de :
 ```yml
@@ -127,7 +126,7 @@ services:
 
 ## Étapes
 
-1. Launcer les conteneurs docker : `docker-compose -f docker-compose.test.yml up -d --build`
+1. Lancer les conteneurs docker : `docker-compose -f docker-compose.test.yml up -d --build`
 2. Créer à la racine du projet un fichier nommé `.env.test` contenant les informations suivantes. La variable `APP_DEV` doit obligatoirement valoir `test`.
 
 ```ini

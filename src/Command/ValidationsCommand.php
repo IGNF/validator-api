@@ -114,6 +114,10 @@ class ValidationsCommand extends Command
         $arguments = \json_decode($this->validation->getArguments(), true);
 
         foreach ($arguments as $key => $value) {
+            if (!$value || $value == '' || $value == null) {
+                continue;
+            }
+
             if (\strlen($key) > 1) {
                 array_push($args, '--' . $key);
             } else {

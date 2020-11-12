@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Validation;
-use Hoa\Console\Parser;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -148,15 +147,7 @@ class ValidatorController extends AbstractController
                 throw new AccessDeniedHttpException("Validation has been archived");
             }
 
-            if (!array_key_exists('arguments', $data)) {
-                throw new BadRequestHttpException("Argument [arguments] is missing or invalid");
-            }
-            $arguments = $data['arguments'];
-            if (!$arguments) {
-                throw new BadRequestHttpException("Argument [arguments] is missing or invalid");
-            }
-
-            $arguments = $this->checkArguments($arguments);
+            $arguments = $this->checkArguments($data);
             $arguments = json_encode($arguments, \JSON_UNESCAPED_UNICODE);
 
             $validation->reset();
@@ -235,54 +226,73 @@ class ValidatorController extends AbstractController
      */
     private function checkArguments($arguments)
     {
-        $arguments = $this->parseArguments($arguments);
+        $validatorArguments = $this->loadValidatorArguments();
 
-        /**
-         * unauthorized arguments:
-         *  - config (c)
-         *  - input (i)
-         *  - version (v)
-         */
-        $unauthArgs = ['config', 'c', 'input', 'i', 'version', 'v'];
-
-        $postedUargs = [];
-        foreach ($unauthArgs as $uarg) {
-            if (array_key_exists($uarg, $arguments)) {
-                array_push($postedUargs, $uarg);
+        // checking for required arguments
+        foreach ($validatorArguments as $arg) {
+            if ($arg['required']) {
+                if (!array_key_exists($arg['name'], $arguments)) {
+                    throw new BadRequestHttpException(sprintf("Argument [%s] is required", $arg['name']));
+                }
             }
         }
 
-        if (count($postedUargs) > 0) {
-            throw new BadRequestHttpException(sprintf("Invalid arguments: [%s]", implode(', ', $postedUargs)));
+        foreach ($arguments as $argName => $arg) {
+            // checking for unknown arguments
+            if (!array_key_exists($argName, $validatorArguments)) {
+                throw new BadRequestHttpException(sprintf("Argument [%s] is unknown", $argName));
+            }
+
+            // checking for boolean arguments
+            if ($validatorArguments[$argName]['type'] == 'boolean' && !\is_bool($arg)) {
+                throw new BadRequestHttpException(sprintf("Argument [%s] must be a valid boolean value", $argName));
+            }
+        }
+
+        // checking srs argument
+        $projections = $this->loadValidatorProjections();
+        if (!in_array($arguments['srs'], $projections)) {
+            throw new BadRequestHttpException(sprintf("Projection [%s] is not accepted by validator", $arguments['srs']));
         }
 
         return $arguments;
     }
 
     /**
-     * Parses arguments string to a string array
+     * Returns the accepted validator arguments in an array
      *
-     * @param string $arguments
-     * @return array[string]
-     * @throws BadRequestHttpException
+     * @return array[mixed]
      */
-    private function parseArguments($arguments)
+    private function loadValidatorArguments()
     {
-        // removing multiple spaces
-        $arguments = preg_replace('/\s+/', ' ', $arguments);
-        $arguments = trim($arguments);
+        // reading from arguments config file
+        $temp = \json_decode(\file_get_contents(dirname(__FILE__) . '/../../resources/validator-arguments.json'), true);
+        $validatorArguments = [];
 
-        // parsing command
-        $parser = new Parser();
-        $parser->parse($arguments);
-
-        // checking for unauthorized options or command
-        $inputs = $parser->getInputs();
-        if (count($inputs) > 0) {
-            throw new BadRequestHttpException(sprintf("Invalid arguments: [%s]", implode(', ', $inputs)));
+        foreach ($temp as $value) {
+            $validatorArguments[$value['name']] = $value;
         }
+        unset($temp);
 
-        return $parser->getSwitches();
+        return $validatorArguments;
     }
 
+    /**
+     * Returns the projections accepted by validator in an array
+     *
+     * @return array[mixed]
+     */
+    private function loadValidatorProjections()
+    {
+        // reading from projections config file
+        $temp = \json_decode(\file_get_contents(dirname(__FILE__) . '/../../resources/projection.json'), true);
+        $projections = [];
+
+        foreach ($temp as $value) {
+            \array_push($projections, $value['code']);
+        }
+        unset($temp);
+
+        return $projections;
+    }
 }
