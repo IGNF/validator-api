@@ -5,7 +5,6 @@ namespace App\Tests\Controller;
 use App\DataFixtures\ValidationsFixtures;
 use App\Entity\Validation;
 use App\Test\WebTestCase;
-use Hoa\Console\Parser;
 use Liip\TestFixturesBundle\Test\FixturesTrait;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -222,164 +221,7 @@ class ValidatorControllerTest extends WebTestCase
     }
 
     /**
-     * Updating arguments with correct parameters
-     */
-    public function testUpdateArguments()
-    {
-        $validation = $this->getReference('validation_no_args');
-
-        $data = ['arguments' => "-s EPSG:2154 -m https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"];
-
-        // removing multiple spaces
-        $arguments = preg_replace('/\s+/', ' ', $data['arguments']);
-        $arguments = trim($arguments);
-
-        // parsing command
-        $parser = new Parser();
-        $parser->parse($arguments);
-        $arguments = $parser->getSwitches();
-
-        $this->client->request(
-            'PATCH',
-            '/validator/validations/' . $validation->getUid(),
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode($data)
-        );
-
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
-
-        $this->assertStatusCode(200, $this->client);
-        $this->assertSame($arguments, \json_decode($json['arguments'], true));
-        $this->assertEquals(Validation::STATUS_PENDING, $json['status']);
-        $this->assertNull($json['message']);
-        $this->assertNull($json['date_start']);
-        $this->assertNull($json['date_finish']);
-        $this->assertNull($json['results']);
-    }
-
-    /**
-     * Updating arguments but validation does not exist
-     */
-    public function testUpdateArgumentsValNotFound()
-    {
-        $data = ['arguments' => "-s EPSG:2154 -m https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"];
-
-        $this->client->request(
-            'PATCH',
-            '/validator/validations/does-not-exist',
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode($data)
-        );
-
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
-
-        $this->assertStatusCode(404, $this->client);
-        $this->assertEquals('No record found for uid=does-not-exist', $json['error']);
-    }
-
-    /**
-     * Updating arguments, no arguments provided
-     */
-    public function testUpdateArgumentsNoArguments()
-    {
-        $validation = $this->getReference('validation_no_args');
-        $data = [];
-
-        $this->client->request(
-            'PATCH',
-            '/validator/validations/' . $validation->getUid(),
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode($data)
-        );
-
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
-
-        $this->assertStatusCode(400, $this->client);
-        $this->assertEquals('Argument [arguments] is missing or invalid', $json['error']);
-    }
-
-    /**
-     * Updating arguments with wrong parameters
-     */
-    public function testUpdateArgumentsWrongParameters()
-    {
-        $validation = $this->getReference('validation_no_args');
-
-        // '-' or '--' forgotten before argument's name
-        $data = ['arguments' => "-s EPSG:2154 m https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"];
-        $expectedErrMsg = "Invalid arguments: [m, https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json]";
-
-        $this->client->request(
-            'PATCH',
-            '/validator/validations/' . $validation->getUid(),
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode($data)
-        );
-
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
-
-        $this->assertStatusCode(400, $this->client);
-        $this->assertEquals($expectedErrMsg, $json['error']);
-
-        // unauthorized arguments
-        $data = ['arguments' => "-s EPSG:2154 -c config-dir -i input-dir"];
-        $expectedErrMsg = "Invalid arguments: [c, i]";
-
-        $this->client->request(
-            'PATCH',
-            '/validator/validations/' . $validation->getUid(),
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode($data)
-        );
-
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
-
-        $this->assertStatusCode(400, $this->client);
-        $this->assertEquals($expectedErrMsg, $json['error']);
-    }
-
-    /**
-     * Updating arguments but validation already archived
-     */
-    public function testUpdateArgumentsValArchived()
-    {
-        $validation = $this->getReference('validation_archived');
-
-        $data = ['arguments' => "-s EPSG:2154 -m https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"];
-
-        $this->client->request(
-            'PATCH',
-            '/validator/validations/' . $validation->getUid(),
-            [],
-            [],
-            ['CONTENT_TYPE' => 'application/json'],
-            json_encode($data)
-        );
-
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
-
-        $this->assertStatusCode(403, $this->client);
-        $this->assertEquals('Validation has been archived', $json['error']);
-    }
-
-    /**
-     * Deleting validation
+     * Deleting a validation
      */
     public function testDeleteValidation()
     {
@@ -406,5 +248,256 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(404, $this->client);
+    }
+
+    /**
+     * Updating arguments with correct parameters
+     */
+    public function testUpdateArguments()
+    {
+        $validation = $this->getReference('validation_no_args');
+
+        $data = [
+            'srs' => "EPSG:2154",
+            'model' => "https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
+            'normalize' => true,
+            'flat' => false,
+        ];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/' . $validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+        $arguments = json_decode($json['arguments'], true);
+
+        $this->assertStatusCode(200, $this->client);
+        $this->assertSame($data, $arguments);
+        $this->assertEquals(Validation::STATUS_PENDING, $json['status']);
+        $this->assertNull($json['message']);
+        $this->assertNull($json['date_start']);
+        $this->assertNull($json['date_finish']);
+        $this->assertNull($json['results']);
+
+        foreach ($data as $argName => $value) {
+            $this->assertSame($data[$argName], $arguments[$argName]);
+        }
+    }
+
+    /**
+     * Updating arguments but validation does not exist
+     */
+    public function testUpdateArgumentsValNotFound()
+    {
+        $data = [
+            'srs' => "EPSG:2154",
+            'model' => "https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
+        ];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/does-not-exist',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(404, $this->client);
+        $this->assertEquals('No record found for uid=does-not-exist', $json['error']);
+    }
+
+    /**
+     * Updating arguments with invalid json
+     */
+    public function testUpdateArgumentsInvalidJson()
+    {
+        $validation = $this->getReference('validation_no_args');
+        $data = "{model = url}";
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/does-not-exist',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            $data
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(400, $this->client);
+        $this->assertEquals('Request body must be a valid JSON string', $json['error']);
+    }
+
+    /**
+     * Updating arguments, no arguments provided
+     */
+    public function testUpdateArgumentsNoArguments()
+    {
+        $validation = $this->getReference('validation_no_args');
+        $data = [];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/' . $validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(400, $this->client);
+        $this->assertEquals('Arguments [model, srs] are required', $json['error']);
+    }
+
+    /**
+     * Updating arguments, some required arguments are missing
+     */
+    public function testUpdateArgumentsMissingReqArguments()
+    {
+        $validation = $this->getReference('validation_no_args');
+        $data = [
+            'srs' => "EPSG:2154",
+        ];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/' . $validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(400, $this->client);
+        $this->assertEquals('Arguments [model] are required', $json['error']);
+    }
+
+    /**
+     * Updating arguments, with arguments that are unknown, deprecated or unauthorized
+     */
+    public function testUpdateArgumentsUnknownParameters()
+    {
+        $validation = $this->getReference('validation_no_args');
+
+        $data = [
+            'srs' => "EPSG:2154",
+            'model' => "https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
+            'unknown-arg',
+        ];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/' . $validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(400, $this->client);
+        $this->assertEquals('Argument [unknown-arg] is unknown', $json['error']);
+    }
+
+    /**
+     * Updating arguments with invalid boolean values
+     */
+    public function testUpdateArgumentsInvalidBoolean()
+    {
+        $validation = $this->getReference('validation_no_args');
+
+        $data = [
+            'srs' => "EPSG:2154",
+            'model' => "https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
+            'normalize' => 'vrai',
+        ];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/' . $validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(400, $this->client);
+        $this->assertEquals('Argument [normalize] must be a valid boolean value', $json['error']);
+    }
+
+    /**
+     * Updating arguments with invalid/unaccepted/unknown projection
+     */
+    public function testUpdateArgumentsUnknownProjection()
+    {
+        $validation = $this->getReference('validation_no_args');
+
+        $data = [
+            'srs' => "EPSG:9999",
+            'model' => "https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
+        ];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/' . $validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(400, $this->client);
+        $this->assertEquals('Projection [EPSG:9999] is not accepted by validator', $json['error']);
+    }
+
+    /**
+     * Updating arguments but validation already archived
+     */
+    public function testUpdateArgumentsValArchived()
+    {
+        $validation = $this->getReference('validation_archived');
+
+        $data = ['arguments' => "-s EPSG:2154 -m https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/' . $validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(403, $this->client);
+        $this->assertEquals('Validation has been archived', $json['error']);
     }
 }

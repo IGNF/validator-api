@@ -14,8 +14,6 @@ info:
     url: "http://www.cecill.info/licences/Licence_CeCILL-B_V1-fr.html"
 host: "https://api.ign.fr/validator-api"
 servers:
-  - url: http://192.168.202.55:5000/
-  - url: http://localhost/validator-api
   - url: https://api.ign.fr/validator-api
 basePath: "v1"
 tags:

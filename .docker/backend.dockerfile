@@ -30,8 +30,14 @@ COPY .docker/php.ini /usr/local/etc/php/conf.d/app.ini
 RUN apt-get install -y libpq-dev \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pdo pdo_pgsql pgsql
-# RUN docker-php-ext-install xdebug
-# RUN docker-php-ext-enable xdebug
+
+# Needed for pecl to succeed
+RUN pear config-set php_ini /usr/local/etc/php/conf.d/app.ini
+RUN if [ "${http_proxy}" != "" ]; then \
+    pear config-set http_proxy ${http_proxy} \
+    ;fi
+RUN pecl install xdebug-2.8.1 \
+    && docker-php-ext-enable xdebug
 
 RUN apt-get install -y \
     libzip-dev \

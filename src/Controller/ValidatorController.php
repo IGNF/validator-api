@@ -229,18 +229,23 @@ class ValidatorController extends AbstractController
         $validatorArguments = $this->loadValidatorArguments();
 
         // checking for required arguments
+        $req = [];
         foreach ($validatorArguments as $arg) {
             if ($arg['required']) {
                 if (!array_key_exists($arg['name'], $arguments)) {
-                    throw new BadRequestHttpException(sprintf("Argument [%s] is required", $arg['name']));
+                    array_push($req, $arg['name']);
                 }
             }
+        }
+
+        if (count($req) > 0) {
+            throw new BadRequestHttpException(sprintf("Arguments [%s] are required", implode(', ', $req)));
         }
 
         foreach ($arguments as $argName => $arg) {
             // checking for unknown arguments
             if (!array_key_exists($argName, $validatorArguments)) {
-                throw new BadRequestHttpException(sprintf("Argument [%s] is unknown", $argName));
+                throw new BadRequestHttpException(sprintf("Argument [%s] is unknown", $arg));
             }
 
             // checking for boolean arguments

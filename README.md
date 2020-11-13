@@ -15,7 +15,7 @@ L'APIsation de l'outil [Validator](https://github.com/IGNF/validator), developp√
 
 ## Docker-Compose
 
-<img src="doc/images/architecture.svg" alt="architecture"/>
+<img src="doc/images/architecture.jpg" alt="architecture"/>
 
 L'application est compos√©e de :
 ```yml

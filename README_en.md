@@ -15,7 +15,7 @@ APIsation of [Validator](https://github.com/IGNF/validator), a tool developed by
 
 ## Docker-Compose
 
-<img src="doc/images/architecture.svg" alt="architecture"/>
+<img src="doc/images/architecture.jpg" alt="architecture"/>
 
 This application is composed of:
 ```yml
