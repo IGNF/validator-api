@@ -26,3 +26,5 @@ validator-debug.log
 
 /tests/TempData/*
 /*.lock
+
+validator-cli.jar

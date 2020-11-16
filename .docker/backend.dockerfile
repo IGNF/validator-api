@@ -66,5 +66,5 @@ RUN apt-get install -y gdal-bin && \
 # COPY . .
 #RUN make compile-app
 
-# RUN chown -R www-data .
-# RUN chmod 777 -R .
+RUN chown -R www-data .
+RUN chmod 777 -R .

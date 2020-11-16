@@ -93,6 +93,9 @@ HTTPS_PROXY=
 5. Créer la base de données : `php bin/console doctrine:database:create --if-not-exists`
 6. Mettre à jour le schéma de la base de données : `echo yes | php bin/console doctrine:migrations:migrate`
 7. Compiler les assets: `yarn encore dev` *ou `yarn encore production --progress`*
+8. Télécharger l'outil Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
+
+> La version actuelle de l'API est compatible avec validator v4.0.4.
 
 # Tests
 
@@ -150,4 +153,5 @@ HTTPS_PROXY=
 3. Installer les dépendances PHP : `composer update`
 4. Créer la base de données : `php bin/console --env=test doctrine:database:create --if-not-exists`
 5. Mettre à jour le schéma de la base de donnnées : `php bin/console --env=test doctrine:migrations:migrate --no-interaction`
-6. Lancer les tests : `vendor/bin/simple-phpunit`
+6. Télécharger l'outil Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
+7. Lancer les tests : `vendor/bin/simple-phpunit`
