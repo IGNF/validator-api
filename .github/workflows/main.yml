@@ -1,0 +1,36 @@
+name: build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        env: 
+          DATABASE_URL: postgresql://postgres:postgres@validator-api_postgres_1:4000/validator-api?serverVersion=10&charset=utf8
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: validator-api
+        
+      - name: launch docker containers
+        run: docker-compose -f docker-compose.test.yml up -d --build
+
+      - name: install dependencies
+        run: docker exec -it validator-api_backend_test_1 composer update
+        
+      - name: update db schema
+        run: |
+          docker exec -it validator-api_backend_test_1 php bin/console --env=test doctrine:database:create --if-not-exists
+          docker exec -it validator-api_backend_test_1 php bin/console --env=test doctrine:migrations:migrate --no-interaction
+        
+      - name: fetch validator-cli.jar
+        run: docker exec -it validator-api_backend_test_1 ./download-validator.sh 4.0.4
+
+      - name: launch tests
+        run: docker exec -it validator-api_backend_test_1 vendor/bin/simple-phpunit
