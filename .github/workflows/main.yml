@@ -17,14 +17,15 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: validator-api
-        
-      - name: .env.test
-        run : |
-          echo "DATABASE_URL="$DATABASE_URL > .env.test
-          echo "POSTGRES_USER="$POSTGRES_USER >> .env.test
-          echo "POSTGRES_PASSWORD="$POSTGRES_PASSWORD >> .env.test
-          echo "POSTGRES_DB="$POSTGRES_DB >> .env.test
-          cat .env.test
+          
+      - name: create .env.test file
+        uses: SpicyPizza/create-envfile@v1
+        with:
+          envkey_DATABASE_URL: $DATABASE_URL
+          envkey_POSTGRES_USER: $POSTGRES_USER
+          envkey_POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+          envkey_POSTGRES_DB: $POSTGRES_DB
+          file_name: .env.test
           
       - name: launch docker containers
         run: docker-compose -f docker-compose.test.yml up -d --build
@@ -32,10 +33,11 @@ jobs:
       - name: install dependencies
         run: docker exec validator-api_backend_test_1 composer update
         
+      - name: create db
+        run: docker exec validator-api_backend_test_1 php bin/console --env=test doctrine:database:create --if-not-exists
+          
       - name: update db schema
-        run: |
-          docker exec validator-api_backend_test_1 php bin/console --env=test doctrine:database:create --if-not-exists
-          docker exec validator-api_backend_test_1 php bin/console --env=test doctrine:migrations:migrate --no-interaction
+        run: docker exec validator-api_backend_test_1 php bin/console --env=test doctrine:migrations:migrate --no-interaction
         
       - name: fetch validator-cli.jar
         run: docker exec validator-api_backend_test_1 ./download-validator.sh 4.0.4
