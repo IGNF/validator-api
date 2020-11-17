@@ -30,15 +30,15 @@ jobs:
         run: docker-compose -f docker-compose.test.yml up -d --build
 
       - name: install dependencies
-        run: docker exec -it validator-api_backend_test_1 composer update
+        run: docker exec validator-api_backend_test_1 composer update
         
       - name: update db schema
         run: |
-          docker exec -it validator-api_backend_test_1 php bin/console --env=test doctrine:database:create --if-not-exists
-          docker exec -it validator-api_backend_test_1 php bin/console --env=test doctrine:migrations:migrate --no-interaction
+          docker exec validator-api_backend_test_1 php bin/console --env=test doctrine:database:create --if-not-exists
+          docker exec validator-api_backend_test_1 php bin/console --env=test doctrine:migrations:migrate --no-interaction
         
       - name: fetch validator-cli.jar
-        run: docker exec -it validator-api_backend_test_1 ./download-validator.sh 4.0.4
+        run: docker exec validator-api_backend_test_1 ./download-validator.sh 4.0.4
 
       - name: launch tests
-        run: docker exec -it validator-api_backend_test_1 vendor/bin/simple-phpunit
+        run: docker exec validator-api_backend_test_1 vendor/bin/simple-phpunit
