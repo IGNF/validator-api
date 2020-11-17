@@ -16,7 +16,7 @@ jobs:
       - name: create .env.test file
         run: |
           touch .env.test
-          echo "DATABASE_URL=postgresql://postgres:postgres@validator-api_postgres_1:4000/validator-api?serverVersion=10&charset=utf8" >> .env.test
+          echo "DATABASE_URL=postgresql://postgres:postgres@localhost:4040/validator-api?serverVersion=10&charset=utf8" >> .env.test
           echo "POSTGRES_USER=postgres" >> .env.test
           echo "POSTGRES_PASSWORD=postgres" >> .env.test
           echo "POSTGRES_DB=validator-api" >> .env.test
