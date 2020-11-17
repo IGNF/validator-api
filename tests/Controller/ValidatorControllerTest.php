@@ -275,7 +275,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
-        $arguments = json_decode($json['arguments'], true);
+        $arguments = $json['arguments'];
 
         $this->assertStatusCode(200, $this->client);
         $this->assertSame($data, $arguments);

@@ -150,12 +150,12 @@ class Validation
         return $this;
     }
 
-    public function getArguments(): ?string
+    public function getArguments()
     {
         return $this->arguments;
     }
 
-    public function setArguments(string $arguments): self
+    public function setArguments($arguments): self
     {
         $this->arguments = $arguments;
 

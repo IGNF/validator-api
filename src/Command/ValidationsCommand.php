@@ -111,7 +111,7 @@ class ValidationsCommand extends Command
     private function reconstructArgs()
     {
         $args = [];
-        $arguments = \json_decode($this->validation->getArguments(), true);
+        $arguments = $this->validation->getArguments();
 
         foreach ($arguments as $key => $value) {
             if (!$value || $value == '' || $value == null) {

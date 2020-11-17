@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Validation;
+use App\Exception\ValidatorArgumentException;
+use App\Service\ValidatorArgumentsService;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,10 +23,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class ValidatorController extends AbstractController
 {
     private $projectDir;
+    private $valArgsService;
 
-    public function __construct($projectDir)
+    public function __construct($projectDir, ValidatorArgumentsService $valArgsService)
     {
         $this->projectDir = $projectDir;
+        $this->valArgsService = $valArgsService;
     }
 
     /**
@@ -147,8 +151,7 @@ class ValidatorController extends AbstractController
                 throw new AccessDeniedHttpException("Validation has been archived");
             }
 
-            $arguments = $this->checkArguments($data);
-            $arguments = json_encode($arguments, \JSON_UNESCAPED_UNICODE);
+            $arguments = $this->valArgsService->validate($data);
 
             $validation->reset();
             $validation->setArguments($arguments);
@@ -167,10 +170,10 @@ class ValidatorController extends AbstractController
 
         } catch (NotFoundHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
-        } catch (BadRequestHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         } catch (AccessDeniedHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_FORBIDDEN);
+        } catch (BadRequestHttpException | ValidatorArgumentException $ex) {
+            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
 
     }
@@ -215,89 +218,5 @@ class ValidatorController extends AbstractController
         } catch (BadRequestHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
-    }
-
-    /**
-     * Returns the arguments in an associated array if they pass verification
-     *
-     * @param string $arguments
-     * @return array[string]
-     * @throws BadRequestHttpException
-     */
-    private function checkArguments($arguments)
-    {
-        $validatorArguments = $this->loadValidatorArguments();
-
-        // checking for required arguments
-        $req = [];
-        foreach ($validatorArguments as $arg) {
-            if ($arg['required']) {
-                if (!array_key_exists($arg['name'], $arguments)) {
-                    array_push($req, $arg['name']);
-                }
-            }
-        }
-
-        if (count($req) > 0) {
-            throw new BadRequestHttpException(sprintf("Arguments [%s] are required", implode(', ', $req)));
-        }
-
-        foreach ($arguments as $argName => $arg) {
-            // checking for unknown arguments
-            if (!array_key_exists($argName, $validatorArguments)) {
-                throw new BadRequestHttpException(sprintf("Argument [%s] is unknown", $arg));
-            }
-
-            // checking for boolean arguments
-            if ($validatorArguments[$argName]['type'] == 'boolean' && !\is_bool($arg)) {
-                throw new BadRequestHttpException(sprintf("Argument [%s] must be a valid boolean value", $argName));
-            }
-        }
-
-        // checking srs argument
-        $projections = $this->loadValidatorProjections();
-        if (!in_array($arguments['srs'], $projections)) {
-            throw new BadRequestHttpException(sprintf("Projection [%s] is not accepted by validator", $arguments['srs']));
-        }
-
-        return $arguments;
-    }
-
-    /**
-     * Returns the accepted validator arguments in an array
-     *
-     * @return array[mixed]
-     */
-    private function loadValidatorArguments()
-    {
-        // reading from arguments config file
-        $temp = \json_decode(\file_get_contents(dirname(__FILE__) . '/../../resources/validator-arguments.json'), true);
-        $validatorArguments = [];
-
-        foreach ($temp as $value) {
-            $validatorArguments[$value['name']] = $value;
-        }
-        unset($temp);
-
-        return $validatorArguments;
-    }
-
-    /**
-     * Returns the projections accepted by validator in an array
-     *
-     * @return array[mixed]
-     */
-    private function loadValidatorProjections()
-    {
-        // reading from projections config file
-        $temp = \json_decode(\file_get_contents(dirname(__FILE__) . '/../../resources/projection.json'), true);
-        $projections = [];
-
-        foreach ($temp as $value) {
-            \array_push($projections, $value['code']);
-        }
-        unset($temp);
-
-        return $projections;
     }
 }

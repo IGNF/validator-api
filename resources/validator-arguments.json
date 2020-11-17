@@ -1,87 +1,36 @@
-[
-  {
-    "name": "data-extent",
-    "type": "string",
-    "required": false
-  },
-  {
-    "name": "dgpr-safe-simplify",
-    "type": "boolean",
-    "required": false
-  },
-  {
-    "name": "dgpr-simplify",
-    "type": "string",
-    "required": false
-  },
-  {
-    "name": "dgpr-tolerance",
-    "type": "string",
-    "required": false
-  },
-  {
-    "name": "flat",
-    "type": "boolean",
-    "required": false
-  },
-  {
-    "name": "model",
+{
+  "model": {
     "type": "string",
     "required": true
   },
-  {
-    "name": "max-errors",
-    "type": "string",
-    "required": false
-  },
-  {
-    "name": "normalize",
-    "type": "boolean",
-    "required": false
-  },
-  {
-    "name": "plugins",
-    "type": "string",
-    "required": false
-  },
-  {
-    "name": "srs",
+  "srs": {
     "type": "string",
     "required": true
   },
-  {
-    "name": "string-all",
+  "data-extent": {
     "type": "string",
     "required": false
   },
-  {
-    "name": "string-escape-charset",
+  "max-errors": {
+    "type": "string",
+    "required": false,
+    "default_value": 50,
+    "override_allowed": true
+  },
+  "normalize": {
+    "type": "string",
+    "required": false,
+    "default_value": true,
+    "override_allowed": true
+  },
+  "plugins": {
     "type": "string",
     "required": false
   },
-  {
-    "name": "string-escape-controls",
-    "type": "boolean",
-    "required": false
-  },
-  {
-    "name": "string-fix-utf8",
-    "type": "boolean",
-    "required": false
-  },
-  {
-    "name": "string-simplify-charset",
+  "encoding": {
     "type": "string",
-    "required": false
-  },
-  {
-    "name": "string-simplify-common",
-    "type": "boolean",
-    "required": false
-  },
-  {
-    "name": "encoding",
-    "type": "string",
-    "required": false
+    "required": false,
+    "default_value": "UTF-8",
+    "override_allowed": false
   }
-]
+}
