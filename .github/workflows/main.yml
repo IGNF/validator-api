@@ -18,6 +18,14 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: validator-api
         
+      - name: .env.test
+        run : |
+          echo "DATABASE_URL="$DATABASE_URL > .env.test
+          echo "POSTGRES_USER="$POSTGRES_USER >> .env.test
+          echo "POSTGRES_PASSWORD="$POSTGRES_PASSWORD >> .env.test
+          echo "POSTGRES_DB="$POSTGRES_DB >> .env.test
+          cat .env.test
+          
       - name: launch docker containers
         run: docker-compose -f docker-compose.test.yml up -d --build
 
