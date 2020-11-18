@@ -18,7 +18,7 @@
     "override_allowed": true
   },
   "normalize": {
-    "type": "string",
+    "type": "boolean",
     "required": false,
     "default_value": true,
     "override_allowed": true

@@ -4,6 +4,7 @@ namespace App\Tests\Controller;
 
 use App\DataFixtures\ValidationsFixtures;
 use App\Entity\Validation;
+use App\Service\ValidatorArgumentsService;
 use App\Test\WebTestCase;
 use Liip\TestFixturesBundle\Test\FixturesTrait;
 use Symfony\Component\Filesystem\Filesystem;
@@ -20,6 +21,8 @@ class ValidatorControllerTest extends WebTestCase
     private $fs;
     private $em;
 
+    private $valArgsService;
+
     public function setUp(): void
     {
         static::ensureKernelShutdown();
@@ -31,6 +34,8 @@ class ValidatorControllerTest extends WebTestCase
         $this->fixtures = $this->loadFixtures([
             ValidationsFixtures::class,
         ]);
+
+        $this->valArgsService = new ValidatorArgumentsService(__DIR__ . '/../..');
     }
 
     public function tearDown(): void
@@ -261,7 +266,6 @@ class ValidatorControllerTest extends WebTestCase
             'srs' => "EPSG:2154",
             'model' => "https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
             'normalize' => true,
-            'flat' => false,
         ];
 
         $this->client->request(
@@ -272,6 +276,8 @@ class ValidatorControllerTest extends WebTestCase
             ['CONTENT_TYPE' => 'application/json'],
             json_encode($data)
         );
+
+        $data = $this->valArgsService->validate($data);
 
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
@@ -386,8 +392,11 @@ class ValidatorControllerTest extends WebTestCase
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
 
+        $reqArgs = $this->valArgsService->getRequiredArgs();
+        $expError = sprintf('Arguments [%s] are required', \implode(', ', \array_keys($reqArgs)));
+
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals('Arguments [model] are required', $json['error']);
+        $this->assertEquals($expError, $json['error']);
     }
 
     /**
@@ -400,7 +409,7 @@ class ValidatorControllerTest extends WebTestCase
         $data = [
             'srs' => "EPSG:2154",
             'model' => "https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
-            'unknown-arg',
+            'foo' => 'bar',
         ];
 
         $this->client->request(
@@ -416,7 +425,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals('Argument [unknown-arg] is unknown', $json['error']);
+        $this->assertEquals('Argument [foo] is unknown', $json['error']);
     }
 
     /**
@@ -445,7 +454,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals('Argument [normalize] must be a valid boolean value', $json['error']);
+        $this->assertEquals('Argument [normalize] is not a valid boolean value', $json['error']);
     }
 
     /**
@@ -473,7 +482,64 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals('Projection [EPSG:9999] is not accepted by validator', $json['error']);
+        $this->assertEquals('The provided srid [EPSG:9999] is not accepted by validator', $json['error']);
+    }
+
+    /**
+     * Updating arguments with invalid model url
+     */
+    public function testUpdateArgumentsInvalidModelUrl()
+    {
+        $validation = $this->getReference('validation_no_args');
+
+        $data = [
+            'srs' => "EPSG:2154",
+            'model' => "qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
+        ];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/' . $validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(400, $this->client);
+        $this->assertEquals(sprintf("The provided model url [%s] is not valid", $data['model']), $json['error']);
+    }
+
+    /**
+     * Updating arguments: trying to override a default value that's not allowed
+     */
+    public function testUpdateArgumentsOverrideNotAllowed()
+    {
+        $validation = $this->getReference('validation_no_args');
+
+        $data = [
+            'srs' => "EPSG:2154",
+            'model' => "https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
+            'encoding' => 'LATIN1',
+        ];
+
+        $this->client->request(
+            'PATCH',
+            '/validator/validations/' . $validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $response = $this->client->getResponse();
+        $json = \json_decode($response->getContent(), true);
+
+        $this->assertStatusCode(400, $this->client);
+        $this->assertEquals(sprintf("Overriding argument [%s] is not allowed", 'encoding'), $json['error']);
     }
 
     /**

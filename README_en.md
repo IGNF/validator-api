@@ -96,6 +96,7 @@ HTTPS_PROXY=
 6. Update database schema: `echo yes | php bin/console doctrine:migrations:migrate`
 7. Compile assets: `yarn encore dev` *or `yarn encore production --progress`*
 8. Download Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
+9. Check the Validator arguments configuration : `php bin/console app:args-config-check`
 
 > The current version of the API is compatible with validator v4.0.4.
 
@@ -155,4 +156,5 @@ HTTPS_PROXY=
 4. Create database: `php bin/console --env=test doctrine:database:create --if-not-exists`
 5. Update database schema: `php bin/console --env=test doctrine:migrations:migrate --no-interaction`
 6. Download Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
-7. Launch tests: `vendor/bin/simple-phpunit`
+7. Check the Validator arguments configuration : `php bin/console --env=test app:args-config-check`
+8. Launch tests: `vendor/bin/simple-phpunit`

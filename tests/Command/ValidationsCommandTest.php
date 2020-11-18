@@ -73,6 +73,8 @@ class ValidationsCommandTest extends WebTestCase
         $commandTester = new CommandTester($command);
         $statusCode = $commandTester->execute([]);
 
+        $this->assertEquals(0, $statusCode);
+
         $valWithArgs2 = $this->getReference('validation_with_args_2');
         $validation = $repo->findOneByUid($valWithArgs2->getUid());
 
@@ -81,5 +83,12 @@ class ValidationsCommandTest extends WebTestCase
         $this->assertNotNull($validation->getDateStart());
         $this->assertNotNull($validation->getDateFinish());
         $this->assertNull($validation->getResults());
+
+        // no validation pending, the command should exit right away
+        $command = $application->find('app:validations');
+        $commandTester = new CommandTester($command);
+        $statusCode = $commandTester->execute([]);
+
+        $this->assertEquals(0, $statusCode);
     }
 }

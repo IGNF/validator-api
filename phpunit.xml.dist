@@ -23,8 +23,11 @@
 
             <exclude>
                 <directory suffix=".php">src/Test</directory>
-                <file>src/Controller/DefaultController.php</file>
                 <file>src/Kernel.php</file>
+                <file>src/.preload.php</file>
+                <file>src/Controller/DefaultController.php</file>
+                <file>src/Command/ArgsConfigCheckCommand.php</file>
+                <file>src/Exception/ValidatorArgumentException.php</file>
             </exclude>
         </whitelist>
     </filter>

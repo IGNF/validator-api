@@ -27,14 +27,45 @@ class ValidatorArgumentsService
     }
 
     /**
+     * Checks the config of the arguments in the config file
+     * Called during deployment by the command app:args-config-check
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function checkConfig()
+    {
+        foreach ($this->args as $argName => $arg) {
+            if (!\array_key_exists('type', $arg)) {
+                throw new \Exception(sprintf("[type] is not specified for the argument [%s]", $argName));
+            }
+
+            if (!\array_key_exists('required', $arg)) {
+                throw new \Exception(sprintf("[required] is not specified for the argument [%s]", $argName));
+            }
+
+            if (\array_key_exists('default_value', $arg) && !\array_key_exists('override_allowed', $arg)) {
+                throw new \Exception(sprintf("[default_value] or [override_allowed] is not specified for the argument [%s], either both or none of these two shoule be specified", $argName));
+            }
+
+            if (\array_key_exists('override_allowed', $arg) && !\array_key_exists('default_value', $arg)) {
+                throw new \Exception(sprintf("[default_value] or [override_allowed] is not specified for the argument [%s], either both or none of these two should be specified", $argName));
+            }
+        }
+    }
+
+    /**
      * Validates the arguments posted by the user
      *
      * @param array[mixed] $postedArgs
      * @return array[mixed]
+     * @throws ValidatorArgumentException
      */
     public function validate($postedArgs)
     {
         $this->validateRequiredArgs($postedArgs);
+        $this->validateUnknownArgs($postedArgs);
+        $this->validateBooleanArgs($postedArgs);
         $defaultValues = $this->validateArgsDefault($postedArgs);
 
         // validating specific arguments
@@ -57,6 +88,7 @@ class ValidatorArgumentsService
      *
      * @param array[mixed] $postedArgs
      * @return void
+     * @throws ValidatorArgumentException
      */
     private function validateRequiredArgs($postedArgs)
     {
@@ -70,11 +102,46 @@ class ValidatorArgumentsService
     }
 
     /**
+     * Checks if an unknown argument is posted
+     *
+     * @param array[mixed] $postedArgs
+     * @return void
+     * @throws ValidatorArgumentException
+     */
+    private function validateUnknownArgs($postedArgs)
+    {
+        foreach ($postedArgs as $argName => $arg) {
+            if (!array_key_exists($argName, $this->args)) {
+                throw new ValidatorArgumentException(\sprintf("Argument [%s] is unknown", $argName));
+            }
+        }
+    }
+
+    /**
+     * Checks if the boolean arguments values are correct
+     *
+     * @param array[mixed] $postedArgs
+     * @return void
+     * @throws ValidatorArgumentException
+     */
+    private function validateBooleanArgs($postedArgs)
+    {
+        $boolArgs = $this->getBooleanArgs();
+
+        foreach ($postedArgs as $argName => $arg) {
+            if (array_key_exists($argName, $boolArgs) && !\is_bool($arg)) {
+                throw new ValidatorArgumentException(\sprintf("Argument [%s] is not a valid boolean value", $argName));
+            }
+        }
+    }
+
+    /**
      * Checks if arguments with a default value are overridden, error if override_allowed is false
      * Returns an array with default values
      *
      * @param array[mixed] $postedArgs
      * @return void
+     * @throws ValidatorArgumentException
      */
     private function validateArgsDefault($postedArgs)
     {
@@ -105,10 +172,22 @@ class ValidatorArgumentsService
      *
      * @return array[mixed]
      */
-    private function getRequiredArgs()
+    public function getRequiredArgs()
     {
         return array_filter($this->args, function ($arg) {
             return $arg['required'];
+        });
+    }
+
+    /**
+     * Returns only the boolean type arguments
+     *
+     * @return array[mixed]
+     */
+    public function getBooleanArgs()
+    {
+        return array_filter($this->args, function ($arg) {
+            return $arg['type'] == 'boolean';
         });
     }
 

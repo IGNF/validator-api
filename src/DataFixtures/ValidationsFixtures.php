@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Validation;
+use App\Service\ValidatorArgumentsService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Filesystem\Filesystem;
@@ -16,6 +17,7 @@ class ValidationsFixtures extends Fixture
     public function load(ObjectManager $em)
     {
         $fs = new Filesystem();
+        $valArgsService = new ValidatorArgumentsService(dirname(__FILE__) . '/../..');
 
         // a validation with no args
         $validation = new Validation();
@@ -38,10 +40,10 @@ class ValidationsFixtures extends Fixture
 
         // a validation with args
         $args = [
-            's' => 'EPSG:2154',
-            'm' => 'https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json',
+            'srs' => 'EPSG:2154',
+            'model' => 'https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json',
         ];
-        $args = json_encode($args, \JSON_UNESCAPED_UNICODE);
+        $args = $valArgsService->validate($args);
 
         $valWithArgs = new Validation();
         $valWithArgs->setDatasetName(str_replace('.zip', '', $this::FILENAME));
@@ -53,12 +55,12 @@ class ValidationsFixtures extends Fixture
 
         $this->addReference('validation_with_args', $valWithArgs);
 
-        // a validation with args, the model_url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed
+        // a validation with args, the model url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed
         $args = [
-            's' => 'EPSG:2154',
-            'm' => 'https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017-test.json',
+            'srs' => 'EPSG:2154',
+            'model' => 'https://qlf-www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017-test.json',
         ];
-        $args = json_encode($args, \JSON_UNESCAPED_UNICODE);
+        $args = $valArgsService->validate($args);
 
         $valWithArgs2 = new Validation();
         $valWithArgs2->setDatasetName(str_replace('.zip', '', $this::FILENAME));
