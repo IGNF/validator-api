@@ -14,3 +14,8 @@ script:
   - docker exec -it validator-api_backend_test_1 php bin/console --env=test app:args-config-check
   - docker exec -it validator-api_backend_test_1 ./download-validator.sh 4.0.4
   - docker exec -it validator-api_backend_test_1 vendor/bin/simple-phpunit
+
+addons:
+  apt:
+    packages:
+      - docker-ce
