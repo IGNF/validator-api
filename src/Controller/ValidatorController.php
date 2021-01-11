@@ -219,4 +219,44 @@ class ValidatorController extends AbstractController
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
+
+    /**
+     * @Route(
+     *      "/{uid}",
+     *      name="validator_api_download_normalized_data",
+     *      methods={"GET"}
+     * )
+     */
+    public function downloadNormalizedData(Request $request, $uid)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $repository = $em->getRepository(Validation::class);
+
+        try {
+            if (!$uid) {
+                throw new BadRequestHttpException("Argument [uid] is missing");
+            }
+
+            $validation = $repository->findOneByUid($uid);
+            if (!$validation) {
+                throw new NotFoundHttpException("No record found for uid=$uid");
+
+            }
+
+            if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
+                throw new AccessDeniedHttpException("Validation has been archived");
+            }
+
+            if ($validation->getStatus() != Validation::STATUS_FINISHED) {
+                throw new AccessDeniedHttpException("Validation failed, no normalized data");
+            }
+
+        } catch (NotFoundHttpException $ex) {
+            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
+        } catch (AccessDeniedHttpException $ex) {
+            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_FORBIDDEN);
+        } catch (BadRequestHttpException | ValidatorArgumentException $ex) {
+            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        }
+    }
 }

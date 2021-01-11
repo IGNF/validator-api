@@ -1,8 +1,9 @@
 # validator-api
 
+[![Build Status](https://www.travis-ci.com/IGNF/validator-api.svg?token=ySb1qBwxk52MJ5wTwUuj&branch=master)](https://www.travis-ci.com/IGNF/validator-api)
 # About
 
-APIsation of [Validator](https://github.com/IGNF/validator), a tool developed by [IGNfab (IGN)](https://www.ign.fr/ignfab), that allows to validate and normalize datasets according to a file mapping and a FeatureCatalog. [Learn more](https://github.com/IGNF/validator).
+APIsation of [Validator](https://github.com/IGNF/validator), a tool that allows to validate and normalize datasets according to a file mapping and a FeatureCatalog. [Learn more](https://github.com/IGNF/validator).
 
 # Installation/deployment
 
@@ -93,7 +94,7 @@ HTTPS_PROXY=
 3. Install PHP dependencies: `composer update` *or `composer update --no-dev`*
 4. Install JavaScript dependencies: `yarn install` *or `yarn install --production`*
 5. Create database: `php bin/console doctrine:database:create --if-not-exists`
-6. Update database schema: `echo yes | php bin/console doctrine:migrations:migrate`
+6. Update database schema: `php bin/console doctrine:migrations:migrate --no-interaction`
 7. Compile assets: `yarn encore dev` *or `yarn encore production --progress`*
 8. Download Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
 9. Check the Validator arguments configuration : `php bin/console app:args-config-check`
@@ -101,6 +102,10 @@ HTTPS_PROXY=
 > The current version of the API is compatible with validator v4.0.4.
 
 # Testing
+
+## Testing data
+
+> Config: https://ocruze.github.io/fileserver/config/cnig_CC_2017.json
 
 ## Docker-Compose
 

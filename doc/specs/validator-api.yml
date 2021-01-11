@@ -2,7 +2,7 @@ openapi: "3.0.0"
 
 info:
   description: >
-    APIsation de l'outil [Validator](https://github.com/IGNF/validator), développé par IGNfab de l'IGN, qui permet de valider et normaliser les données présentes dans une arborescence de fichiers.
+    APIsation de l'outil [Validator](https://github.com/IGNF/validator), outil permettant de valider et normaliser les données présentes dans une arborescence de fichiers.
 
   version: "1.0.0"
   title: "API Validator"

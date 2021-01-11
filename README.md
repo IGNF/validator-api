@@ -1,8 +1,9 @@
 # validator-api
 
+[![Build Status](https://www.travis-ci.com/IGNF/validator-api.svg?token=ySb1qBwxk52MJ5wTwUuj&branch=master)](https://www.travis-ci.com/IGNF/validator-api)
 # A propos
 
-L'APIsation de l'outil [Validator](https://github.com/IGNF/validator), developpé par [IGNfab (IGN)](https://www.ign.fr/ignfab), permet de valider et de normaliser les données présentes dans une arborescence de fichiers. [En savoir plus](https://github.com/IGNF/validator).
+L'APIsation de l'outil [Validator](https://github.com/IGNF/validator), outil permettant de valider et de normaliser les données présentes dans une arborescence de fichiers. [En savoir plus](https://github.com/IGNF/validator).
 
 # Installation/déploiement
 
@@ -91,7 +92,7 @@ HTTPS_PROXY=
 3. Installer les dépendances PHP : `composer update` *ou `composer update --no-dev`*
 4. Installer les dépendances JavaScript : `yarn install` *ou `yarn install --production`*
 5. Créer la base de données : `php bin/console doctrine:database:create --if-not-exists`
-6. Mettre à jour le schéma de la base de données : `echo yes | php bin/console doctrine:migrations:migrate`
+6. Mettre à jour le schéma de la base de données : `php bin/console doctrine:migrations:migrate --no-interaction`
 7. Compiler les assets: `yarn encore dev` *ou `yarn encore production --progress`*
 8. Télécharger l'outil Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
 9. Vérifier la configuration des arguments du Validator : `php bin/console app:args-config-check`
@@ -100,6 +101,9 @@ HTTPS_PROXY=
 
 # Tests
 
+## Données de test
+
+> Config : https://ocruze.github.io/fileserver/config/cnig_CC_2017.json
 ## Docker-Compose
 
 Vu qu'on teste uniquement l'application Symfony, il suffit d'avoir ces 2 conteneurs : une pour l'application Symfony et une pour la base de données.

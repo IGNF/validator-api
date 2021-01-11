@@ -61,7 +61,7 @@ class ValidationsCommand extends Command
             $args = $this->reconstructArgs();
             $datasetDir = $this->validation->getDirectory() . '/' . $this->validation->getDatasetName();
 
-            $cmd = ['java', '-jar', $this::VALIDATOR_PATH, 'document_validator', '-i', $datasetDir];
+            $cmd = ['java', '-jar', $this::VALIDATOR_PATH, 'document_validator', '--input', $datasetDir];
             $cmd = \array_merge($cmd, $args);
 
             // decompress dataset
@@ -86,6 +86,10 @@ class ValidationsCommand extends Command
             $this->validation->setResults($results);
 
             // finalization
+            // if ($this->validation->getArguments()['normalize']) {
+            //     $this->zipNormData();
+            // }
+
             $this->validation->setStatus(Validation::STATUS_FINISHED);
 
             $this->logger->info("Validation[{uid}]: validation carried out successfully", ['uid' => $this->validation->getUid()]);
@@ -149,5 +153,23 @@ class ValidationsCommand extends Command
         } else {
             throw new \Exception("Zip decompression failed");
         }
+    }
+
+    /**
+     * Zips the generated normalized data
+     *
+     * @return void
+     * @throws Exception
+     */
+    private function zipNormData()
+    {
+        $dataDir = $this->validation->getDirectory() . '/validation/' . $this->validation->getDatasetName();
+
+        $zip = new \ZipArchive();
+        $zip->open($this->validation->getDirectory() . '/validation/' . $this->validation->getDatasetName() . '.zip', \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+        $zip->addFromString($this->validation->getDatasetName(), \file_get_contents($dataDir));
+
+        $zip->close();
     }
 }
