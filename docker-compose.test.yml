@@ -5,6 +5,7 @@ networks:
 
 services:
   backend_test:
+    container_name: validator-api_backend_test_1
     build:
       context: .
       dockerfile: .docker/backend.dockerfile
@@ -25,6 +26,7 @@ services:
     restart: unless-stopped
 
   postgres_test:
+    container_name: validator-api_postgres_test_1
     image: postgres:10
     tty: true
     env_file:
