@@ -9,8 +9,10 @@ use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -222,7 +224,7 @@ class ValidatorController extends AbstractController
 
     /**
      * @Route(
-     *      "/{uid}",
+     *      "/{uid}/download",
      *      name="validator_api_download_normalized_data",
      *      methods={"GET"}
      * )
@@ -231,6 +233,7 @@ class ValidatorController extends AbstractController
     {
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
+        $filesystem = new FileSystem();
 
         try {
             if (!$uid) {
@@ -240,16 +243,32 @@ class ValidatorController extends AbstractController
             $validation = $repository->findOneByUid($uid);
             if (!$validation) {
                 throw new NotFoundHttpException("No record found for uid=$uid");
-
             }
 
             if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
                 throw new AccessDeniedHttpException("Validation has been archived");
             }
 
-            if ($validation->getStatus() != Validation::STATUS_FINISHED) {
+            if ($validation->getStatus() == Validation::STATUS_ERROR) {
                 throw new AccessDeniedHttpException("Validation failed, no normalized data");
             }
+
+            if (in_array($validation->getStatus(), [Validation::STATUS_PENDING, Validation::STATUS_PROCESSING, Validation::STATUS_WAITING_ARGS])) {
+                throw new AccessDeniedHttpException("Validation hasn't been executed yet");
+            }
+
+            $zipFilepath = $this->projectDir . '/' . $validation->getDirectory() . '/validation/' . $validation->getDatasetName() . '.zip';
+            if (!$filesystem->exists($zipFilepath)) {
+                throw new AccessDeniedHttpException("No normalized data found for this validation");
+            }
+
+            $response = new BinaryFileResponse($zipFilepath);
+            $mimeTypes = new MimeTypes();
+
+            $response->headers->set('Content-Type', $mimeTypes->guessMimeType($zipFilepath));
+            $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $validation->getDatasetName() . ".zip");
+
+            return $response;
 
         } catch (NotFoundHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);

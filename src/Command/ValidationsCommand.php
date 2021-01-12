@@ -9,8 +9,11 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use ZipArchive;
 
 class ValidationsCommand extends Command
 {
@@ -86,9 +89,7 @@ class ValidationsCommand extends Command
             $this->validation->setResults($results);
 
             // finalization
-            // if ($this->validation->getArguments()['normalize']) {
-            //     $this->zipNormData();
-            // }
+            $this->zipNormData();
 
             $this->validation->setStatus(Validation::STATUS_FINISHED);
 
@@ -163,12 +164,25 @@ class ValidationsCommand extends Command
      */
     private function zipNormData()
     {
+        $filesystem = new Filesystem();
+        $finder = new Finder();
+
         $dataDir = $this->validation->getDirectory() . '/validation/' . $this->validation->getDatasetName();
+
+        if (!$filesystem->exists($dataDir)) {
+            return;
+        }
 
         $zip = new \ZipArchive();
         $zip->open($this->validation->getDirectory() . '/validation/' . $this->validation->getDatasetName() . '.zip', \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 
-        $zip->addFromString($this->validation->getDatasetName(), \file_get_contents($dataDir));
+        $finder->files()->in($dataDir);
+
+        foreach ($finder as $file) {
+            $fileNameWithExtension = $file->getRelativePathname();
+            $zip->addFromString($fileNameWithExtension, $file->getContents());
+
+        }
 
         $zip->close();
     }

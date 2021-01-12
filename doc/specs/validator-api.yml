@@ -137,7 +137,7 @@ paths:
                   type: string
                   description: les arguments du programme ligne de commandes Validator sous forme d'une chaîne de caractères
                   required: true
-                  example: "-s EPSG:2154 -m https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json"
+                  example: "-s EPSG:2154 -m https://ocruze.github.io/fileserver/config/cnig_CC_2017.json"
       responses:
         200:
           description: "Mise à jour réussie"

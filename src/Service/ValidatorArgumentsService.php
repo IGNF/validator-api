@@ -45,7 +45,7 @@ class ValidatorArgumentsService
             }
 
             if (\array_key_exists('default_value', $arg) && !\array_key_exists('override_allowed', $arg)) {
-                throw new \Exception(sprintf("[default_value] or [override_allowed] is not specified for the argument [%s], either both or none of these two shoule be specified", $argName));
+                throw new \Exception(sprintf("[default_value] or [override_allowed] is not specified for the argument [%s], either both or none of these two should be specified", $argName));
             }
 
             if (\array_key_exists('override_allowed', $arg) && !\array_key_exists('default_value', $arg)) {

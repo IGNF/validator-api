@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Tests\Command;
+
 use App\DataFixtures\ValidationsFixtures;
 use App\Entity\Validation;
 use App\Test\WebTestCase;
