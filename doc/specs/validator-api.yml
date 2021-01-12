@@ -100,7 +100,35 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/definitions/Error"
+                type: object
+                properties:
+                  uid:
+                    type: string
+                    example: g7258vq1t639uagbv8rg7b97
+                  dataset_name:
+                    type: string
+                    example: 130010853_PM3_60_20180516
+                  arguments:
+                    type: json
+                    example: {}
+                  date_creation:
+                    type: datetime
+                    example: "2020-10-14T17:46:54+02:00"
+                  status:
+                    type: string
+                    example: pending
+                  message:
+                    type: string
+                    example: null
+                  date_start:
+                    type: datetime
+                    example: null
+                  date_finish:
+                    type: datetime
+                    example: null
+                  results:
+                    type: string
+                    example: null
         400:
           description: "Paramètre uid manquant"
           content:
@@ -133,11 +161,47 @@ paths:
           application/json:
             schema:
               properties:
-                arguments:
+                model:
                   type: string
-                  description: les arguments du programme ligne de commandes Validator sous forme d'une chaîne de caractères
+                  description: lien vers le modèle
                   required: true
-                  example: "-s EPSG:2154 -m https://ocruze.github.io/fileserver/config/cnig_CC_2017.json"
+                  example: "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json"
+                srs:
+                  type: string
+                  description: identifiant de la projection (SRID)
+                  required: true
+                  example: "EPSG:2154"
+                data-extent:
+                  type: string
+                  description: emprise géographique
+                  required: false
+                  example: "TODO"
+                max-errors:
+                  type: integer
+                  description: nombre maximum d'erreurs acceptées
+                  required: false
+                  example: "30"
+                  default: 50
+                  override_allowed: true
+                normalize:
+                  type: boolean
+                  description: demande de normaliser les données durant la validation
+                  required: false
+                  example: true
+                  default: true
+                  override_allowed: true
+                plugins:
+                  type: string
+                  description: plugins du validator.jar à utiliser
+                  required: false
+                  example: "dgpr"
+                encoding:
+                  type: string
+                  description: encodage de données
+                  required: false
+                  example: "UTF-8"
+                  default: "UTF-8"
+                  override_allowed: false
       responses:
         200:
           description: "Mise à jour réussie"
@@ -156,8 +220,11 @@ paths:
                     type: json
                     example:
                       {
-                        "s": "EPSG:2154",
-                        "m": "http://localhost/config/cnig_SUP_PM3_2016.json",
+                        "srs": "EPSG:2154",
+                        "model": "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+                        "max-errors": 50,
+                        "normalize": true,
+                        "encoding": "UTF-8",
                       }
                   date_creation:
                     type: datetime
@@ -216,6 +283,47 @@ paths:
           content: null
         400:
           description: Paramètres uid manquant
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+        404:
+          description: Aucune demande de validation ne correspond à l'uid
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+
+  /validator/validations/{uid}/download:
+    get:
+      tags:
+        - validation
+      operationId: download_normalized_data_validation
+      summary: "Télécharger les données normalisées"
+      description: "Télécharger les données normalisées"
+      parameters:
+        - description: "Identifiant unique de la validation"
+          in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+          example: g7258vq1t639uagbv8rg7b97
+      responses:
+        200:
+          description: "Contenu téléchargeable trouvé"
+          content:
+            application/zip:
+              schema:
+                format: binary
+        400:
+          description: Le paramètre uid manquant
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+        403:
+          description: Soit la validation n'a pas encore été exécutée, elle a été archivée (plus de 30 jours dépassés depuis la création), ou bien elle a terminée en une erreur
           content:
             application/json:
               schema:
