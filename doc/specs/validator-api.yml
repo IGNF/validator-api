@@ -323,7 +323,7 @@ paths:
               schema:
                 $ref: "#/definitions/Error"
         403:
-          description: Soit la validation n'a pas encore été exécutée, elle a été archivée (plus de 30 jours dépassés depuis la création), ou bien elle a terminée en une erreur
+          description: Soit la validation n'a pas encore été exécutée, elle a été archivée (plus de 30 jours dépassés depuis la création), ou bien elle a terminé en une erreur
           content:
             application/json:
               schema:

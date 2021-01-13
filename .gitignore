@@ -28,3 +28,5 @@ validator-debug.log
 /*.lock
 
 validator-cli.jar
+
+.scannerwork
