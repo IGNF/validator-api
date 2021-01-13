@@ -193,8 +193,6 @@ class ValidatorController extends AbstractController
         $repository = $em->getRepository(Validation::class);
 
         try {
-            $data = json_decode($request->getContent(), true);
-
             if (!$uid) {
                 throw new BadRequestHttpException("Argument [uid] is missing");
             }

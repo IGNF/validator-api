@@ -79,8 +79,7 @@ class ValidatorArgumentsService
             throw new ValidatorArgumentException(sprintf("The provided model url [%s] is not valid", $postedArgs['model']));
         }
 
-        $args = array_merge($postedArgs, $defaultValues);
-        return $args;
+        return array_merge($postedArgs, $defaultValues);
     }
 
     /**
@@ -145,20 +144,23 @@ class ValidatorArgumentsService
      */
     private function validateArgsDefault($postedArgs)
     {
-        $args = array_filter($this->args, function ($arg) {
+        /**
+         * Arguments with a default value
+         */
+        $defaultArgs = array_filter($this->args, function ($arg) {
             return array_key_exists('default_value', $arg);
         });
 
         // checking if overriding the posted arguments is allowed
         foreach ($postedArgs as $argName => $arg) {
-            if (\array_key_exists($argName, $args) && !$args[$argName]['override_allowed']) {
+            if (\array_key_exists($argName, $defaultArgs) && !$defaultArgs[$argName]['override_allowed']) {
                 throw new ValidatorArgumentException(sprintf("Overriding argument [%s] is not allowed", $argName));
             }
         }
 
         // assigning default values, if not overridden by user
         $defaultValues = [];
-        foreach ($args as $argName => $arg) {
+        foreach ($defaultArgs as $argName => $arg) {
             if (!array_key_exists($argName, $postedArgs)) {
                 $defaultValues[$argName] = $arg['default_value'];
             }

@@ -33,7 +33,7 @@ class ValidationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
-        if (count($results) == 0){
+        if (empty($results)) {
             return null;
         }
 

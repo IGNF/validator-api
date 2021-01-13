@@ -246,8 +246,6 @@ class Validation
         } else {
             $directory = $this::VALIDATIONS_DIRECTORY . '/' . $this->getUid();
         }
-
-        // return \str_replace('/\\|\//', '/', $directory);
         return $directory;
     }
 
@@ -275,17 +273,17 @@ class Validation
      */
     private function generateUid($length = 24)
     {
-        $uid = "";
+        $randomUid = "";
 
         for ($i = 0; $i < $length; $i++) {
-            if (rand(1, 2) == 1) {
+            if (random_int(1, 2) == 1) {
                 // a digit between 0 and 9
-                $uid .= chr(rand(48, 57));
+                $randomUid .= chr(random_int(48, 57));
             } else {
                 // a lowercase letter between a and z
-                $uid .= chr(rand(97, 122));
+                $randomUid .= chr(random_int(97, 122));
             }
         }
-        return $uid;
+        return $randomUid;
     }
 }
