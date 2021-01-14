@@ -1,6 +1,7 @@
 # validator-api
 
 [![Build Status](https://www.travis-ci.com/IGNF/validator-api.svg?token=ySb1qBwxk52MJ5wTwUuj&branch=master)](https://www.travis-ci.com/IGNF/validator-api)
+
 # A propos
 
 L'APIsation de l'outil [Validator](https://github.com/IGNF/validator), outil permettant de valider et de normaliser les données présentes dans une arborescence de fichiers. [En savoir plus](https://github.com/IGNF/validator).
@@ -9,16 +10,17 @@ L'APIsation de l'outil [Validator](https://github.com/IGNF/validator), outil per
 
 ## Prérequis
 
- * Une distribution Linux (de préference basée sur Debian) pour la machine hôte
- * Git
- * [Docker Engine](https://docs.docker.com/engine/install/)
-   * [Configuration du serveur proxy pour docker](https://docs.docker.com/network/proxy/)
+- Une distribution Linux (de préference basée sur Debian) pour la machine hôte
+- Git
+- [Docker Engine](https://docs.docker.com/engine/install/)
+  - [Configuration du serveur proxy pour docker](https://docs.docker.com/network/proxy/)
 
 ## Docker-Compose
 
 <img src="docs/images/architecture.jpg" alt="architecture"/>
 
 L'application est composée de :
+
 ```yml
 # docker-compose.yml
 ...
@@ -61,13 +63,14 @@ volumes:
   db-data: # la persistence de données de la base de données sur la machine hôte, ça permet d'éviter la perte de données même après la suppression du conteneur
 ...
 ```
+
 > Voir le fichier [docker-compose.yml](docker-compose.yml) complet pour plus de précisions.  
 > [En savoir plus sur le scheduler](https://github.com/mcuadros/ofelia).
 
 ## Étapes
 
 1. Lancer les conteneurs docker : `docker-compose up -d --build --scale backend=2`
-> Actuellement l'application est configurée de fonctionner avec 2 instances de "backend". [Voir ici comment le modifier](docs/md/backend_multiple_instances.md).
+   > Actuellement l'application est configurée de fonctionner avec 2 instances de "backend". [Voir ici comment le modifier](docs/md/backend_multiple_instances.md).
 2. Créer à la racine du projet un fichier nommé `.env.local` contenant les informations suivantes.
 
 ```ini
@@ -83,17 +86,21 @@ http_proxy=
 https_proxy=
 HTTP_PROXY=
 HTTPS_PROXY=
+
+CORS_ALLOW_ORIGIN=
 ```
+
 > [Comment configurer la variable DATABASE_URL (documentation Symfony)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)
 
-> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_1 ...`  
-> Les commandes spécifiques à l'environnement de production sont en *italique*
+> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_1 ...`
+>
+> Les commandes spécifiques à l'environnement de production sont en _italique_
 
-3. Installer les dépendances PHP : `composer update` *ou `composer update --no-dev`*
-4. Installer les dépendances JavaScript : `yarn install` *ou `yarn install --production`*
+3. Installer les dépendances PHP : `composer update` _ou `composer update --no-dev`_
+4. Installer les dépendances JavaScript : `yarn install` _ou `yarn install --production`_
 5. Créer la base de données : `php bin/console doctrine:database:create --if-not-exists`
 6. Mettre à jour le schéma de la base de données : `php bin/console doctrine:migrations:migrate --no-interaction`
-7. Compiler les assets: `yarn encore dev` *ou `yarn encore production --progress`*
+7. Compiler les assets: `yarn encore dev` _ou `yarn encore production --progress`_
 8. Télécharger l'outil Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
 9. Vérifier la configuration des arguments du Validator : `php bin/console app:args-config-check`
 
@@ -103,7 +110,10 @@ HTTPS_PROXY=
 
 ## Données de test
 
+> Dataset : TODO
+>
 > Config : https://ocruze.github.io/fileserver/config/cnig_CC_2017.json
+
 ## Docker-Compose
 
 Vu qu'on teste uniquement l'application Symfony, il suffit d'avoir ces 2 conteneurs : une pour l'application Symfony et une pour la base de données.
@@ -130,7 +140,8 @@ services:
       - symfony
 ...
 ```
-> Voir le fichier [docker-compose.test.yml](docker-compose.test.yml) complet pour plus de précisions.  
+
+> Voir le fichier [docker-compose.test.yml](docker-compose.test.yml) complet pour plus de précisions.
 
 ## Étapes
 
@@ -154,6 +165,7 @@ HTTPS_PROXY=
 SONAR_HOST_URL=
 SONAR_TOKEN=
 ```
+
 > [Comment configurer la variable DATABASE_URL (documentation Symfony)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)
 
 > Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_test_1 ...`
@@ -171,5 +183,5 @@ SONAR_TOKEN=
 
 > Les variables d'environnement `SONAR_HOST_URL` et `SONAR_TOKEN` sont requises par Sonarqube
 
-* Installer sonar-scanner en local : `./download-sonar-scanner.sh`
-* Lancer l'analyse de code : `sonar-scanner/bin/sonar-scanner`
+- Installer sonar-scanner en local : `./download-sonar-scanner.sh`
+- Lancer l'analyse de code : `sonar-scanner/bin/sonar-scanner`

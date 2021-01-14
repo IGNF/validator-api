@@ -46,7 +46,7 @@
         auto2top: true,
         plugins: [
           EditOnGithubPlugin.create(
-            "https://github.com/IGNF/validator-api/blob/master/doc/docsify/"
+            "https://github.com/IGNF/validator-api/blob/master/docs/"
           ),
           function (hook) {
             var url = window.location.href;
@@ -54,7 +54,7 @@
 
             // if current page is the home page
             if (currentPage === "") {
-              hook.ready(function () {
+              hook.afterEach(function (html, next) {
                 // <!-- Render swagger ui -->
                 $(function () {
                   SwaggerUIBundle({
@@ -63,6 +63,7 @@
                       "https://ocruze.github.io/fileserver/swagger/validator-api.yml",
                   });
                 });
+                next(html);
               });
             }
           },
@@ -71,6 +72,9 @@
     </script>
     <!-- Docsify v4 -->
     <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+
+    <!-- Pagination -->
+    <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
 
     <!-- Light and dark theme -->
     <script
