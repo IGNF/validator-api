@@ -30,3 +30,4 @@ validator-debug.log
 validator-cli.jar
 
 .scannerwork
+sonar-scanner

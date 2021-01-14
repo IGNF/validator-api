@@ -152,6 +152,9 @@ http_proxy=
 https_proxy=
 HTTP_PROXY=
 HTTPS_PROXY=
+
+SONAR_HOST_URL=
+SONAR_TOKEN=
 ```
 > [How to configure DATABASE_URL (Symfony docs)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)
 
@@ -163,3 +166,12 @@ HTTPS_PROXY=
 6. Download Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
 7. Check the Validator arguments configuration : `php bin/console --env=test app:args-config-check`
 8. Launch tests: `vendor/bin/simple-phpunit`
+
+## Code analysis by Sonarqube
+
+> Sonarqube project config file: `sonar-project.properties`
+
+> The environment variables `SONAR_HOST_URL` and `SONAR_TOKEN` are required by Sonarqube
+
+* Install sonar-scanner: `./download-sonar-scanner.sh`
+* Launch code analysis: `sonar-scanner/bin/sonar-scanner`

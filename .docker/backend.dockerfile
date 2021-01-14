@@ -62,9 +62,6 @@ RUN echo 'export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))' >
 RUN apt-get install -y gdal-bin && \
     ogrinfo --version
 
-# (Re)-Build app
-# COPY . .
-#RUN make compile-app
 
 RUN chown -R www-data .
 RUN chmod 777 -R .
