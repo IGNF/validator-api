@@ -70,7 +70,9 @@ volumes:
 ## Étapes
 
 1. Lancer les conteneurs docker : `docker-compose up -d --build --scale backend=2`
-   > Actuellement l'application est configurée de fonctionner avec 2 instances de "backend". [Voir ici comment le modifier](docs/md/backend_multiple_instances.md).
+
+> Actuellement l'application est configurée de fonctionner avec 2 instances de "backend". [Voir ici comment le modifier](docs/development/configuration_custom.md).
+
 2. Créer à la racine du projet un fichier nommé `.env.local` contenant les informations suivantes.
 
 ```ini
