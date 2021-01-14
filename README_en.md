@@ -16,7 +16,7 @@ APIsation of [Validator](https://github.com/IGNF/validator), a tool that allows 
 
 ## Docker-Compose
 
-<img src="doc/images/architecture.jpg" alt="architecture"/>
+<img src="docs/images/architecture.jpg" alt="architecture"/>
 
 This application is composed of:
 ```yml
@@ -68,7 +68,7 @@ volumes:
 
 1. Launch docker containers: `docker-compose up -d --build --scale backend=2`
 
-> Current configuration is set to launch 2 instances of "backend". [See here how to change that](doc/md/backend_multiple_instances_en.md).
+> Current configuration is set to launch 2 instances of "backend". [See here how to change that](docs/md/backend_multiple_instances_en.md).
 
 2. Create a file named `.env.local` in the root directory of the project with the following information.
 
