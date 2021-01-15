@@ -2,7 +2,7 @@
 
 ## Architecture
 
-<img src="images/architecture.jpg" alt="architecture"/>
+<img src="development/images/architecture.jpg" alt="architecture"/>
 
 ## Composition des conteneurs Docker
 

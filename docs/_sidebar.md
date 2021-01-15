@@ -1,6 +1,13 @@
-- Usage
+- Utilisation de l'API
 
-  - [TODO](todo)
+  - Entités
+    - [Validation](usage/entities/validation.md)
+  - Routes
+    - [[POST] /validator/validations](usage/routes/validations_post_dataset.md)
+    - [[GET] /validator/validations/{uid}](usage/routes/validations_get.md)
+    - [[PATCH] /validator/validations/{uid}](usage/routes/validations_patch_arguments.md)
+    - [[DELETE] /validator/validations/{uid}](usage/routes/validations_delete.md)
+    - [[GET] /validator/validations/{uid}/download](usage/routes/validations_download_norm_data.md)
 
 - Développement
 

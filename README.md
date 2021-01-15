@@ -10,14 +10,14 @@ L'APIsation de l'outil [Validator](https://github.com/IGNF/validator), outil per
 
 ## Prérequis
 
-- Une distribution Linux (de préference basée sur Debian) pour la machine hôte
+- Une distribution Linux (de préférence basée sur Debian) pour la machine hôte
 - Git
 - [Docker Engine](https://docs.docker.com/engine/install/)
   - [Configuration du serveur proxy pour docker](https://docs.docker.com/network/proxy/)
 
 ## Docker-Compose
 
-<img src="docs/images/architecture.jpg" alt="architecture"/>
+<img src="docs/development/images/architecture.jpg" alt="architecture"/>
 
 L'application est composée de :
 
@@ -187,3 +187,11 @@ SONAR_TOKEN=
 
 - Installer sonar-scanner en local : `./download-sonar-scanner.sh`
 - Lancer l'analyse de code : `sonar-scanner/bin/sonar-scanner`
+
+# Licence
+
+Voir [LICENCE.md](LICENCE.md)
+
+# Documentation
+
+// TODO

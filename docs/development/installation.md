@@ -4,7 +4,7 @@
 
 ## Prérequis
 
-- Une distribution Linux (de préference basée sur Debian) pour la machine hôte
+- Une distribution Linux (de préférence basée sur Debian) pour la machine hôte
 - Git
 - [Docker Engine](https://docs.docker.com/engine/install/)
   - [Configuration du serveur proxy pour docker](https://docs.docker.com/network/proxy/)
