@@ -74,10 +74,10 @@ Encore
   .addPlugin(
     new CopyWebpackPlugin([
       {
-        from: "./assets/images/logo_ign_rwd.png",
-        to: "./images/logo_ign_rwd.png",
+        from: "./docs/favicon.ico",
+        to: "./../favicon.ico",
       },
-      { from: "./doc/specs/validator-api.yml", to: "./doc/specs" },
+      { from: "./docs/specs/validator-api.yml", to: "./docs/specs" },
     ])
   );
 
