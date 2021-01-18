@@ -1,6 +1,6 @@
 # validator-api
 
-[![Build Status](https://www.travis-ci.com/IGNF/validator-api.svg?token=ySb1qBwxk52MJ5wTwUuj&branch=master)](https://www.travis-ci.com/IGNF/validator-api)
+[![build](https://circleci.com/gh/IGNF/validator-api.svg?style=svg&circle-token=43352b8853c282961dfa380d8791eacae749a656)](https://circleci.com/gh/IGNF/validator-api)
 
 # A propos
 

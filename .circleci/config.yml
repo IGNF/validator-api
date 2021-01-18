@@ -37,6 +37,10 @@ jobs:
       - run:
           name: Running phpunit tests
           command: docker exec -it validator-api_backend_test_1 vendor/bin/simple-phpunit
+      - store_test_results:
+          path: public/build/code-coverage
+      - store_artifacts:
+          path: public/build/code-coverage
 
 general:
   branches:
