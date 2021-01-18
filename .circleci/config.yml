@@ -5,8 +5,7 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: circleci/php:7.3
+    machine: true
 
     steps:
       - checkout
@@ -19,7 +18,7 @@ jobs:
           command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       - run:
           name: Launching docker containers
-          command: docker-compose -f ./../docker-compose.test.yml up -d --build --remove-orphans
+          command: docker-compose -f docker-compose.test.yml up -d --build --remove-orphans
       - run:
           name: Updating PHP dependencies
           command: docker exec -it validator-api_backend_test_1 composer update --no-interaction
