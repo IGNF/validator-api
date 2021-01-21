@@ -22,6 +22,7 @@ class ValidationsCommand extends Command
 
     private $validation;
 
+    private $params;
     private $em;
     private $logger;
 
@@ -141,7 +142,7 @@ class ValidationsCommand extends Command
      * Unzips the compressed dataset
      *
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     private function unzip()
     {
@@ -160,7 +161,7 @@ class ValidationsCommand extends Command
      * Zips the generated normalized data
      *
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     private function zipNormData()
     {

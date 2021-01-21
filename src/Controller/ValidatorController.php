@@ -187,7 +187,7 @@ class ValidatorController extends AbstractController
      *      methods={"DELETE"}
      * )
      */
-    public function deleteValidation(Request $request, $uid)
+    public function deleteValidation($uid)
     {
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
@@ -227,7 +227,7 @@ class ValidatorController extends AbstractController
      *      methods={"GET"}
      * )
      */
-    public function downloadNormalizedData(Request $request, $uid)
+    public function downloadNormalizedData($uid)
     {
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);

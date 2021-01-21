@@ -48,24 +48,22 @@
           EditOnGithubPlugin.create(
             "https://github.com/IGNF/validator-api/blob/master/docs/"
           ),
-          function (hook) {
-            var url = window.location.href;
-            var currentPage = url.split("/").pop();
 
-            // if current page is the home page
-            if (currentPage === "") {
-              hook.afterEach(function (html, next) {
-                // <!-- Render swagger ui -->
-                $(function () {
-                  SwaggerUIBundle({
-                    dom_id: "#swagger-ui-container",
-                    url:
-                      "https://ocruze.github.io/fileserver/swagger/validator-api.yml",
-                  });
+          /*
+           * Swagger ui
+           */
+          function (hook) {
+            hook.afterEach(function (html, next) {
+              // Render swagger ui
+              $(function () {
+                SwaggerUIBundle({
+                  dom_id: "#swagger-ui-container",
+                  url:
+                    "https://ocruze.github.io/fileserver/swagger/validator-api.yml",
                 });
-                next(html);
               });
-            }
+              next(html);
+            });
           },
         ],
         variablesFile: "variables.json",
