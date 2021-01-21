@@ -10,7 +10,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use ZipArchive;
@@ -85,6 +84,7 @@ class ValidationsCommand extends Command
             // jsonl to json_array
             $results = \str_replace("}\n{", "},\n{", $results);
             $results = "[" . $results . "]";
+            $results = \json_decode($results, true);
 
             $this->validation->setResults($results);
 
@@ -165,25 +165,20 @@ class ValidationsCommand extends Command
     private function zipNormData()
     {
         $filesystem = new Filesystem();
-        $finder = new Finder();
 
-        $dataDir = $this->validation->getDirectory() . '/validation/' . $this->validation->getDatasetName();
+        $datasetParentDir = $this->validation->getDirectory() . '/validation/';
+        $datasetName = $this->validation->getDatasetName();
 
-        if (!$filesystem->exists($dataDir)) {
+        // checking if normalized data is present
+        if (!$filesystem->exists($datasetParentDir . $datasetName)) {
             return;
         }
 
-        $zip = new \ZipArchive();
-        $zip->open($this->validation->getDirectory() . '/validation/' . $this->validation->getDatasetName() . '.zip', \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $process = new Process("(cd $datasetParentDir && zip -r $datasetName.zip $datasetName)");
+        $process->run();
 
-        $finder->files()->in($dataDir);
-
-        foreach ($finder as $file) {
-            $fileNameWithExtension = $file->getRelativePathname();
-            $zip->addFromString($fileNameWithExtension, $file->getContents());
-
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
         }
-
-        $zip->close();
     }
 }

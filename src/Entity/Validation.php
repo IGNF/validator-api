@@ -222,12 +222,12 @@ class Validation
         return $this;
     }
 
-    public function getResults(): ?string
+    public function getResults()
     {
         return $this->results;
     }
 
-    public function setResults(?string $results): self
+    public function setResults($results)
     {
         $this->results = $results;
 

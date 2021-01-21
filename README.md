@@ -1,8 +1,6 @@
 # validator-api
 
 [![build](https://circleci.com/gh/IGNF/validator-api.svg?style=svg&circle-token=43352b8853c282961dfa380d8791eacae749a656)](https://circleci.com/gh/IGNF/validator-api)
-[![Quality Gate Status](https://sonarqube.ign.fr/api/project_badges/measure?project=collaboratif_validator_api&metric=alert_status)](https://sonarqube.ign.fr/dashboard?id=collaboratif_validator_api)
-[![Coverage](https://sonarqube.ign.fr/api/project_badges/measure?project=collaboratif_validator_api&metric=coverage)](https://sonarqube.ign.fr/dashboard?id=collaboratif_validator_api)
 
 # A propos
 
