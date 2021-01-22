@@ -62,9 +62,9 @@ class ValidationsCommand extends Command
         try {
             // preparing shell command
             $args = $this->reconstructArgs();
-            $datasetDir = $this->validation->getDirectory() . '/' . $this->validation->getDatasetName();
+            $sourceDataDir = $this->validation->getDirectory() . '/' . $this->validation->getDatasetName();
 
-            $cmd = ['java', '-jar', $this::VALIDATOR_PATH, 'document_validator', '--input', $datasetDir];
+            $cmd = ['java', '-jar', $this::VALIDATOR_PATH, 'document_validator', '--input', $sourceDataDir];
             $cmd = \array_merge($cmd, $args);
 
             // decompress dataset
@@ -73,6 +73,8 @@ class ValidationsCommand extends Command
             // executing validation program
             $this->logger->info("Validation[{uid}]: executing Java validation program", ['uid' => $this->validation->getUid()]);
             $process = new Process($cmd);
+            $process->setTimeout(600);
+            $process->setIdleTimeout(600);
             $process->run();
 
             if (!$process->isSuccessful()) {
@@ -91,6 +93,7 @@ class ValidationsCommand extends Command
 
             // finalization
             $this->zipNormData();
+            $this->cleanUp();
 
             $this->validation->setStatus(Validation::STATUS_FINISHED);
 
@@ -167,19 +170,50 @@ class ValidationsCommand extends Command
     {
         $filesystem = new Filesystem();
 
-        $datasetParentDir = $this->validation->getDirectory() . '/validation/';
+        $normDataParentDir = $this->validation->getDirectory() . '/validation/';
         $datasetName = $this->validation->getDatasetName();
 
         // checking if normalized data is present
-        if (!$filesystem->exists($datasetParentDir . $datasetName)) {
+        if (!$filesystem->exists($normDataParentDir . $datasetName)) {
             return;
         }
 
-        $process = new Process("(cd $datasetParentDir && zip -r $datasetName.zip $datasetName)");
+        $process = new Process("(cd $normDataParentDir && zip -r $datasetName.zip $datasetName)");
+        $process->setTimeout(600);
+        $process->setIdleTimeout(600);
         $process->run();
 
         if (!$process->isSuccessful()) {
             throw new ProcessFailedException($process);
+        }
+    }
+
+    /**
+     * Cleans up temporary files
+     *
+     * @return void
+     */
+    private function cleanUp()
+    {
+        $filesystem = new FileSystem();
+
+        // clean uncompressed source files
+        $sourceDataDir = $this->validation->getDirectory() . '/' . $this->validation->getDatasetName();
+
+        if ($filesystem->exists($sourceDataDir)) {
+            $filesystem->remove($sourceDataDir);
+        }
+
+        // clean uncompressed normalized data
+        $normDataDir = $this->validation->getDirectory() . '/validation/' . $this->validation->getDatasetName();
+        if ($filesystem->exists($normDataDir)) {
+            $filesystem->remove($normDataDir);
+        }
+
+        // clean validation temporary database
+        $tempDatabase = $this->validation->getDirectory() . '/validation/document_database.db';
+        if ($filesystem->exists($tempDatabase)) {
+            $filesystem->remove($tempDatabase);
         }
     }
 }
