@@ -133,14 +133,14 @@ class ValidatorController extends AbstractController
         $repository = $em->getRepository(Validation::class);
 
         try {
-            $data = json_decode($request->getContent(), true);
-
-            if (!is_array($data)) {
-                throw new BadRequestHttpException("Request body must be a valid JSON string");
-            }
+            $data = $request->getContent();
 
             if (!$uid) {
                 throw new BadRequestHttpException("Argument [uid] is missing");
+            }
+
+            if (!json_decode($data, true)) {
+                throw new BadRequestHttpException("Request body must be a valid JSON string");
             }
 
             $validation = $repository->findOneByUid($uid);
@@ -158,6 +158,7 @@ class ValidatorController extends AbstractController
             $validation->reset();
             $validation->setArguments($arguments);
             $validation->setStatus(Validation::STATUS_PENDING);
+
             $em->flush();
             $em->refresh($validation);
 
@@ -174,8 +175,10 @@ class ValidatorController extends AbstractController
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         } catch (AccessDeniedHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_FORBIDDEN);
-        } catch (BadRequestHttpException | ValidatorArgumentException $ex) {
+        } catch (BadRequestHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (ValidatorArgumentException $ex) {
+            return new JsonResponse(['error' => $ex->getMessage(), 'details' => $ex->getErrors()], JsonResponse::HTTP_BAD_REQUEST);
         }
 
     }

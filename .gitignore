@@ -27,6 +27,8 @@ validator-debug.log
 /tests/TempData/*
 /*.lock
 
+/.idea
+
 validator-cli.jar
 
 .scannerwork

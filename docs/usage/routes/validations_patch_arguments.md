@@ -8,16 +8,15 @@ Préciser les arguments et les options du programme ligne de commandes Validator
 
 ## Paramètres
 
-| Paramètre   | Type         | Type de donnée | Obligatoire | Description                                                                                                                           | Valeur par défaut | Surcharge possible |
-| ----------- | ------------ | -------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------ |
-| uid         | path         | string         | oui         | identifiant unique correspondant à une validation                                                                                     |
-| model       | payload json | string         | oui         | url vers le modèle de données                                                                                                         |
-| srs         | payload json | string         | oui         | SRID correspondant à la projection [(valeurs possibles)](https://github.com/IGNF/validator-api/blob/master/resources/projection.json) |
-| data-extent | payload json | string         | non         | emprise géographique                                                                                                                  |
-| max-errors  | payload json | integer        | non         | nombre maximum d'erreurs acceptées                                                                                                    | 50                | oui                |
-| normalize   | payload json | boolean        | non         | demande de normaliser les données durant la validation                                                                                | true              | oui                |
-| plugins     | payload json | string         | non         | plugins du validator.jar à utiliser                                                                                                   |
-| encoding    | payload json | string         | non         | encodage de données                                                                                                                   | UTF-8             | non                |
+| Paramètre  | Type         | Type de donnée | Obligatoire | Description                                                                                                                           | Valeur par défaut | Surcharge possible |
+| ---------- | ------------ | -------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------ |
+| uid        | path         | string         | oui         | identifiant unique correspondant à une validation                                                                                     |
+| model      | payload json | string         | oui         | url vers le modèle de données                                                                                                         |
+| srs        | payload json | string         | oui         | SRID correspondant à la projection [(valeurs possibles)](https://github.com/IGNF/validator-api/blob/master/resources/projection.json) |
+| max-errors | payload json | integer        | non         | nombre maximum d'erreurs reportées pour chaque code d'erreur                                                                          | 50                | oui                |
+| normalize  | payload json | boolean        | non         | demande de normaliser les données durant la validation                                                                                | true              | oui                |
+| plugins    | payload json | string         | non         | plugins du validator.jar à utiliser (cnig ou dgpr)                                                                                    |
+| encoding   | payload json | string         | non         | encodage de données                                                                                                                   | UTF-8             | non                |
 
 [(arguments et options du validator)](https://github.com/IGNF/validator-api/blob/master/resources/validator-arguments.json)
 

@@ -37,11 +37,13 @@ check-style:
 
 clean:
 	rm -rf vendor
-	rm -f composer.lock
-	rm -f yarn.lock
 	rm -rf var
 	rm -rf output
 	rm -f *.log
+	rm -f *.lock
+	rm -f package-lock.json
 	rm -f .php_cs.cache
 	rm -rf public/build
 	rm -rf node_modules
+	rm -rf .scannerwork
+	rm -rf sonar-scanner

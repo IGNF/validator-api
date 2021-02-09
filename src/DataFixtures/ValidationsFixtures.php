@@ -43,7 +43,7 @@ class ValidationsFixtures extends Fixture
             'srs' => 'EPSG:2154',
             'model' => 'https://ocruze.github.io/fileserver/config/cnig_CC_2017.json',
         ];
-        $args = $valArgsService->validate($args);
+        $args = $valArgsService->validate(\json_encode($args));
 
         $valWithArgs = new Validation();
         $valWithArgs->setDatasetName(str_replace('.zip', '', $this::FILENAME));
@@ -60,7 +60,7 @@ class ValidationsFixtures extends Fixture
             'srs' => 'EPSG:2154',
             'model' => 'https://ocruze.github.io/fileserver/config/cnig_CC_2017-test.json',
         ];
-        $args = $valArgsService->validate($args);
+        $args = $valArgsService->validate(\json_encode($args));
 
         $valWithArgs2 = new Validation();
         $valWithArgs2->setDatasetName(str_replace('.zip', '', $this::FILENAME));

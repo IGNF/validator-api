@@ -27,7 +27,6 @@
                 <file>src/Kernel.php</file>
                 <file>src/.preload.php</file>
                 <file>src/Controller/DefaultController.php</file>
-                <file>src/Command/ArgsConfigCheckCommand.php</file>
             </exclude>
         </whitelist>
     </filter>

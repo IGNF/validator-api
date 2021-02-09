@@ -1,0 +1,64 @@
+{
+  "type": "object",
+  "description": "Arguments et options du validator-cli.jar",
+  "required": ["model", "srs"],
+  "properties": {
+    "model": {
+      "type": "string",
+      "format": "uri",
+      "description": "L'url vers le modèle de données",
+      "default": "",
+      "example": "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json"
+    },
+    "srs": {
+      "type": "string",
+      "description": "Le SRID de la géométrie",
+      "example": "EPSG:2154",
+      "enum": [
+        "IGNF:WGS84",
+        "EPSG:4326",
+        "CRS:84",
+        "EPSG:2154",
+        "IGNF:RGF93LAMB93",
+        "EPSG:32620",
+        "IGNF:WGS84UTM20",
+        "EPSG:4559",
+        "EPSG:5490",
+        "EPSG:2972",
+        "IGNF:RGFG95UTM22",
+        "EPSG:2975",
+        "IGNF:RGR92UTM40S",
+        "EPSG:4471",
+        "IGNF:RGM04UTM38S",
+        "EPSG:4467",
+        "IGNF:RGSPM06U21"
+      ]
+    },
+    "max-errors": {
+      "type": "integer",
+      "description": "Le nombre maximum d'erreurs reportées pour chaque code d'erreur",
+      "default": 30,
+      "example": 30
+    },
+    "normalize": {
+      "type": "boolean",
+      "description": "Demande de normaliser les données durant la validation",
+      "default": true,
+      "example": true
+    },
+    "plugins": {
+      "type": "string",
+      "description": "Plugins du validator-cli.jar à utiliser",
+      "example": "dgpr",
+      "enum": ["dgpr", "cnig"]
+    },
+    "encoding": {
+      "type": "string",
+      "description": "Encodage de données",
+      "default": "UTF-8",
+      "example": "UTF-8",
+      "enum": ["UTF-8", "LATIN1"]
+    }
+  },
+  "additionalProperties": false
+}

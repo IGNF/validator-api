@@ -160,48 +160,7 @@ paths:
         content:
           application/json:
             schema:
-              properties:
-                model:
-                  type: string
-                  description: lien vers le modèle
-                  required: true
-                  example: "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json"
-                srs:
-                  type: string
-                  description: identifiant de la projection (SRID)
-                  required: true
-                  example: "EPSG:2154"
-                data-extent:
-                  type: string
-                  description: emprise géographique
-                  required: false
-                  example: "TODO"
-                max-errors:
-                  type: integer
-                  description: nombre maximum d'erreurs acceptées
-                  required: false
-                  example: "30"
-                  default: 50
-                  override_allowed: true
-                normalize:
-                  type: boolean
-                  description: demande de normaliser les données durant la validation
-                  required: false
-                  example: true
-                  default: true
-                  override_allowed: true
-                plugins:
-                  type: string
-                  description: plugins du validator.jar à utiliser
-                  required: false
-                  example: "dgpr"
-                encoding:
-                  type: string
-                  description: encodage de données
-                  required: false
-                  example: "UTF-8"
-                  default: "UTF-8"
-                  override_allowed: false
+              $ref: "#/definitions/ValArgs"
       responses:
         200:
           description: "Mise à jour réussie"
@@ -344,3 +303,6 @@ definitions:
       error:
         type: string
         description: message précis de l'erreur rencontrée
+
+  ValArgs:
+    $ref: "./../resources/validator-arguments.json"
