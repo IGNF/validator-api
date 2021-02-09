@@ -29,9 +29,6 @@ jobs:
           name: Migrating database schema
           command: docker exec -it validator-api_backend_test_1 php bin/console --env=test doctrine:migrations:migrate --no-interaction
       - run:
-          name: Running check on validator-cli.jar's arguments
-          command: docker exec -it validator-api_backend_test_1 php bin/console --env=test app:args-config-check
-      - run:
           name: Downloading a prespecified version of validator-cli.jar
           command: docker exec -it validator-api_backend_test_1 ./download-validator.sh 4.0.4
       - run:

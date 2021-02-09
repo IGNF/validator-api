@@ -104,7 +104,6 @@ CORS_ALLOW_ORIGIN=
 6. Mettre à jour le schéma de la base de données : `php bin/console doctrine:migrations:migrate --no-interaction`
 7. Compiler les assets: `yarn encore dev` _ou `yarn encore production --progress`_
 8. Télécharger l'outil Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
-9. Vérifier la configuration des arguments du Validator : `php bin/console app:args-config-check`
 
 > La version actuelle de l'API est compatible avec validator v4.0.4.
 
@@ -176,8 +175,7 @@ SONAR_TOKEN=
 4. Créer la base de données : `php bin/console --env=test doctrine:database:create --if-not-exists`
 5. Mettre à jour le schéma de la base de donnnées : `php bin/console --env=test doctrine:migrations:migrate --no-interaction`
 6. Télécharger l'outil Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
-7. Vérifier la configuration des arguments du Validator : `php bin/console --env=test app:args-config-check`
-8. Lancer les tests : `vendor/bin/simple-phpunit`
+7. Lancer les tests : `vendor/bin/simple-phpunit`
 
 ## Analyse de code par Sonarqube
 
