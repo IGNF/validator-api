@@ -57,7 +57,7 @@ class DeleteOldFilesCommand extends Command
             $this->em->persist($validation);
             $this->em->flush();
 
-            $this->logger->error("Validation[{uid}]: Old files removed at {directory}", ['uid' => $validation->getUid(), 'directory' => $directory]);
+            $this->logger->info("Validation[{uid}]: Old files removed at {directory}", ['uid' => $validation->getUid(), 'directory' => $directory]);
         }
 
         return 0;

@@ -35,6 +35,18 @@ class ValidatorController extends AbstractController
 
     /**
      * @Route(
+     *      "/",
+     *      name="validator_api_disabled_routes",
+     *      methods={"GET","DELETE","PATCH","PUT"}
+     * )
+     */
+    public function disabledRoutes()
+    {
+        return new JsonResponse(['error' => "This route is not allowed"], JsonResponse::HTTP_METHOD_NOT_ALLOWED);
+    }
+
+    /**
+     * @Route(
      *      "/{uid}",
      *      name="validator_api_get_validation",
      *      methods={"GET"}
@@ -46,11 +58,6 @@ class ValidatorController extends AbstractController
         $repository = $em->getRepository(Validation::class);
 
         try {
-            // this will never happen because without the uid in url path, the request becomes a GET request at the address /validator/validations, which is not allowed and will raise a 405 HTTP_METHOD_NOT_ALLOWED
-            if (!$uid) {
-                throw new BadRequestHttpException("Argument [uid] is missing");
-            }
-
             $validation = $repository->findOneByUid($uid);
             if (!$validation) {
                 throw new NotFoundHttpException("No record found for uid=$uid");
@@ -68,8 +75,6 @@ class ValidatorController extends AbstractController
 
         } catch (NotFoundHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
-        } catch (BadRequestHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 
@@ -135,10 +140,6 @@ class ValidatorController extends AbstractController
         try {
             $data = $request->getContent();
 
-            if (!$uid) {
-                throw new BadRequestHttpException("Argument [uid] is missing");
-            }
-
             if (!json_decode($data, true)) {
                 throw new BadRequestHttpException("Request body must be a valid JSON string");
             }
@@ -196,10 +197,6 @@ class ValidatorController extends AbstractController
         $repository = $em->getRepository(Validation::class);
 
         try {
-            if (!$uid) {
-                throw new BadRequestHttpException("Argument [uid] is missing");
-            }
-
             $validation = $repository->findOneByUid($uid);
             if (!$validation) {
                 throw new NotFoundHttpException("No record found for uid=$uid");
@@ -218,8 +215,6 @@ class ValidatorController extends AbstractController
 
         } catch (NotFoundHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
-        } catch (BadRequestHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 
@@ -237,10 +232,6 @@ class ValidatorController extends AbstractController
         $filesystem = new FileSystem();
 
         try {
-            if (!$uid) {
-                throw new BadRequestHttpException("Argument [uid] is missing");
-            }
-
             $validation = $repository->findOneByUid($uid);
             if (!$validation) {
                 throw new NotFoundHttpException("No record found for uid=$uid");
@@ -275,8 +266,6 @@ class ValidatorController extends AbstractController
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         } catch (AccessDeniedHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_FORBIDDEN);
-        } catch (BadRequestHttpException | ValidatorArgumentException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
     }
 }

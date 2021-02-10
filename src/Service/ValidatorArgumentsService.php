@@ -35,7 +35,7 @@ class ValidatorArgumentsService
             $errors = [];
 
             foreach ($validator->getErrors() as $error) {
-                array_push($errors, sprintf("[%s] %s\n", $error['property'], $error['message']));
+                array_push($errors, sprintf("[%s] %s", $error['property'], $error['message']));
             }
 
             throw new ValidatorArgumentException(sprintf("Arguments are invalid: %d error(s) found, check details", count($errors)), $errors);
