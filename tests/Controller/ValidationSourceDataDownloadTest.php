@@ -13,7 +13,7 @@ use Symfony\Component\Filesystem\Filesystem;
 /**
  * Tests for download of source data
  */
-class ValidationNormDataDownloadTest extends WebTestCase
+class ValidationSourceDataDownloadTest extends WebTestCase
 {
     use FixturesTrait;
 
