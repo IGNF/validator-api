@@ -253,13 +253,12 @@ paths:
               schema:
                 $ref: "#/definitions/Error"
 
-  /validator/validations/{uid}/download:
+  /validator/validations/{uid}/files/source:
     get:
       tags:
         - validation
-      operationId: download_normalized_data_validation
-      summary: "Télécharger les données normalisées"
-      description: "Télécharger les données normalisées"
+      summary: "Télécharger les données de source"
+      description: "Télécharger les données de source"
       parameters:
         - description: "Identifiant unique de la validation"
           in: path
@@ -275,14 +274,42 @@ paths:
             application/zip:
               schema:
                 format: binary
-        400:
-          description: Le paramètre uid manquant
+        403:
+          description: Aucun contenu téléchargeable trouvé parce que la validation a été archivée (plus de 30 jours dépassés depuis la création)
           content:
             application/json:
               schema:
                 $ref: "#/definitions/Error"
+        404:
+          description: Aucune demande de validation ne correspond à l'uid
+          content:
+            application/json:
+              schema:
+                $ref: "#/definitions/Error"
+
+  /validator/validations/{uid}/files/normalized:
+    get:
+      tags:
+        - validation
+      summary: "Télécharger les données normalisées"
+      description: "Télécharger les données normalisées générées par le validator-cli.jar"
+      parameters:
+        - description: "Identifiant unique de la validation"
+          in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+          example: g7258vq1t639uagbv8rg7b97
+      responses:
+        200:
+          description: "Contenu téléchargeable trouvé"
+          content:
+            application/zip:
+              schema:
+                format: binary
         403:
-          description: Soit la validation n'a pas encore été exécutée, elle a été archivée (plus de 30 jours dépassés depuis la création), ou bien elle a terminé en une erreur
+          description: Aucun contenu téléchargeable trouvé parce que soit la validation n'a pas encore été exécutée, elle a été archivée (plus de 30 jours dépassés depuis la création), ou bien elle a terminé en une erreur
           content:
             application/json:
               schema:

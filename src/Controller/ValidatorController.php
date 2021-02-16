@@ -220,7 +220,7 @@ class ValidatorController extends AbstractController
 
     /**
      * @Route(
-     *      "/{uid}/download",
+     *      "/{uid}/files/normalized",
      *      name="validator_api_download_normalized_data",
      *      methods={"GET"}
      * )
@@ -229,7 +229,6 @@ class ValidatorController extends AbstractController
     {
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
-        $filesystem = new FileSystem();
 
         try {
             $validation = $repository->findOneByUid($uid);
@@ -250,22 +249,67 @@ class ValidatorController extends AbstractController
             }
 
             $zipFilepath = $this->projectDir . '/' . $validation->getDirectory() . '/validation/' . $validation->getDatasetName() . '.zip';
-            if (!$filesystem->exists($zipFilepath)) {
-                throw new AccessDeniedHttpException("No normalized data found for this validation");
-            }
-
-            $response = new BinaryFileResponse($zipFilepath);
-            $mimeTypes = new MimeTypes();
-
-            $response->headers->set('Content-Type', $mimeTypes->guessMimeType($zipFilepath));
-            $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $validation->getDatasetName() . ".zip");
-
-            return $response;
+            return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-normalized.zip");
 
         } catch (NotFoundHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
         } catch (AccessDeniedHttpException $ex) {
             return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_FORBIDDEN);
         }
+    }
+
+    /**
+     * @Route(
+     *      "/{uid}/files/source",
+     *      name="validator_api_download_source_data",
+     *      methods={"GET"}
+     * )
+     */
+    public function downloadSourceData($uid)
+    {
+        $em = $this->getDoctrine()->getManager();
+        $repository = $em->getRepository(Validation::class);
+
+        try {
+            $validation = $repository->findOneByUid($uid);
+            if (!$validation) {
+                throw new NotFoundHttpException("No record found for uid=$uid");
+            }
+
+            if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
+                throw new AccessDeniedHttpException("Validation has been archived");
+            }
+
+            $zipFilepath = $this->projectDir . '/' . $validation->getDirectory() . '/' . $validation->getDatasetName() . '.zip';
+            return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-source.zip");
+
+        } catch (NotFoundHttpException $ex) {
+            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
+        } catch (AccessDeniedHttpException $ex) {
+            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_FORBIDDEN);
+        }
+    }
+
+    /**
+     * Returns binary response of the specified file
+     *
+     * @param string $filepath
+     * @param string $filename
+     * @return BinaryFileResponse
+     */
+    private function getDownloadResponse($filepath, $filename)
+    {
+        $filesystem = new FileSystem();
+        if (!$filesystem->exists($filepath)) {
+            throw new AccessDeniedHttpException("Requested files not found for this validation");
+        }
+
+        $response = new BinaryFileResponse($filepath);
+        $mimeTypes = new MimeTypes();
+
+        $response->headers->set('Content-Type', $mimeTypes->guessMimeType($filepath));
+        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
+
+        return $response;
     }
 }

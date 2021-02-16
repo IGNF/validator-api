@@ -98,7 +98,7 @@ CORS_ALLOW_ORIGIN=
 >
 > Les commandes spécifiques à l'environnement de production sont en _italique_
 
-3. Installer les dépendances PHP : `composer update` _ou `composer update --no-dev`_
+3. Installer les dépendances PHP : `composer update` _ou `composer update --no-dev --no-interaction`_
 4. Installer les dépendances JavaScript : `yarn install` _ou `yarn install --production`_
 5. Créer la base de données : `php bin/console doctrine:database:create --if-not-exists`
 6. Mettre à jour le schéma de la base de données : `php bin/console doctrine:migrations:migrate --no-interaction`

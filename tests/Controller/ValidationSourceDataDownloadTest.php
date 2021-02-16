@@ -11,7 +11,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Tests for download of normalized data
+ * Tests for download of source data
  */
 class ValidationNormDataDownloadTest extends WebTestCase
 {
@@ -49,40 +49,12 @@ class ValidationNormDataDownloadTest extends WebTestCase
      */
     public function testDownloadNoData()
     {
-        // validation not yet executed, no args
-        $validation = $this->getReference('validation_no_args');
-
-        $this->client->request(
-            'GET',
-            '/validator/validations/' . $validation->getUid() . '/files/normalized',
-        );
-
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
-
-        $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation hasn't been executed yet", $json['error']);
-
-        // validation not yet executed, has args, execution pending
-        $validation = $this->getReference('validation_with_args');
-
-        $this->client->request(
-            'GET',
-            '/validator/validations/' . $validation->getUid() . '/files/normalized',
-        );
-
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
-
-        $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation hasn't been executed yet", $json['error']);
-
         // validation archived
         $validation = $this->getReference('validation_archived');
 
         $this->client->request(
             'GET',
-            '/validator/validations/' . $validation->getUid() . '/files/normalized',
+            '/validator/validations/' . $validation->getUid() . '/files/source',
         );
 
         $response = $this->client->getResponse();
@@ -100,7 +72,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $uid = "uid-validation-doesnt-exist";
         $this->client->request(
             'GET',
-            '/validator/validations/' . $uid . '/files/normalized',
+            '/validator/validations/' . $uid . '/files/source',
         );
 
         $response = $this->client->getResponse();
@@ -111,7 +83,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
     }
 
     /**
-     * Trying to download normalized data after execution of validations command
+     * Trying to download source data after execution of validations command
      */
     public function testDownload()
     {
@@ -134,21 +106,31 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/validator/validations/' . $validation2->getUid() . '/files/normalized',
+            '/validator/validations/' . $validation2->getUid() . '/files/source',
         );
 
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
 
-        $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation failed, no normalized data", $json['error']);
+        $this->assertStatusCode(200, $this->client);
+
+        $file = $response->getFile();
+        // TODO
+        // expected: filename suffix should be -source.zip
+        // actual: -source is not present in the suffix
+        // var_dump($file);
+        $headers = $response->headers->all();
+
+        $this->assertEquals('application/zip', $headers['content-type'][0]);
+        $this->assertEquals($validation2->getDatasetName() . '-source.zip', $file->getFilename());
+        $this->assertEquals('zip', $file->getExtension());
 
         // this one has succeeded
         $validation = $this->getReference('validation_with_args');
 
         $this->client->request(
             'GET',
-            '/validator/validations/' . $validation->getUid() . '/files/normalized',
+            '/validator/validations/' . $validation->getUid() . '/files/source',
         );
 
         $response = $this->client->getResponse();
@@ -156,13 +138,13 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $file = $response->getFile();
         // TODO
-        // expected: filename suffix should be -normalized.zip
-        // actual: -normalized is not present in the suffix
+        // expected: filename suffix should be -source.zip
+        // actual: -source is not present in the suffix
         // var_dump($file);
         $headers = $response->headers->all();
 
         $this->assertEquals('application/zip', $headers['content-type'][0]);
-        $this->assertEquals($validation->getDatasetName() . '-normalized.zip', $file->getFilename());
+        $this->assertEquals($validation->getDatasetName() . '-source.zip', $file->getFilename());
         $this->assertEquals('zip', $file->getExtension());
     }
 }

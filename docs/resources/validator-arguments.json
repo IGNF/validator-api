@@ -7,7 +7,6 @@
       "type": "string",
       "format": "uri",
       "description": "L'url vers le modèle de données",
-      "default": "",
       "example": "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json"
     },
     "srs": {

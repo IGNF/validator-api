@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# only for travis ci
+# only for ci
 set -e
 
 touch .env.test

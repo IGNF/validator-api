@@ -7,7 +7,8 @@
     - [[GET] /validator/validations/{uid}](usage/routes/validations_get.md)
     - [[PATCH] /validator/validations/{uid}](usage/routes/validations_patch_arguments.md)
     - [[DELETE] /validator/validations/{uid}](usage/routes/validations_delete.md)
-    - [[GET] /validator/validations/{uid}/download](usage/routes/validations_download_norm_data.md)
+    - [[GET] /validator/validations/{uid}/files/source](usage/routes/validations_download_source_data.md)
+    - [[GET] /validator/validations/{uid}/files/normalized](usage/routes/validations_download_norm_data.md)
 
 - Développement
 

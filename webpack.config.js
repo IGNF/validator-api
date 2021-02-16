@@ -78,6 +78,10 @@ Encore
         to: "./../favicon.ico",
       },
       { from: "./docs/specs/validator-api.yml", to: "./docs/specs" },
+      {
+        from: "./docs/resources/validator-arguments.json",
+        to: "./docs/resources",
+      },
     ])
   );
 
