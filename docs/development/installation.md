@@ -6,10 +6,22 @@
 
 - Une distribution Linux (de préférence basée sur Debian) pour la machine hôte
 - Git
-- [Docker Engine](https://docs.docker.com/engine/install/)
-  - [Configuration du serveur proxy pour docker](https://docs.docker.com/network/proxy/)
+- PHP 7.3\* (extensions : pgsql)
+- Yarn\*
+- Serveur web\*
+- Zip/unzip\*
+- Curl\*
+- Java SE >= 11\*
+- ogr2ogr >= 2.3.0\*
+
+> Une configuration docker est fournie dans ce dépôt. Si vous décidez de l'utiliser, vous n'avez pas à installer les outils mentionnés ci-dessus avec un astérisque.
+>
+> - [Docker Engine](https://docs.docker.com/engine/install/)
+>   - [Configuration du serveur proxy pour docker](https://docs.docker.com/network/proxy/)
 
 ## Étapes
+
+> L'étape n°1 concerne uniquement ceux qui décident de dockeriser l'application.
 
 1. Lancer les conteneurs docker : `docker-compose up -d --build --scale backend=2`
 2. Créer à la racine du projet un fichier nommé `.env.local` contenant les informations suivantes.
@@ -31,9 +43,9 @@ HTTPS_PROXY=
 CORS_ALLOW_ORIGIN=
 ```
 
-?> [Comment configurer la variable DATABASE_URL (documentation Symfony)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)
+> [Comment configurer la variable DATABASE_URL (documentation Symfony)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)
 
-!> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_1 ...`
+> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_1 ...`
 
 > Les commandes spécifiques à l'environnement de production sont en _italique_
 

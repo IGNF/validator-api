@@ -8,15 +8,15 @@ Préciser les arguments et les options du programme ligne de commandes Validator
 
 ## Paramètres
 
-| Paramètre  | Type         | Type de donnée | Obligatoire | Description                                                                                                                                 | Valeur par défaut | Surcharge possible |
-| ---------- | ------------ | -------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------ |
+| Paramètre  | Type         | Type de donnée | Obligatoire | Description                                                                                                                                 | Valeur par défaut |
+| ---------- | ------------ | -------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | uid        | path         | string         | oui         | identifiant unique correspondant à une validation                                                                                           |
 | model      | payload json | string         | oui         | url vers le modèle de données                                                                                                               |
 | srs        | payload json | string         | oui         | SRID correspondant à la projection [(valeurs possibles)](https://github.com/IGNF/validator-api/blob/master/docs/resources/projections.json) |
-| max-errors | payload json | integer        | non         | nombre maximum d'erreurs reportées pour chaque code d'erreur                                                                                | 50                | oui                |
-| normalize  | payload json | boolean        | non         | demande de normaliser les données durant la validation                                                                                      | true              | oui                |
+| max-errors | payload json | integer        | non         | nombre maximum d'erreurs reportées pour chaque code d'erreur                                                                                | 30                |
+| normalize  | payload json | boolean        | non         | demande de normaliser les données durant la validation                                                                                      | true              |
 | plugins    | payload json | string         | non         | plugins du validator.jar à utiliser (cnig ou dgpr)                                                                                          |
-| encoding   | payload json | string         | non         | encodage de données                                                                                                                         | UTF-8             | non                |
+| encoding   | payload json | string         | non         | encodage de données (UTF-8 ou LATIN1)                                                                                                       | UTF-8             |
 
 [(arguments et options du validator)](https://github.com/IGNF/validator-api/blob/master/docs/resources/validator-arguments.json)
 
@@ -28,7 +28,7 @@ curl --request PATCH \
   --header 'Content-Type: application/json' \
   --data '{
             "srs": "EPSG:2154",
-            "model": "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json"
+            "model": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"
           }'
 ```
 
@@ -51,7 +51,7 @@ curl --request PATCH \
   "dataset_name": "130010853_PM3_60_20180516",
   "arguments": {
     "srs": "EPSG:2154",
-    "model": "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+    "model": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
     "max-errors": 50,
     "normalize": true,
     "encoding": "UTF-8"

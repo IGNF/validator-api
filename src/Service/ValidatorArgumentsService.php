@@ -27,7 +27,7 @@ class ValidatorArgumentsService
         $args = json_decode($args);
 
         $validator = new Validator();
-        $validator->validate($args, (object) ['$ref' => 'file://' . $this->projectDir . '/docs/resources/validator-arguments.json'], Constraint::CHECK_MODE_APPLY_DEFAULTS);
+        $validator->validate($args, (object) ['$ref' => 'file://' . $this->projectDir . '/docs/specs/schema/validator-arguments.json'], Constraint::CHECK_MODE_APPLY_DEFAULTS);
 
         if ($validator->isValid()) {
             return get_object_vars($args);

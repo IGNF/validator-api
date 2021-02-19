@@ -2,7 +2,7 @@
 
 ## Architecture
 
-<img src="development/images/architecture.jpg" alt="architecture"/>
+<img src="images/architecture.jpg" alt="architecture"/>
 
 ## Composition des conteneurs Docker
 
@@ -51,6 +51,6 @@ volumes:
 
 > Voir le fichier `docker-compose.yml` complet à la racine du projet pour plus de précisions.
 
-?> [En savoir plus sur le scheduler](https://github.com/mcuadros/ofelia).
+> [En savoir plus sur le scheduler](https://github.com/mcuadros/ofelia).
 
-!> Actuellement l'application est configurée de fonctionner avec 2 instances de "backend". [Voir ici comment le modifier](development/configuration_custom.md).
+> Actuellement l'application est configurée de fonctionner avec 2 instances de "backend". [Voir ici comment le modifier](configuration_custom.md).

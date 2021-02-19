@@ -15,7 +15,7 @@ On remplace `<nom_service>` par le nom du service concerné et `N` par le nombre
 La commande pour avoir 3 instances du service backend :
 `docker-compose up -d --build --scale backend=3`
 
-!> Il faut avoir configuré les autres composants avant de lancer les conteneurs Docker.
+> Il faut avoir configuré les autres composants avant de lancer les conteneurs Docker.
 
 ### Nommage des conteneurs
 

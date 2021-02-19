@@ -41,7 +41,7 @@ class ValidationsFixtures extends Fixture
         // a validation with args
         $args = [
             'srs' => 'EPSG:2154',
-            'model' => 'https://ocruze.github.io/fileserver/config/cnig_CC_2017.json',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json',
         ];
         $args = $valArgsService->validate(\json_encode($args));
 
@@ -58,7 +58,7 @@ class ValidationsFixtures extends Fixture
         // a validation with args, the model url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed
         $args = [
             'srs' => 'EPSG:2154',
-            'model' => 'https://ocruze.github.io/fileserver/config/cnig_CC_2017-test.json',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017-test.json',
         ];
         $args = $valArgsService->validate(\json_encode($args));
 

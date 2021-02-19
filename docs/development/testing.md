@@ -4,7 +4,7 @@
 
 Dataset : // TODO
 
-Config : https://ocruze.github.io/fileserver/config/cnig_CC_2017.json
+Config : https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json
 
 ## Composition des conteneurs Docker
 
@@ -60,9 +60,9 @@ SONAR_HOST_URL=
 SONAR_TOKEN=
 ```
 
-?> [Comment configurer la variable DATABASE_URL (documentation Symfony)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)
+> [Comment configurer la variable DATABASE_URL (documentation Symfony)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)
 
-!> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_test_1 ...`
+> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_test_1 ...`
 
 3. Installer les dépendances PHP : `composer update`
 4. Créer la base de données : `php bin/console --env=test doctrine:database:create --if-not-exists`
@@ -75,9 +75,9 @@ SONAR_TOKEN=
 
 > Fichier de configuration de projet Sonarqube : `sonar-project.properties`
 
-!> Les variables d'environnement `SONAR_HOST_URL` et `SONAR_TOKEN` sont requises par Sonarqube
+> Les variables d'environnement `SONAR_HOST_URL` et `SONAR_TOKEN` sont requises par Sonarqube
 
-!> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_test_1 ...`
+> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_test_1 ...`
 
 - Installer sonar-scanner en local : `./download-sonar-scanner.sh`
 - Lancer l'analyse de code : `sonar-scanner/bin/sonar-scanner`

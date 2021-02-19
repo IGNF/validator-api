@@ -79,8 +79,8 @@ Encore
       },
       { from: "./docs/specs/validator-api.yml", to: "./docs/specs" },
       {
-        from: "./docs/resources/validator-arguments.json",
-        to: "./docs/resources",
+        from: "./docs/specs/schema/validator-arguments.json",
+        to: "./docs/specs/schema",
       },
     ])
   );

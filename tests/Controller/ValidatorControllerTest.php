@@ -264,7 +264,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $data = [
             'srs' => "EPSG:2154",
-            'model' => "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
             'normalize' => true,
         ];
 
@@ -303,7 +303,7 @@ class ValidatorControllerTest extends WebTestCase
     {
         $data = [
             'srs' => "EPSG:2154",
-            'model' => "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
         ];
 
         $this->client->request(
@@ -408,7 +408,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $data = [
             'srs' => "EPSG:2154",
-            'model' => "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
             'foo' => 'bar',
         ];
 
@@ -437,7 +437,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $data = [
             'srs' => "EPSG:2154",
-            'model' => "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
             'normalize' => 'vrai',
         ];
 
@@ -466,7 +466,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $data = [
             'srs' => "EPSG:9999",
-            'model' => "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
         ];
 
         $this->client->request(
@@ -494,7 +494,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $data = [
             'srs' => "EPSG:2154",
-            'model' => "ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+            'model' => "geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
         ];
 
         $this->client->request(
@@ -522,7 +522,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $data = [
             'srs' => "EPSG:2154",
-            'model' => "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
         ];
 
         $this->client->request(

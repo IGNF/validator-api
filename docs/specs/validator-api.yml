@@ -180,7 +180,7 @@ paths:
                     example:
                       {
                         "srs": "EPSG:2154",
-                        "model": "https://ocruze.github.io/fileserver/config/cnig_CC_2017.json",
+                        "model": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
                         "max-errors": 50,
                         "normalize": true,
                         "encoding": "UTF-8",
@@ -332,4 +332,4 @@ definitions:
         description: message précis de l'erreur rencontrée
 
   ValArgs:
-    $ref: "./../resources/validator-arguments.json"
+    $ref: "./schema/validator-arguments.json"
