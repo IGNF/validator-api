@@ -135,6 +135,9 @@ class ValidatorController extends AbstractController
      */
     public function updateArguments(Request $request, $uid)
     {
+        // simulating an internal server error for test purpose
+        $em = $this->getDoctrine()->getManager()->foo();
+
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
 

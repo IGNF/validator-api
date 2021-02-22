@@ -22,16 +22,18 @@ class ExceptionListener
 
         $responseData = [
             'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
-            'code' => $code,
-            'status' => Response::$statusTexts[$code],
+            'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
+            'status' => Response::$statusTexts[Response::HTTP_INTERNAL_SERVER_ERROR],
             'message' => $exception->getMessage(),
             'details' => [],
         ];
 
         if ($exception instanceof ApiException) {
             $responseData['details'] = $exception->getDetails();
+            $responseData['code'] = $code;
+            $responseData['status'] = Response::$statusTexts[$code];
         }
 
-        $event->setResponse(new JsonResponse($responseData, $code));
+        $event->setResponse(new JsonResponse($responseData, $responseData['code']));
     }
 }
