@@ -4,14 +4,14 @@ namespace App\Exception;
 
 use Exception;
 
-class ValidatorArgumentException extends Exception
+class ApiException extends Exception
 {
-    protected $errors;
+    protected $details;
 
-    public function __construct($message, $errors, $code = 400, Exception $previous = null)
+    public function __construct($message, $code, $details = [], Exception $previous = null)
     {
         $this->message = $message;
-        $this->errors = $errors;
+        $this->details = $details;
         $this->code = $code;
         $this->previous = $previous;
         parent::__construct($message, $code, $previous);
@@ -22,8 +22,8 @@ class ValidatorArgumentException extends Exception
         return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
     }
 
-    public function getErrors()
+    public function getDetails()
     {
-        return $this->errors;
+        return $this->details;
     }
 }

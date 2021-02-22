@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Validation;
-use App\Exception\ValidatorArgumentException;
+use App\Exception\ApiException;
 use App\Service\ValidatorArgumentsService;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
@@ -12,6 +12,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -137,51 +138,39 @@ class ValidatorController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
 
-        try {
-            $data = $request->getContent();
+        $data = $request->getContent();
 
-            if (!json_decode($data, true)) {
-                throw new BadRequestHttpException("Request body must be a valid JSON string");
-            }
-
-            $validation = $repository->findOneByUid($uid);
-            if (!$validation) {
-                throw new NotFoundHttpException("No record found for uid=$uid");
-
-            }
-
-            if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
-                throw new AccessDeniedHttpException("Validation has been archived");
-            }
-
-            $arguments = $this->valArgsService->validate($data);
-
-            $validation->reset();
-            $validation->setArguments($arguments);
-            $validation->setStatus(Validation::STATUS_PENDING);
-
-            $em->flush();
-            $em->refresh($validation);
-
-            $serializer = SerializerBuilder::create()
-                ->setSerializationContextFactory(function () {
-                    return SerializationContext::create()
-                        ->setSerializeNull(true)
-                        ->enableMaxDepthChecks();
-                })->build();
-
-            return new JsonResponse($serializer->toArray($validation), JsonResponse::HTTP_OK);
-
-        } catch (NotFoundHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
-        } catch (AccessDeniedHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_FORBIDDEN);
-        } catch (BadRequestHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
-        } catch (ValidatorArgumentException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage(), 'details' => $ex->getErrors()], JsonResponse::HTTP_BAD_REQUEST);
+        if (!json_decode($data, true)) {
+            throw new ApiException("Request body must be a valid JSON string", Response::HTTP_BAD_REQUEST);
         }
 
+        $validation = $repository->findOneByUid($uid);
+        if (!$validation) {
+            throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
+
+        }
+
+        if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
+            throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
+        }
+
+        $arguments = $this->valArgsService->validate($data);
+
+        $validation->reset();
+        $validation->setArguments($arguments);
+        $validation->setStatus(Validation::STATUS_PENDING);
+
+        $em->flush();
+        $em->refresh($validation);
+
+        $serializer = SerializerBuilder::create()
+            ->setSerializationContextFactory(function () {
+                return SerializationContext::create()
+                    ->setSerializeNull(true)
+                    ->enableMaxDepthChecks();
+            })->build();
+
+        return new JsonResponse($serializer->toArray($validation), Response::HTTP_OK);
     }
 
     /**

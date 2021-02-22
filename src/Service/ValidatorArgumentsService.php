@@ -2,9 +2,10 @@
 
 namespace App\Service;
 
-use App\Exception\ValidatorArgumentException;
+use App\Exception\ApiException;
 use JsonSchema\Constraints\Constraint;
 use JsonSchema\Validator;
+use Symfony\Component\HttpFoundation\Response;
 
 class ValidatorArgumentsService
 {
@@ -20,7 +21,7 @@ class ValidatorArgumentsService
      *
      * @param array[mixed] $args
      * @return array[mixed]
-     * @throws ValidatorArgumentException
+     * @throws ApiException
      */
     public function validate($args)
     {
@@ -32,13 +33,19 @@ class ValidatorArgumentsService
         if ($validator->isValid()) {
             return get_object_vars($args);
         } else {
-            $errors = [];
+            $details = [];
 
             foreach ($validator->getErrors() as $error) {
-                array_push($errors, sprintf("[%s] %s", $error['property'], $error['message']));
+                $errorDetails = [];
+                if ($error['property']) {
+                    $errorDetails['name'] = $error['property'];
+                }
+                $errorDetails['message'] = $error['message'];
+
+                array_push($details, $errorDetails);
             }
 
-            throw new ValidatorArgumentException(sprintf("Arguments are invalid: %d error(s) found, check details", count($errors)), $errors);
+            throw new ApiException("Invalid arguments, check details", Response::HTTP_BAD_REQUEST, $details);
         }
     }
 
