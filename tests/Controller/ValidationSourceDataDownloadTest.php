@@ -61,7 +61,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation has been archived", $json['error']);
+        $this->assertEquals("Validation has been archived", $json['message']);
     }
 
     /**
@@ -79,7 +79,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(404, $this->client);
-        $this->assertEquals("No record found for uid=$uid", $json['error']);
+        $this->assertEquals("No record found for uid=$uid", $json['message']);
     }
 
     /**

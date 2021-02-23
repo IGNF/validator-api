@@ -1,6 +1,12 @@
 PHP_CS_RULES=@Symfony
 PHP_MD_RULES=./phpmd.xml
 
+env-dev:
+	docker-compose up -d --build --remove-orphans --scale backend=2
+
+env-test:
+	docker-compose -f docker-compose.test.yml up -d --build --remove-orphans
+
 compile-app:
 	composer update
 	yarn install

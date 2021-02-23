@@ -15,8 +15,6 @@ L'APIsation du [Validator](https://github.com/IGNF/validator), outil permettant 
 # Documentation technique
 
 - [Installation](docs/development/installation.md)
-- [Configuration par défaut](docs/development/configuration_default.md)
-- [Configuration personalisée](docs/development/configuration_custom.md)
 - [Tests](docs/development/testing.md)
 
 # Licence

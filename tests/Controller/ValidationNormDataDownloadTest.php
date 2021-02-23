@@ -61,7 +61,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation hasn't been executed yet", $json['error']);
+        $this->assertEquals("Validation hasn't been executed yet", $json['message']);
 
         // validation not yet executed, has args, execution pending
         $validation = $this->getReference('validation_with_args');
@@ -75,7 +75,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation hasn't been executed yet", $json['error']);
+        $this->assertEquals("Validation hasn't been executed yet", $json['message']);
 
         // validation archived
         $validation = $this->getReference('validation_archived');
@@ -89,7 +89,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation has been archived", $json['error']);
+        $this->assertEquals("Validation has been archived", $json['message']);
     }
 
     /**
@@ -107,7 +107,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(404, $this->client);
-        $this->assertEquals("No record found for uid=$uid", $json['error']);
+        $this->assertEquals("No record found for uid=$uid", $json['message']);
     }
 
     /**
@@ -141,7 +141,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation failed, no normalized data", $json['error']);
+        $this->assertEquals("Validation failed, no normalized data", $json['message']);
 
         // this one has succeeded
         $validation = $this->getReference('validation_with_args');
