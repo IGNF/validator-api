@@ -14,9 +14,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -43,7 +40,7 @@ class ValidatorController extends AbstractController
      */
     public function disabledRoutes()
     {
-        return new JsonResponse(['error' => "This route is not allowed"], JsonResponse::HTTP_METHOD_NOT_ALLOWED);
+        return new JsonResponse(['error' => "This route is not allowed"], Response::HTTP_METHOD_NOT_ALLOWED);
     }
 
     /**
@@ -58,25 +55,19 @@ class ValidatorController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
 
-        try {
-            $validation = $repository->findOneByUid($uid);
-            if (!$validation) {
-                throw new NotFoundHttpException("No record found for uid=$uid");
-
-            }
-
-            $serializer = SerializerBuilder::create()
-                ->setSerializationContextFactory(function () {
-                    return SerializationContext::create()
-                        ->setSerializeNull(true)
-                        ->enableMaxDepthChecks();
-                })->build();
-
-            return new JsonResponse($serializer->toArray($validation), JsonResponse::HTTP_OK);
-
-        } catch (NotFoundHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
+        $validation = $repository->findOneByUid($uid);
+        if (!$validation) {
+            throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+
+        $serializer = SerializerBuilder::create()
+            ->setSerializationContextFactory(function () {
+                return SerializationContext::create()
+                    ->setSerializeNull(true)
+                    ->enableMaxDepthChecks();
+            })->build();
+
+        return new JsonResponse($serializer->toArray($validation), Response::HTTP_OK);
     }
 
     /**
@@ -91,39 +82,34 @@ class ValidatorController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $validation = new Validation();
 
-        try {
-            $files = $request->files;
+        $files = $request->files;
 
-            $file = $files->get('dataset');
-            if (!$file) {
-                throw new BadRequestHttpException("Argument [dataset] is missing");
-            }
-
-            $mimeTypes = new MimeTypes();
-
-            if ($mimeTypes->guessMimeType($file->getPathName()) != 'application/zip') {
-                throw new BadRequestHttpException("Dataset must be in a compressed [.zip] file");
-            }
-
-            $validation->setDatasetName(str_replace('.zip', '', $file->getClientOriginalName()));
-            $file->move($this->projectDir . '/' . $validation->getDirectory(), $validation->getDatasetName() . '.zip');
-
-            $em->persist($validation);
-            $em->flush();
-            $em->refresh($validation);
-
-            $serializer = SerializerBuilder::create()
-                ->setSerializationContextFactory(function () {
-                    return SerializationContext::create()
-                        ->setSerializeNull(true)
-                        ->enableMaxDepthChecks();
-                })->build();
-
-            return new JsonResponse($serializer->toArray($validation), JsonResponse::HTTP_CREATED);
-
-        } catch (BadRequestHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        $file = $files->get('dataset');
+        if (!$file) {
+            throw new ApiException("Argument [dataset] is missing", Response::HTTP_BAD_REQUEST);
         }
+
+        $mimeTypes = new MimeTypes();
+
+        if ($mimeTypes->guessMimeType($file->getPathName()) != 'application/zip') {
+            throw new ApiException("Dataset must be in a compressed [.zip] file", Response::HTTP_BAD_REQUEST);
+        }
+
+        $validation->setDatasetName(str_replace('.zip', '', $file->getClientOriginalName()));
+        $file->move($this->projectDir . '/' . $validation->getDirectory(), $validation->getDatasetName() . '.zip');
+
+        $em->persist($validation);
+        $em->flush();
+        $em->refresh($validation);
+
+        $serializer = SerializerBuilder::create()
+            ->setSerializationContextFactory(function () {
+                return SerializationContext::create()
+                    ->setSerializeNull(true)
+                    ->enableMaxDepthChecks();
+            })->build();
+
+        return new JsonResponse($serializer->toArray($validation), Response::HTTP_CREATED);
     }
 
     /**
@@ -135,9 +121,6 @@ class ValidatorController extends AbstractController
      */
     public function updateArguments(Request $request, $uid)
     {
-        // simulating an internal server error for test purpose
-        $em = $this->getDoctrine()->getManager()->foo();
-
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
 
@@ -188,26 +171,21 @@ class ValidatorController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
 
-        try {
-            $validation = $repository->findOneByUid($uid);
-            if (!$validation) {
-                throw new NotFoundHttpException("No record found for uid=$uid");
-            }
-
-            $em->remove($validation);
-            $em->flush();
-
-            $filesystem = new FileSystem();
-
-            if ($filesystem->exists($this->projectDir . '/' . $validation->getDirectory())) {
-                $filesystem->remove($this->projectDir . '/' . $validation->getDirectory());
-            }
-
-            return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
-
-        } catch (NotFoundHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
+        $validation = $repository->findOneByUid($uid);
+        if (!$validation) {
+            throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+
+        $em->remove($validation);
+        $em->flush();
+
+        $filesystem = new FileSystem();
+
+        if ($filesystem->exists($this->projectDir . '/' . $validation->getDirectory())) {
+            $filesystem->remove($this->projectDir . '/' . $validation->getDirectory());
+        }
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
     /**
@@ -222,32 +200,25 @@ class ValidatorController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
 
-        try {
-            $validation = $repository->findOneByUid($uid);
-            if (!$validation) {
-                throw new NotFoundHttpException("No record found for uid=$uid");
-            }
-
-            if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
-                throw new AccessDeniedHttpException("Validation has been archived");
-            }
-
-            if ($validation->getStatus() == Validation::STATUS_ERROR) {
-                throw new AccessDeniedHttpException("Validation failed, no normalized data");
-            }
-
-            if (in_array($validation->getStatus(), [Validation::STATUS_PENDING, Validation::STATUS_PROCESSING, Validation::STATUS_WAITING_ARGS])) {
-                throw new AccessDeniedHttpException("Validation hasn't been executed yet");
-            }
-
-            $zipFilepath = $this->projectDir . '/' . $validation->getDirectory() . '/validation/' . $validation->getDatasetName() . '.zip';
-            return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-normalized.zip");
-
-        } catch (NotFoundHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
-        } catch (AccessDeniedHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_FORBIDDEN);
+        $validation = $repository->findOneByUid($uid);
+        if (!$validation) {
+            throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+
+        if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
+            throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
+        }
+
+        if ($validation->getStatus() == Validation::STATUS_ERROR) {
+            throw new ApiException("Validation failed, no normalized data", Response::HTTP_FORBIDDEN);
+        }
+
+        if (in_array($validation->getStatus(), [Validation::STATUS_PENDING, Validation::STATUS_PROCESSING, Validation::STATUS_WAITING_ARGS])) {
+            throw new ApiException("Validation hasn't been executed yet", Response::HTTP_FORBIDDEN);
+        }
+
+        $zipFilepath = $this->projectDir . '/' . $validation->getDirectory() . '/validation/' . $validation->getDatasetName() . '.zip';
+        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-normalized.zip");
     }
 
     /**
@@ -262,24 +233,17 @@ class ValidatorController extends AbstractController
         $em = $this->getDoctrine()->getManager();
         $repository = $em->getRepository(Validation::class);
 
-        try {
-            $validation = $repository->findOneByUid($uid);
-            if (!$validation) {
-                throw new NotFoundHttpException("No record found for uid=$uid");
-            }
-
-            if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
-                throw new AccessDeniedHttpException("Validation has been archived");
-            }
-
-            $zipFilepath = $this->projectDir . '/' . $validation->getDirectory() . '/' . $validation->getDatasetName() . '.zip';
-            return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-source.zip");
-
-        } catch (NotFoundHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_NOT_FOUND);
-        } catch (AccessDeniedHttpException $ex) {
-            return new JsonResponse(['error' => $ex->getMessage()], JsonResponse::HTTP_FORBIDDEN);
+        $validation = $repository->findOneByUid($uid);
+        if (!$validation) {
+            throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+
+        if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
+            throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
+        }
+
+        $zipFilepath = $this->projectDir . '/' . $validation->getDirectory() . '/' . $validation->getDatasetName() . '.zip';
+        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-source.zip");
     }
 
     /**
@@ -293,7 +257,7 @@ class ValidatorController extends AbstractController
     {
         $filesystem = new FileSystem();
         if (!$filesystem->exists($filepath)) {
-            throw new AccessDeniedHttpException("Requested files not found for this validation");
+            throw new ApiException("Requested files not found for this validation", Response::HTTP_FORBIDDEN);
         }
 
         $response = new BinaryFileResponse($filepath);

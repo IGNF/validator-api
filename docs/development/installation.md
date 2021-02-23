@@ -18,6 +18,8 @@
 >
 > - [Docker Engine](https://docs.docker.com/engine/install/)
 >   - [Configuration du serveur proxy pour docker](https://docs.docker.com/network/proxy/)
+>   - [Configuration par défaut](configuration_default.md)
+>   - [Configuration personalisée](configuration_custom.md)
 
 ## Étapes
 

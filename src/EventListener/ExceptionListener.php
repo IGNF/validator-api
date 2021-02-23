@@ -3,6 +3,7 @@
 namespace App\EventListener;
 
 use App\Exception\ApiException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -12,28 +13,50 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
  */
 class ExceptionListener
 {
+    private $logger;
+
+    public function __construct(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+
     /**
+     * Handles the exception caught by the listener
+     *
      * @param ExceptionEvent $event
      */
     public function onKernelException(ExceptionEvent $event)
     {
-        $exception = $event->getThrowable();
-        $code = $exception->getCode();
+        $throwable = $event->getThrowable();
+        $event->setResponse($this->getErrorResponse($throwable));
+    }
+
+    /**
+     * Returns the error response data corresponding to the exception caught by the listener
+     *
+     * @param \Throwable $throwable
+     * @return JsonResponse
+     */
+    private function getErrorResponse(\Throwable $throwable)
+    {
+        $code = $throwable->getCode();
 
         $responseData = [
-            'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
             'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
             'status' => Response::$statusTexts[Response::HTTP_INTERNAL_SERVER_ERROR],
-            'message' => $exception->getMessage(),
+            'message' => "An internal error has occurred",
             'details' => [],
         ];
 
-        if ($exception instanceof ApiException) {
-            $responseData['details'] = $exception->getDetails();
+        if ($throwable instanceof ApiException) {
             $responseData['code'] = $code;
             $responseData['status'] = Response::$statusTexts[$code];
+            $responseData['message'] = $throwable->getMessage();
+            $responseData['details'] = $throwable->getDetails();
         }
 
-        $event->setResponse(new JsonResponse($responseData, $responseData['code']));
+        $this->logger->error("Exception[{exception}]: {message}", ['exception' => get_class($throwable), 'message' => $throwable->getMessage()]);
+
+        return new JsonResponse($responseData, $responseData['code']);
     }
 }

@@ -105,7 +105,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(404, $this->client);
-        $this->assertEquals('No record found for uid=no-record-for-this-uid', $json['error']);
+        $this->assertEquals('No record found for uid=no-record-for-this-uid', $json['message']);
 
     }
 
@@ -173,7 +173,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals('Argument [dataset] is missing', $json['error']);
+        $this->assertEquals('Argument [dataset] is missing', $json['message']);
     }
 
     /**
@@ -203,7 +203,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals('Dataset must be in a compressed [.zip] file', $json['error']);
+        $this->assertEquals('Dataset must be in a compressed [.zip] file', $json['message']);
     }
 
     /**
@@ -222,7 +222,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals('Argument [dataset] is missing', $json['error']);
+        $this->assertEquals('Argument [dataset] is missing', $json['message']);
     }
 
     /**
@@ -319,7 +319,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(404, $this->client);
-        $this->assertEquals('No record found for uid=does-not-exist', $json['error']);
+        $this->assertEquals('No record found for uid=does-not-exist', $json['message']);
     }
 
     /**
@@ -343,7 +343,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals('Request body must be a valid JSON string', $json['error']);
+        $this->assertEquals('Request body must be a valid JSON string', $json['message']);
     }
 
     /**
@@ -367,7 +367,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Request body must be a valid JSON string", $json['error']);
+        $this->assertEquals("Request body must be a valid JSON string", $json['message']);
     }
 
     /**
@@ -425,7 +425,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Arguments are invalid: 1 error(s) found, check details", $json['error']);
+        $this->assertEquals("Invalid arguments, check details", $json['message']);
     }
 
     /**
@@ -454,7 +454,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Arguments are invalid: 1 error(s) found, check details", $json['error']);
+        $this->assertEquals("Invalid arguments, check details", $json['message']);
     }
 
     /**
@@ -482,7 +482,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Arguments are invalid: 1 error(s) found, check details", $json['error']);
+        $this->assertEquals("Invalid arguments, check details", $json['message']);
     }
 
     /**
@@ -510,7 +510,7 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Arguments are invalid: 1 error(s) found, check details", $json['error']);
+        $this->assertEquals("Invalid arguments, check details", $json['message']);
     }
 
     /**
@@ -538,6 +538,6 @@ class ValidatorControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(403, $this->client);
-        $this->assertEquals('Validation has been archived', $json['error']);
+        $this->assertEquals('Validation has been archived', $json['message']);
     }
 }
