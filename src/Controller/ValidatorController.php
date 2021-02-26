@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Validation;
 use App\Exception\ApiException;
+use App\Service\MimeTypeGuesserService;
 use App\Service\ValidatorArgumentsService;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerBuilder;
@@ -14,7 +15,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -24,11 +24,13 @@ class ValidatorController extends AbstractController
 {
     private $projectDir;
     private $valArgsService;
+    private $mimeTypeGuesserService;
 
-    public function __construct($projectDir, ValidatorArgumentsService $valArgsService)
+    public function __construct($projectDir, ValidatorArgumentsService $valArgsService, MimeTypeGuesserService $mimeTypeGuesserService)
     {
         $this->projectDir = $projectDir;
         $this->valArgsService = $valArgsService;
+        $this->mimeTypeGuesserService = $mimeTypeGuesserService;
     }
 
     /**
@@ -90,9 +92,9 @@ class ValidatorController extends AbstractController
             throw new ApiException("Argument [dataset] is missing", Response::HTTP_BAD_REQUEST);
         }
 
-        $mimeTypes = new MimeTypes();
+        $mimeType = $this->mimeTypeGuesserService->guessMimeType($file->getPathName());
 
-        if ($mimeTypes->guessMimeType($file->getPathName()) != 'application/zip') {
+        if ($mimeType !== 'application/zip') {
             throw new ApiException("Dataset must be in a compressed [.zip] file", Response::HTTP_BAD_REQUEST);
         }
 
@@ -262,9 +264,9 @@ class ValidatorController extends AbstractController
         }
 
         $response = new BinaryFileResponse($filepath);
-        $mimeTypes = new MimeTypes();
+        $mimeType = $this->mimeTypeGuesserService->guessMimeType($filepath);
 
-        $response->headers->set('Content-Type', $mimeTypes->guessMimeType($filepath));
+        $response->headers->set('Content-Type', $mimeType);
         $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
 
         return $response;
