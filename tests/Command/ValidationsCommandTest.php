@@ -2,9 +2,9 @@
 
 namespace App\Tests\Command;
 
-use App\DataFixtures\ValidationsFixtures;
 use App\Entity\Validation;
-use App\Test\WebTestCase;
+use App\Tests\DataFixtures\ValidationsFixtures;
+use App\Tests\WebTestCase;
 use Liip\TestFixturesBundle\Test\FixturesTrait;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;

@@ -7,6 +7,7 @@ use Exception;
 class ApiException extends Exception
 {
     protected $details;
+    protected $previous;
 
     public function __construct($message, $code, $details = [], Exception $previous = null)
     {

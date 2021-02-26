@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Test;
+namespace App\Tests;
 
 use Doctrine\Common\DataFixtures\Executor\AbstractExecutor;
 use Doctrine\Common\DataFixtures\ReferenceRepository;
@@ -30,7 +30,7 @@ abstract class WebTestCase extends BaseWebTestCase
 
     /**
      * Retourne la référence d'une fixture
-     * @param type $name Nom de la référence
+     * @param string $name Nom de la référence
      * @return mixed (souvent une entité)
      * @throws \Exception
      */

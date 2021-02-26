@@ -1,11 +1,11 @@
 <?php
 
-namespace App\DataFixtures;
+namespace App\Tests\DataFixtures;
 
 use App\Entity\Validation;
 use App\Service\ValidatorArgumentsService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\Filesystem\Filesystem;
 
 class ValidationsFixtures extends Fixture

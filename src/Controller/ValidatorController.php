@@ -56,6 +56,7 @@ class ValidatorController extends AbstractController
         $repository = $em->getRepository(Validation::class);
 
         $validation = $repository->findOneByUid($uid);
+
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }

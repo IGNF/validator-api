@@ -2,10 +2,10 @@
 
 namespace App\Tests\Controller;
 
-use App\DataFixtures\ValidationsFixtures;
 use App\Entity\Validation;
 use App\Service\ValidatorArgumentsService;
-use App\Test\WebTestCase;
+use App\Tests\DataFixtures\ValidationsFixtures;
+use App\Tests\WebTestCase;
 use Liip\TestFixturesBundle\Test\FixturesTrait;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;

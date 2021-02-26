@@ -19,8 +19,8 @@ class ValidatorArgumentsService
     /**
      * Validates the arguments posted by the user
      *
-     * @param array[mixed] $args
-     * @return array[mixed]
+     * @param array $args
+     * @return array
      * @throws ApiException
      */
     public function validate($args)

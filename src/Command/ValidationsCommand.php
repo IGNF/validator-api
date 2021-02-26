@@ -40,6 +40,9 @@ class ValidationsCommand extends Command
         ;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // fetch one pending validation
