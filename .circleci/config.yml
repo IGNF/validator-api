@@ -11,33 +11,24 @@ jobs:
       - checkout
 
       - run:
-          name: Creating .env.test
-          command: ./create-env-test.sh
-      - run:
           name: Log in to docker
           command: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       - run:
-          name: Launching docker containers
-          command: docker-compose -f docker-compose.test.yml up -d --build --remove-orphans
+          name: Build docker image for the api
+          command: docker-compose build api
       - run:
-          name: Updating PHP dependencies
-          command: docker exec -it validator-api_backend_test_1 composer update --no-interaction
+          name: Run phpunit tests
+          command: docker-compose run --rm api .docker/application.sh test
       - run:
-          name: Creating database (if doesn't exist already)
-          command: docker exec -it validator-api_backend_test_1 php bin/console --env=test doctrine:database:create --if-not-exists
+          name: Export tests results to output.tgz
+          command: docker run --rm -v project_api-data:/data busybox sh -c 'tar -cOzf - /data/output' > output.tgz
       - run:
-          name: Migrating database schema
-          command: docker exec -it validator-api_backend_test_1 php bin/console --env=test doctrine:migrations:migrate --no-interaction
-      - run:
-          name: Downloading a prespecified version of validator-cli.jar
-          command: docker exec -it validator-api_backend_test_1 ./download-validator.sh 4.0.4
-      - run:
-          name: Running phpunit tests
-          command: docker exec -it validator-api_backend_test_1 vendor/bin/simple-phpunit
+          name: Extract output.tgz
+          command: mkdir -p var && tar -xvzf output.tgz -C var
       - store_test_results:
-          path: public/build/code-coverage
+          path: var/data/output
       - store_artifacts:
-          path: public/build/code-coverage
+          path: var/data/output/coverage
 
 general:
   branches:

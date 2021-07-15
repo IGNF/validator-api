@@ -1,83 +1,73 @@
 # Tests
 
-## Données de test
+## Données de tests
 
-Dataset : // TODO
+* Les jeux tests sont dans le dossier `${projectDir}/tests/Data`
+* Les modèles de données tests utilisés sont des modèles externes (ex : https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json)
 
-Config : https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json
+## Exécution des tests avec docker
 
-## Composition des conteneurs Docker
+Voir [.circleci/config.yml](../../.circleci/config.yml)
 
-Vu qu'on teste uniquement l'application Symfony, il suffit d'avoir ces 2 conteneurs : une pour l'application Symfony et une pour la base de données.
+## Exécution des tests en local
 
-```yml
-# docker-compose.test-yml
-...
-services:
-  backend_test:
-    container_name: validator-api_backend_test_1
-    build:
-      context: .
-      dockerfile: .docker/backend.dockerfile
-    env_file:
-      - .env.test
-    ...
-    networks:
-      - symfony
+* 1) Installer les dépendances PHP
 
-  postgres_test:
-    image: postgres:10
-    env_file:
-      - .env.test
-    ...
-    networks:
-      - symfony
-...
+```bash
+composer install
 ```
 
-> Voir le fichier [docker-compose.test.yml](https://github.com/IGNF/validator-api/blob/master/docker-compose.test.yml) complet pour plus de précisions.
+* 2) Configurer la base de données de test
 
-## Étapes
+Dans `.env.test`, ajouter la ligne suivante :
 
-1. Lancer les conteneurs docker : `docker-compose -f docker-compose.test.yml up -d --build`
-2. Créer à la racine du projet un fichier nommé `.env.test` contenant les informations suivantes. La variable `APP_DEV` doit obligatoirement valoir `test`.
-
-```ini
-APP_ENV=test
-
-DATABASE_URL=postgresql://db_user:db_password@db_host:db_port/db_name?serverVersion=10&charset=utf8
-
-POSTGRES_USER=db_user
-POSTGRES_PASSWORD=db_password
-POSTGRES_DB=db_name
-
-http_proxy=
-https_proxy=
-HTTP_PROXY=
-HTTPS_PROXY=
-
-SONAR_HOST_URL=
-SONAR_TOKEN=
+```
+DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@localhost:5432/validator_api_test?serverVersion=13&charset=utf8
 ```
 
 > [Comment configurer la variable DATABASE_URL (documentation Symfony)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)
 
-> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_test_1 ...`
+Puis :
 
-3. Installer les dépendances PHP : `composer update`
-4. Créer la base de données : `php bin/console --env=test doctrine:database:create --if-not-exists`
-5. Mettre à jour le schéma de la base de donnnées : `php bin/console --env=test doctrine:migrations:migrate --no-interaction`
-6. Télécharger l'outil Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
-7. Vérifier la configuration des arguments du Validator : `php bin/console --env=test app:args-config-check`
-8. Lancer les tests : `vendor/bin/simple-phpunit`
+```bash
+# Créer la base de données
+php bin/console --env=test doctrine:database:create --if-not-exists
+# Mettre à jour le schéma de la base de donnnées
+php bin/console --env=test doctrine:schema:update --force
+```
 
-## Analyse de code par Sonarqube
+* 3) Télécharger l'exécutable java validator-cli.jar
 
-> Fichier de configuration de projet Sonarqube : `sonar-project.properties`
+Si `validator-cli.jar` est déjà installé, vous pouvez configurer son emplacement à l'aide de la ligne suivante dans `.env.test` :
 
-> Les variables d'environnement `SONAR_HOST_URL` et `SONAR_TOKEN` sont requises par Sonarqube
+```
+VALIDATOR_PATH=/opt/ign-validation/validator-cli.jar
+```
 
-> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_test_1 ...`
+Sinon, vous pouvez lancer `bash download-validator.sh <VALIDATOR_VERSION>` pour le télécharger dans `${projectDir}/bin/validator-cli.jar` (chemin par défaut)
 
-- Installer sonar-scanner en local : `./download-sonar-scanner.sh`
-- Lancer l'analyse de code : `sonar-scanner/bin/sonar-scanner`
+* 4) Exécuter les tests
+
+```bash
+XDEBUG_MODE=coverage APP_ENV=test php vendor/bin/simple-phpunit
+```
+
+* 5) Consulter les rapports
+
+Voir `${projectDir}/var/data/output` pour les résultats des tests.
+
+
+## Analyse de code avec Sonarqube
+
+* Installer [sonar-scanner](https://docs.sonarqube.org/latest/analysis/scan/sonarscanner/)
+* Configurer les variables d'environnement `SONAR_HOST_URL` et `SONAR_TOKEN`
+* Exécuter `sonar-scanner` :
+
+```bash
+cd validator-api
+# lancer l'analyse de code
+sonar-scanner
+```
+
+Remarque : Le fichier de configuration du projet Sonarqube est à la racine : [sonar-project.properties](../../sonar-project.properties)
+

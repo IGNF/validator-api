@@ -7,13 +7,6 @@
 /var/
 /vendor/
 ###< symfony/framework-bundle ###
-
-###> symfony/webpack-encore-bundle ###
-/node_modules/
-/public/build/
-npm-debug.log
-yarn-error.log
-###< symfony/webpack-encore-bundle ###
 .env.test
 validator-debug.log
 
@@ -26,6 +19,7 @@ validator-debug.log
 
 /tests/TempData/*
 /*.lock
+/package-lock.json
 
 /.idea
 
@@ -33,3 +27,18 @@ validator-cli.jar
 
 .scannerwork
 sonar-scanner
+node_modules
+
+/output/
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.php
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
+
+/.php-cs-fixer.dist.php
+
+###> phpunit/phpunit ###
+/phpunit.xml
+.phpunit.result.cache
+###< phpunit/phpunit ###

@@ -28,7 +28,7 @@ curl --request PATCH \
   --header 'Content-Type: application/json' \
   --data '{
             "srs": "EPSG:2154",
-            "model": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"
+            "model": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json"
           }'
 ```
 
@@ -51,7 +51,7 @@ curl --request PATCH \
   "dataset_name": "130010853_PM3_60_20180516",
   "arguments": {
     "srs": "EPSG:2154",
-    "model": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json",
+    "model": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json",
     "max-errors": 50,
     "normalize": true,
     "encoding": "UTF-8"

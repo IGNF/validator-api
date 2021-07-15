@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+	{{ parent() }}
+{% endblock %}
+
+{% block title %}
+	{{ parent() }}
+	- demo
+{% endblock %}
+
+{% block body %}
+	<div id="main" class="container-fluid">Chargement...</div>
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+
+	<script src="{{ asset('vendor/validator-api-client/validator-client.js') }}"></script>
+    <script src="{{ asset('build/demo.js') }}"></script>
+{% endblock %}

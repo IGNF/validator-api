@@ -1,0 +1,1 @@
+validator.setValidatorApiUrl("/validator"),validator.createDemoApplication({targetElement:document.getElementById("main")});

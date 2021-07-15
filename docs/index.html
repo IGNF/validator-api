@@ -46,7 +46,7 @@
         auto2top: true,
         plugins: [
           EditOnGithubPlugin.create(
-            "https://github.com/IGNF/validator-api/blob/master/docs/"
+            "https://github.com/IGNF/validator-api/blob/master"
           ),
 
           /*
@@ -58,7 +58,7 @@
               $(function () {
                 SwaggerUIBundle({
                   dom_id: "#swagger-ui-container",
-                  url: "http://localhost:8000/specs/validator-api.yml",
+                  url: "./specs/validator-api.yml",
                 });
               });
               next(html);
