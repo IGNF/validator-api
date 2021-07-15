@@ -2,7 +2,7 @@
 
 > Dépôt GitHub : [https://github.com/IGNF/validator-api](https://github.com/IGNF/validator-api)
 
-## Prérequis
+## Pré-requis
 
 - Une distribution Linux (de préférence basée sur Debian) pour la machine hôte
 - Git
@@ -14,49 +14,46 @@
 - Java SE >= 11\*
 - ogr2ogr >= 2.3.0\*
 
-> Une configuration docker est fournie dans ce dépôt. Si vous décidez de l'utiliser, vous n'avez pas à installer les outils mentionnés ci-dessus avec un astérisque.
->
-> - [Docker Engine](https://docs.docker.com/engine/install/)
->   - [Configuration du serveur proxy pour docker](https://docs.docker.com/network/proxy/)
->   - [Configuration par défaut](configuration_default.md)
->   - [Configuration personalisée](configuration_custom.md)
+## Installation classique en local
 
-## Étapes
-
-> L'étape n°1 concerne uniquement ceux qui décident de dockeriser l'application.
-
-1. Lancer les conteneurs docker : `docker-compose up -d --build --scale backend=2`
-2. Créer à la racine du projet un fichier nommé `.env.local` contenant les informations suivantes.
-
-```ini
-APP_ENV=dev
-
-DATABASE_URL=postgresql://db_user:db_password@db_host:db_port/db_name?serverVersion=10&charset=utf8
-
-POSTGRES_USER=db_user
-POSTGRES_PASSWORD=db_password
-POSTGRES_DB=db_name
-
-http_proxy=
-https_proxy=
-HTTP_PROXY=
-HTTPS_PROXY=
-
-CORS_ALLOW_ORIGIN=
+```bash
+# 1) cloner le dépôt
+git clone https://github.com/IGNF/validator-api.git
+# 2) se placer dans le dossier
+cd validator-api
+# 3) installer les dépendances PHP
+composer install
+# 4) créer un fichier .env.local pour configurer les paramètres
+# ...
+# 5) créer la base de données
+php bin/console doctrine:database:create
+# 6) initialiser la structure de la base de données
+php bin/console doctrine:schema:update --force
+# 7) télécharger bin/validator-cli.jar (version >= v4.0.4)
+bash download-validator.sh 4.1.0
+# 8) Vérifier la configuration des arguments du Validator
+php bin/console app:args-config-check
+# 9) Démarrer un serveur local à l'aide de l'exécutable symfony
+symfony server:start
+# ouvrir http://localhost:8000 avec un navigateur
 ```
 
-> [Comment configurer la variable DATABASE_URL (documentation Symfony)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)
+En cas de modification des dépendances JS (package.json):
 
-> Préfixe pour les commandes suivantes : `docker exec -it validator-api_backend_1 ...`
+```bash
+# installer les dépendances de dev
+yarn install
+# construire le front à l'aide de webpack
+yarn run build
+# commiter les modifications
+```
 
-> Les commandes spécifiques à l'environnement de production sont en _italique_
+## Installation avec docker
 
-3. Installer les dépendances PHP : `composer update` _ou `composer update --no-dev`_
-4. Installer les dépendances JavaScript : `yarn install` _ou `yarn install --production`_
-5. Créer la base de données : `php bin/console doctrine:database:create --if-not-exists`
-6. Mettre à jour le schéma de la base de données : `php bin/console doctrine:migrations:migrate --no-interaction`
-7. Compiler les assets: `yarn encore dev` _ou `yarn encore production --progress`_
-8. Télécharger l'outil Validator CLI (jar) : `./download-validator.sh <VALIDATOR_VERSION>`
-9. Vérifier la configuration des arguments du Validator : `php bin/console app:args-config-check`
-
-> La version actuelle de l'API est compatible avec validator v4.0.4.
+```bash
+git clone https://github.com/IGNF/validator-api.git
+cd validator-api
+# démarrage de la stack de développement
+docker-compose up -d
+# ouvrir http://localhost:8000 avec un navigateur
+```

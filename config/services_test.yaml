@@ -1,0 +1,7 @@
+services:
+  _defaults:
+    bind:
+      $validationsDir: "%env(resolve:DATA_DIR)%/validations-test"
+
+  App\Storage\ValidationsStorage:
+    public: true

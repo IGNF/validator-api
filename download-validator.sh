@@ -1,20 +1,9 @@
 #!/bin/bash
 
-set -e
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-VALIDATOR_VERSION=$1
-
-if [ -z ${VALIDATOR_VERSION+x} ]; then
-    echo "VALIDATOR_VERSION is unset"
-    exit 1
-elif [ -z "$VALIDATOR_VERSION" ]; then
-    echo "VALIDATOR_VERSION is blank"
-    exit 2
-else
-    echo "Downloading validator v$VALIDATOR_VERSION"
-fi
-
+VALIDATOR_VERSION=${VALIDATOR_VERSION:-4.1.0}
 URL="https://github.com/IGNF/validator/releases/download/v$VALIDATOR_VERSION/validator-cli.jar"
-echo $URL
 
-curl --location $URL >./validator-cli.jar
+echo "Downloading validator v${VALIDATOR_VERSION} from ${URL}..."
+wget -O "${SCRIPT_DIR}/bin/validator-cli.jar" "$URL"

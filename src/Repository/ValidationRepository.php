@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Validation;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -41,19 +42,22 @@ class ValidationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Finds all validations created 30 days ago (DeleteOldFilesCommand::EXPIRY_CONDITION)
+     * Finds all archivable validations older than expiryDate.
      *
-     * @param string $expiryDate
-     * @return array[Validation]
+     * @param DateTime $expiryDate
+     * @return array<Validation>
      */
-    public function findAllToBeArchived($expiryDate)
+    public function findAllToBeArchived(DateTime $expiryDate)
     {
         return $this->createQueryBuilder('v')
             ->where('v.dateCreation < :expiryDate')
+            ->andWhere('v.status != :ignoredStatus')
             ->setParameters([
                 'expiryDate' => $expiryDate,
+                'ignoredStatus' => Validation::STATUS_ARCHIVED
             ])
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 }

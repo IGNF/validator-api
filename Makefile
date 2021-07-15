@@ -1,46 +1,32 @@
 PHP_CS_RULES=@Symfony
 PHP_MD_RULES=./phpmd.xml
 
-env-dev:
-	docker-compose up -d --build --remove-orphans --scale backend=2
+test: vendor
+	 APP_ENV=test XDEBUG_MODE=coverage vendor/bin/simple-phpunit
 
-env-test:
-	docker-compose -f docker-compose.test.yml up -d --build --remove-orphans
-
-compile-app:
-	composer update
-	yarn install
-	yarn encore dev
-
-compile-app-prod:
-	composer update --no-dev
-	yarn install --production
-	yarn encore production --progress
-
-run-tests:
-	vendor/bin/simple-phpunit
-
-ci: compile-app run-tests
-
-deploy:
-	echo "TODO: deploying app"
-
-check-rules:
+.PHONY: check-rules
+check-rules: vendor
 	@echo "-- Checking coding rules using phpmd (see @SuppressWarning to bypass control)"
 	vendor/bin/phpmd src text $(PHP_MD_RULES)
 	@echo "-- Checking coding rules using phpstan"
 	vendor/bin/phpstan analyse -c phpstan.neon --error-format=raw
 
-fix-style:
+.PHONY: fix-style
+fix-style: vendor
 	@echo "-- Fixing coding style using php-cs-fixer..."
 	vendor/bin/php-cs-fixer fix src --rules $(PHP_CS_RULES) --using-cache=no
 	vendor/bin/php-cs-fixer fix tests --rules $(PHP_CS_RULES) --using-cache=no
 
-check-style:
+.PHONY: check-style
+check-style: vendor
 	@echo "-- Checking coding style using php-cs-fixer (run 'make fix-style' if it fails)"
 	vendor/bin/php-cs-fixer fix src --rules $(PHP_CS_RULES) -v --dry-run --diff --using-cache=no
 	vendor/bin/php-cs-fixer fix tests --rules $(PHP_CS_RULES) -v --dry-run --diff --using-cache=no
 
+vendor:
+	composer install
+
+.PHONY: clean
 clean:
 	rm -rf vendor
 	rm -rf var
@@ -49,7 +35,7 @@ clean:
 	rm -f *.lock
 	rm -f package-lock.json
 	rm -f .php_cs.cache
-	rm -rf public/build
+	rm -rf output
 	rm -rf node_modules
 	rm -rf .scannerwork
 	rm -rf sonar-scanner

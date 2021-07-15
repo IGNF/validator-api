@@ -48,11 +48,6 @@ class Validation
     const STATUS_ARCHIVED = 'archived';
 
     /**
-     * Temporary storage directory for dataset and validation results files
-     */
-    const VALIDATIONS_DIRECTORY = 'var/data/validations';
-
-    /**
      * Unique identifier
      *
      * @ORM\Id
@@ -232,21 +227,6 @@ class Validation
         $this->results = $results;
 
         return $this;
-    }
-
-    /**
-     * Get temporary file storage directory for the validation
-     *
-     * @return string
-     */
-    public function getDirectory()
-    {
-        if ($_ENV['APP_ENV'] == 'test') {
-            $directory = $this::VALIDATIONS_DIRECTORY . '/' . 'test' . '/' . $this->getUid();
-        } else {
-            $directory = $this::VALIDATIONS_DIRECTORY . '/' . $this->getUid();
-        }
-        return $directory;
     }
 
     /**

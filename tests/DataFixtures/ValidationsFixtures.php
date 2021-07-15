@@ -4,73 +4,111 @@ namespace App\Tests\DataFixtures;
 
 use App\Entity\Validation;
 use App\Service\ValidatorArgumentsService;
+use App\Storage\ValidationsStorage;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
 class ValidationsFixtures extends Fixture
 {
-    const FILENAME = "130010853_PM3_60_20180516.zip";
-    const DIR_DATA = './tests/Data';
-    const DIR_DATA_TEMP = './tests/TempData';
+    const FILENAME_SUP_PM3 = "130010853_PM3_60_20180516.zip";
+
+    /**
+     * @var ValidatorArgumentsService
+     */
+    private $valArgsService;
+
+    /**
+     * @var ValidationsStorage
+     */
+    private $validationsStorage;
+
+    public function __construct(
+        ValidatorArgumentsService $valArgsService,
+        ValidationsStorage $validationsStorage
+    )
+    {
+        $this->valArgsService = $valArgsService;
+        $this->validationsStorage = $validationsStorage;
+    }
+
+    /**
+     * Add sample archive to the storage
+     *
+     * @param Validation $validation
+     * @param string $filename
+     * @return void
+     */
+    private function addSampleArchive(Validation $validation,$filename){
+        $originalPath = __DIR__.'/../Data/'.$filename;
+        if (! file_exists($originalPath) ){
+            throw new RuntimeException('Sample file not found : '.$originalPath);
+        }
+
+        $validationDirectory = $this->validationsStorage->getDirectory($validation);
+        $fs = new Filesystem();
+        $validation->setDatasetName(str_replace('.zip', '', $filename));
+        $fs->copy(
+            $originalPath,
+            $validationDirectory . "/" . $filename
+        );
+    }
 
     public function load(ObjectManager $em)
     {
         $fs = new Filesystem();
-        $valArgsService = new ValidatorArgumentsService(dirname(__FILE__) . '/../..');
 
-        // a validation with no args
-        $validation = new Validation();
-        $validation->setDatasetName(str_replace('.zip', '', $this::FILENAME));
+        /*
+         * validation_no_args - a validation with no args
+         */
+        $validationNoArgs = new Validation();
+        $this->addSampleArchive($validationNoArgs,self::FILENAME_SUP_PM3);
+        $em->persist($validationNoArgs);
+        $this->addReference('validation_no_args', $validationNoArgs);
 
-        $fs->copy($this::DIR_DATA . "/" . $this::FILENAME, $validation->getDirectory() . "/" . $this::FILENAME);
-        $em->persist($validation);
-
-        $this->addReference('validation_no_args', $validation);
-
-        // a validation that has already been archived
+        /*
+         * validation_archived - a validation that has already been archived
+         * (no file, archived)
+         */
         $valArchived = new Validation();
-        $valArchived->setDatasetName(str_replace('.zip', '', $this::FILENAME));
+        $valArchived->setDatasetName('130010853_PM3_60_20180516');
         $valArchived->setStatus(Validation::STATUS_ARCHIVED);
-
-        $fs->copy($this::DIR_DATA . "/" . $this::FILENAME, $valArchived->getDirectory() . "/" . $this::FILENAME);
         $em->persist($valArchived);
-
         $this->addReference('validation_archived', $valArchived);
 
-        // a validation with args
+        /*
+         * validation_with_args - a validation where args are provided
+         */
         $args = [
             'srs' => 'EPSG:2154',
-            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
         ];
-        $args = $valArgsService->validate(\json_encode($args));
+        $args = $this->valArgsService->validate(\json_encode($args));
 
         $valWithArgs = new Validation();
-        $valWithArgs->setDatasetName(str_replace('.zip', '', $this::FILENAME));
+        $this->addSampleArchive($valWithArgs,self::FILENAME_SUP_PM3);
         $valWithArgs->setStatus(Validation::STATUS_PENDING);
         $valWithArgs->setArguments($args);
-
-        $fs->copy($this::DIR_DATA . "/" . $this::FILENAME, $valWithArgs->getDirectory() . "/" . $this::FILENAME);
         $em->persist($valWithArgs);
-
         $this->addReference('validation_with_args', $valWithArgs);
 
-        // a validation with args, the model url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed
+        /*
+         * validation_with_bad_args - a validation with bad args
+         * (the model url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed)
+         */
         $args = [
             'srs' => 'EPSG:2154',
-            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017-test.json',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016-test.json',
         ];
-        $args = $valArgsService->validate(\json_encode($args));
+        $args = $this->valArgsService->validate(\json_encode($args));
 
-        $valWithArgs2 = new Validation();
-        $valWithArgs2->setDatasetName(str_replace('.zip', '', $this::FILENAME));
-        $valWithArgs2->setStatus(Validation::STATUS_PENDING);
-        $valWithArgs2->setArguments($args);
-
-        $fs->copy($this::DIR_DATA . "/" . $this::FILENAME, $valWithArgs2->getDirectory() . "/" . $this::FILENAME);
-        $em->persist($valWithArgs2);
-
-        $this->addReference('validation_with_args_2', $valWithArgs2);
+        $valWithBadArgs = new Validation();
+        $this->addSampleArchive($valWithBadArgs,self::FILENAME_SUP_PM3);
+        $valWithBadArgs->setStatus(Validation::STATUS_PENDING);
+        $valWithBadArgs->setArguments($args);
+        $em->persist($valWithBadArgs);
+        $this->addReference('validation_with_bad_args', $valWithBadArgs);
 
         $em->flush();
     }
