@@ -1,3 +1,16 @@
+/nbproject/
+/.vscode/
+/.idea
+
+/*.lock
+/package-lock.json
+
+validator-cli.jar
+
+.scannerwork
+sonar-scanner
+node_modules
+
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
@@ -15,21 +28,6 @@ validator-debug.log
 .phpunit.result.cache
 /phpunit.xml
 ###< symfony/phpunit-bridge ###
-/nbproject/
-
-/tests/TempData/*
-/*.lock
-/package-lock.json
-
-/.idea
-
-validator-cli.jar
-
-.scannerwork
-sonar-scanner
-node_modules
-
-/output/
 
 ###> friendsofphp/php-cs-fixer ###
 /.php-cs-fixer.php
