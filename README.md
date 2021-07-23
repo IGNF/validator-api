@@ -1,6 +1,7 @@
 # validator-api
 
 [![build](https://circleci.com/gh/IGNF/validator-api.svg?style=svg&circle-token=43352b8853c282961dfa380d8791eacae749a656)](https://circleci.com/gh/IGNF/validator-api)
+[![CeCILL License](https://img.shields.io/badge/licence-CeCILL--C-blue.svg)](LICENCE)
 
 # Description
 
@@ -14,7 +15,3 @@ API permettant d'appeler [IGNF/validator](https://github.com/IGNF/validator), ou
 
 * [Installation](docs/development/installation.md)
 * [Tests](docs/development/testing.md)
-
-# Licence
-
-Voir [LICENCE.md](LICENCE.md)
