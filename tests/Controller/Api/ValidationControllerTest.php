@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 /**
  * Tests for ValidatorController class
  */
-class ValidatorControllerTest extends WebTestCase
+class ValidationControllerTest extends WebTestCase
 {
     use FixturesTrait;
 
