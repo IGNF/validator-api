@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/validator/validations")
+ * @Route("/api/validations")
  */
 class ValidationsController extends AbstractController
 {

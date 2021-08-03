@@ -62,7 +62,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
         );
 
         $response = $this->client->getResponse();
@@ -86,13 +86,13 @@ class ValidatorControllerTest extends WebTestCase
     {
         $this->client->request(
             'GET',
-            '/validator/validations/',
+            '/api/validations/',
         );
 
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
 
-        // without the uid in url path, the request becomes trying to do a GET request at the address /validator/validations, which is not allowed
+        // without the uid in url path, the request becomes trying to do a GET request at the address /api/validations, which is not allowed
         $this->assertStatusCode(405, $this->client);
     }
 
@@ -103,7 +103,7 @@ class ValidatorControllerTest extends WebTestCase
     {
         $this->client->request(
             'GET',
-            '/validator/validations/no-record-for-this-uid',
+            '/api/validations/no-record-for-this-uid',
         );
 
         $response = $this->client->getResponse();
@@ -127,7 +127,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'POST',
-            '/validator/validations/',
+            '/api/validations/',
             [],
             ['dataset' => $dataset],
         );
@@ -159,7 +159,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'POST',
-            '/validator/validations/',
+            '/api/validations/',
             [],
             ['file' => $dataset],
         );
@@ -184,7 +184,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'POST',
-            '/validator/validations/',
+            '/api/validations/',
             [],
             ['dataset' => $dataset],
         );
@@ -203,7 +203,7 @@ class ValidatorControllerTest extends WebTestCase
     {
         $this->client->request(
             'POST',
-            '/validator/validations/',
+            '/api/validations/',
             [],
             [],
         );
@@ -224,7 +224,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'DELETE',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
         );
 
         $response = $this->client->getResponse();
@@ -236,7 +236,7 @@ class ValidatorControllerTest extends WebTestCase
         // trying to delete a validation that does not exist
         $this->client->request(
             'DELETE',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
         );
 
         $response = $this->client->getResponse();
@@ -260,7 +260,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -298,7 +298,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/does-not-exist',
+            '/api/validations/does-not-exist',
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -322,7 +322,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -346,7 +346,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -372,7 +372,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -404,7 +404,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -433,7 +433,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -461,7 +461,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -489,7 +489,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -517,7 +517,7 @@ class ValidatorControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/validator/validations/' . $validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],

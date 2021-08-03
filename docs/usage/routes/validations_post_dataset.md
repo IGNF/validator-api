@@ -1,10 +1,10 @@
-# [POST] /validator/validations <!-- {docsify-ignore-all} -->
+# [POST] /api/validations <!-- {docsify-ignore-all} -->
 
 Téléverser un jeu de données sur le serveur afin de créer une demande de validation. La demande de valiation ne sera pas traitée tout de suite.
 
 ## URL de la ressource
 
-`[POST] ${base_url}/validator/validations`
+`[POST] ${base_url}/api/validations`
 
 ## Paramètres
 
@@ -16,7 +16,7 @@ Téléverser un jeu de données sur le serveur afin de créer une demande de val
 
 ```bash
 curl --request POST \
-  --url ${base_url}/validator/validations/ \
+  --url ${base_url}/api/validations/ \
   --header 'Content-Type: multipart/form-data' \
   --header 'content-type: multipart/form-data; boundary=---011000010111000001101001' \
   --form dataset=@92022_PLU_20200415.zip;type=application/x-zip-compressed

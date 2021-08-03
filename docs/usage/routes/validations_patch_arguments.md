@@ -1,10 +1,10 @@
-# [PATCH] /validator/validations{uid} <!-- {docsify-ignore-all} -->
+# [PATCH] /api/validations{uid} <!-- {docsify-ignore-all} -->
 
 Préciser les arguments et les options du programme ligne de commandes Validator.
 
 ## URL de la ressource
 
-`[PATCH] ${base_url}/validator/validations/{uid}`
+`[PATCH] ${base_url}/api/validations/{uid}`
 
 ## Paramètres
 
@@ -12,7 +12,7 @@ Préciser les arguments et les options du programme ligne de commandes Validator
 | ---------- | ------------ | -------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | uid        | path         | string         | oui         | identifiant unique correspondant à une validation                                                                                           |
 | model      | payload json | string         | oui         | url vers le modèle de données                                                                                                               |
-| srs        | payload json | string         | oui         | SRID correspondant à la projection [(valeurs possibles)](https://ignf.github.io/validator/validator-core/src/main/resources/projection.json) |
+| srs        | payload json | string         | oui         | SRID correspondant à la projection [(valeurs possibles)](https://ignf.github.io/api/validator-core/src/main/resources/projection.json) |
 | max-errors | payload json | integer        | non         | nombre maximum d'erreurs reportées pour chaque code d'erreur                                                                                | 30                |
 | normalize  | payload json | boolean        | non         | demande de normaliser les données durant la validation                                                                                      | true              |
 | plugins    | payload json | string         | non         | plugins du validator.jar à utiliser (cnig ou dgpr)                                                                                          |
@@ -24,7 +24,7 @@ Préciser les arguments et les options du programme ligne de commandes Validator
 
 ```bash
 curl --request PATCH \
-  --url  ${base_url}/validator/validations/k392kn8syily29qjj18959hs \
+  --url  ${base_url}/api/validations/k392kn8syily29qjj18959hs \
   --header 'Content-Type: application/json' \
   --data '{
             "srs": "EPSG:2154",

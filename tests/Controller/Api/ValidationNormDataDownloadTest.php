@@ -46,7 +46,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/validator/validations/' . $validation->getUid() . '/files/normalized',
+            '/api/validations/' . $validation->getUid() . '/files/normalized',
         );
 
         $response = $this->client->getResponse();
@@ -60,7 +60,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/validator/validations/' . $validation->getUid() . '/files/normalized',
+            '/api/validations/' . $validation->getUid() . '/files/normalized',
         );
 
         $response = $this->client->getResponse();
@@ -74,7 +74,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/validator/validations/' . $validation->getUid() . '/files/normalized',
+            '/api/validations/' . $validation->getUid() . '/files/normalized',
         );
 
         $response = $this->client->getResponse();
@@ -92,7 +92,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $uid = "uid-validation-doesnt-exist";
         $this->client->request(
             'GET',
-            '/validator/validations/' . $uid . '/files/normalized',
+            '/api/validations/' . $uid . '/files/normalized',
         );
 
         $response = $this->client->getResponse();
@@ -126,7 +126,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/validator/validations/' . $validation2->getUid() . '/files/normalized',
+            '/api/validations/' . $validation2->getUid() . '/files/normalized',
         );
 
         $response = $this->client->getResponse();
@@ -140,7 +140,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/validator/validations/' . $validation->getUid() . '/files/normalized',
+            '/api/validations/' . $validation->getUid() . '/files/normalized',
         );
 
         $response = $this->client->getResponse();

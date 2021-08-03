@@ -32,7 +32,7 @@ class DefaultControllerTest extends WebTestCase
         $client = static::createClient();
         $client->request(
             'GET',
-            '/validator/',
+            '/api/',
         );
 
         $this->assertResponseIsSuccessful();

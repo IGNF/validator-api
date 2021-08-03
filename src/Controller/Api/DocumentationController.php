@@ -22,7 +22,7 @@ class DocumentationController extends AbstractController
     /**
      * Root path for the API displaying swagger.
      *
-     * @Route("/validator/", name="validator_api_root")
+     * @Route("/api/", name="validator_api_root")
      */
     public function index()
     {
@@ -32,7 +32,7 @@ class DocumentationController extends AbstractController
     /**
      * Get OpenAPI specifications.
      *
-     * @Route("/validator/validator-api.yml", name="validator_api_swagger")
+     * @Route("/api/validator-api.yml", name="validator_api_swagger")
      */
     public function swagger()
     {
@@ -44,7 +44,7 @@ class DocumentationController extends AbstractController
     /**
      * Get a schema from docs/specs/schema.
      *
-     * @Route("/validator/schema/{schemaName}.json", name="validator_api_schema", requirements={"schemaName"="[\w\-]+"})
+     * @Route("/api/schema/{schemaName}.json", name="validator_api_schema", requirements={"schemaName"="[\w\-]+"})
      */
     public function schema($schemaName)
     {
