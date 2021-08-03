@@ -29,6 +29,13 @@ class ValidationManager
     private $validatorPath;
 
     /**
+     * GMLAS_CONFIG environment variable for validator-cli.jar to avoid lower case renaming for GML validation.
+     *
+     * @var string
+     */
+    private $gmlasConfigPath;
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -37,12 +44,14 @@ class ValidationManager
         EntityManagerInterface $em,
         ValidationsStorage $storage,
         $validatorPath,
+        $gmlasConfigPath,
         LoggerInterface $logger
     )
     {
         $this->em = $em;
         $this->storage = $storage;
         $this->validatorPath = $validatorPath;
+        $this->gmlasConfigPath = $gmlasConfigPath;
         $this->logger = $logger;
     }
 
@@ -101,6 +110,9 @@ class ValidationManager
             $args = $this->reconstructArgs($validation);
             $sourceDataDir = $validationDirectory . '/' . $validation->getDatasetName();
 
+            $env = $_ENV;
+            $env['GMLAS_CONFIG'] = $this->gmlasConfigPath;
+
             $cmd = ['java', '-jar', $this->validatorPath, 'document_validator', '--input', $sourceDataDir];
             $cmd = \array_merge($cmd, $args);
 
@@ -108,7 +120,8 @@ class ValidationManager
             $this->logger->info("Validation[{uid}]: executing Java validation program", ['uid' => $validation->getUid()]);
             $process = new Process(
                 $cmd,
-                $validationDirectory // note that validator-debug.log is located in current directory
+                $validationDirectory, // note that validator-debug.log is located in current directory,
+                $env
             );
             $process->setTimeout(600);
             $process->setIdleTimeout(600);

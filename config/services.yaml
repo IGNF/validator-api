@@ -5,6 +5,8 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
   ignf_validator.path: '%env(resolve:VALIDATOR_PATH)%'
+  # GML/PCRS validation - see config/gdal/README.md and https://github.com/IGNF/validator-api/issues/15
+  env(GMLAS_CONFIG): '%kernel.project_dir%/config/gdal/gmlasconf-validator.xml'
 
 services:
   # default configuration for services in *this* file
@@ -15,6 +17,7 @@ services:
       $validationsDir: "%env(resolve:DATA_DIR)%/validations"
       $projectDir: "%kernel.project_dir%"
       $validatorPath: "%ignf_validator.path%"
+      $gmlasConfigPath: "%env(resolve:GMLAS_CONFIG)%"
 
   # makes classes in src/ available to be used as services
   # this creates a service per class whose id is the fully-qualified class name
