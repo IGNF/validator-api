@@ -7,7 +7,7 @@
       "type": "string",
       "format": "uri",
       "description": "L'url vers le modèle de données",
-      "example": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json"
+      "example": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"
     },
     "srs": {
       "type": "string",
