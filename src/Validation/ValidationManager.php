@@ -24,16 +24,9 @@ class ValidationManager
     private $storage;
 
     /**
-     * @var string
+     * @var ValidatorCLI
      */
-    private $validatorPath;
-
-    /**
-     * GMLAS_CONFIG environment variable for validator-cli.jar to avoid lower case renaming for GML validation.
-     *
-     * @var string
-     */
-    private $gmlasConfigPath;
+    private $validatorCli;
 
     /**
      * @var LoggerInterface
@@ -43,15 +36,13 @@ class ValidationManager
     public function __construct(
         EntityManagerInterface $em,
         ValidationsStorage $storage,
-        $validatorPath,
-        $gmlasConfigPath,
+        ValidatorCLI $validatorCli,
         LoggerInterface $logger
     )
     {
         $this->em = $em;
         $this->storage = $storage;
-        $this->validatorPath = $validatorPath;
-        $this->gmlasConfigPath = $gmlasConfigPath;
+        $this->validatorCli = $validatorCli;
         $this->logger = $logger;
     }
 
@@ -98,51 +89,16 @@ class ValidationManager
         $this->em->persist($validation);
         $this->em->flush();
 
-        $validationDirectory = $this->storage->getDirectory($validation);
-        /*
-         * TODO : $this->validatorCli->process($validation);
-         */
         try {
-            /* unzip dataset */
+            /*
+             * unzip dataset
+             */
             $this->unzip($validation);
 
-            /* prepare validator-cli.jar command */
-            $args = $this->reconstructArgs($validation);
-            $sourceDataDir = $validationDirectory . '/' . $validation->getDatasetName();
-
-            $env = $_ENV;
-            $env['GMLAS_CONFIG'] = $this->gmlasConfigPath;
-
-            $cmd = ['java', '-jar', $this->validatorPath, 'document_validator', '--input', $sourceDataDir];
-            $cmd = \array_merge($cmd, $args);
-
-            // executing validation program
-            $this->logger->info("Validation[{uid}]: executing Java validation program", ['uid' => $validation->getUid()]);
-            $process = new Process(
-                $cmd,
-                $validationDirectory, // note that validator-debug.log is located in current directory,
-                $env
-            );
-            $process->setTimeout(600);
-            $process->setIdleTimeout(600);
-            $process->run();
-
-            if (!$process->isSuccessful()) {
-                throw new ProcessFailedException($process);
-            }
-
             /*
-             * read validation report
+             * run validator-cli.jar command
              */
-            $reportPath = $validationDirectory.'/validation/validation.jsonl';
-            $results = \file_get_contents($reportPath);
-
-            // jsonl to json_array
-            $results = \str_replace("}\n{", "},\n{", $results);
-            $results = "[" . $results . "]";
-            $results = \json_decode($results, true);
-
-            $validation->setResults($results);
+            $this->validatorCli->process($validation);
 
             /*
              * zip normalized results
@@ -166,35 +122,6 @@ class ValidationManager
         $this->em->flush();
 
         return 0;
-    }
-
-    /**
-     * Reconstructs the arguments as an array of strings
-     *
-     * @return array[string]
-     */
-    private function reconstructArgs(Validation $validation)
-    {
-        $args = [];
-        $arguments = $validation->getArguments();
-
-        foreach ($arguments as $key => $value) {
-            if (!$value || $value == '' || $value == null) {
-                continue;
-            }
-
-            if (\strlen($key) > 1) {
-                array_push($args, '--' . $key);
-            } else {
-                array_push($args, '-' . $key);
-            }
-
-            if (!is_bool($value)) {
-                array_push($args, $value);
-            }
-        }
-
-        return $args;
     }
 
     /**
