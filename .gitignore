@@ -22,6 +22,7 @@ validator-debug.log
 /package-lock.json
 
 /.idea
+/.vscode
 
 validator-cli.jar
 

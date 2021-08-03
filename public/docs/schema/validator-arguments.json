@@ -1,13 +1,16 @@
 {
   "type": "object",
   "description": "Arguments et options du validator-cli.jar",
-  "required": ["model", "srs"],
+  "required": [
+    "model",
+    "srs"
+  ],
   "properties": {
     "model": {
       "type": "string",
       "format": "uri",
       "description": "L'url vers le modèle de données",
-      "example": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json"
+      "example": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"
     },
     "srs": {
       "type": "string",
@@ -30,7 +33,16 @@
         "EPSG:4471",
         "IGNF:RGM04UTM38S",
         "EPSG:4467",
-        "IGNF:RGSPM06U21"
+        "IGNF:RGSPM06U21",
+        "EPSG:3942",
+        "EPSG:3943",
+        "EPSG:3944",
+        "EPSG:3945",
+        "EPSG:3946",
+        "EPSG:3947",
+        "EPSG:3948",
+        "EPSG:3949",
+        "EPSG:3950"
       ]
     },
     "max-errors": {
@@ -49,14 +61,20 @@
       "type": "string",
       "description": "Plugins du validator-cli.jar à utiliser",
       "example": "dgpr",
-      "enum": ["dgpr", "cnig"]
+      "enum": [
+        "dgpr",
+        "cnig"
+      ]
     },
     "encoding": {
       "type": "string",
       "description": "Encodage de données",
       "default": "UTF-8",
       "example": "UTF-8",
-      "enum": ["UTF-8", "LATIN1"]
+      "enum": [
+        "UTF-8",
+        "LATIN1"
+      ]
     }
   },
   "additionalProperties": false
