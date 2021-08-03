@@ -12,7 +12,7 @@ Préciser les arguments et les options du programme ligne de commandes Validator
 | ---------- | ------------ | -------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | uid        | path         | string         | oui         | identifiant unique correspondant à une validation                                                                                           |
 | model      | payload json | string         | oui         | url vers le modèle de données                                                                                                               |
-| srs        | payload json | string         | oui         | SRID correspondant à la projection [(valeurs possibles)](https://github.com/IGNF/validator-api/blob/master/docs/resources/projections.json) |
+| srs        | payload json | string         | oui         | SRID correspondant à la projection [(valeurs possibles)](https://ignf.github.io/validator/validator-core/src/main/resources/projection.json) |
 | max-errors | payload json | integer        | non         | nombre maximum d'erreurs reportées pour chaque code d'erreur                                                                                | 30                |
 | normalize  | payload json | boolean        | non         | demande de normaliser les données durant la validation                                                                                      | true              |
 | plugins    | payload json | string         | non         | plugins du validator.jar à utiliser (cnig ou dgpr)                                                                                          |
