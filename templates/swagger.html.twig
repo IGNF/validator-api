@@ -19,7 +19,7 @@
         $(function() {
             SwaggerUIBundle({
                 dom_id: '#swagger-ui-container',
-                url: "/docs/validator-api.yml"
+                url: "{{ path('validator_api_swagger') }}"
             });
         });
     </script>
