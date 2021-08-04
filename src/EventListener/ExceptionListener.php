@@ -7,6 +7,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Class for custom exception handling
@@ -39,8 +40,6 @@ class ExceptionListener
      */
     private function getErrorResponse(\Throwable $throwable)
     {
-        $code = $throwable->getCode();
-
         $responseData = [
             'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
             'status' => Response::$statusTexts[Response::HTTP_INTERNAL_SERVER_ERROR],
@@ -48,7 +47,14 @@ class ExceptionListener
             'details' => [],
         ];
 
-        if ($throwable instanceof ApiException) {
+        if ($throwable instanceof HttpException) {
+            $code = $throwable->getStatusCode();
+            $responseData['code'] = $code;
+            $responseData['status'] = Response::$statusTexts[$code];
+            $responseData['message'] = $throwable->getMessage();
+
+        } else if ($throwable instanceof ApiException) {
+            $code = $throwable->getCode();
             $responseData['code'] = $code;
             $responseData['status'] = Response::$statusTexts[$code];
             $responseData['message'] = $throwable->getMessage();

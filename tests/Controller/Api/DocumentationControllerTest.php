@@ -48,7 +48,6 @@ class DocumentationControllerTest extends WebTestCase
         );
     }
 
-
     /**
      * Get specification
      */
@@ -69,6 +68,28 @@ class DocumentationControllerTest extends WebTestCase
             "Arguments et options de IGNF/validator",
             $client->getInternalResponse()->getContent()
         );
+    }
+
+    /**
+     * Try to get a schema that does not exist
+     */
+    public function testSchemaNotExists()
+    {
+        $schemaName = "schema-does-not-exist";
+        $client = static::createClient();
+        $client->request(
+            'GET',
+            "/api/schema/$schemaName.json",
+        );
+
+        $this->assertStatusCode(404, $client);
+
+        $response = $client->getResponse();
+        $responseArray = json_decode($response->getContent(), true);
+
+        $this->assertIsArray($responseArray);
+        $this->assertArrayHasKey('message', $responseArray);
+        $this->assertEquals("No schema found with name=$schemaName", $responseArray['message']);
     }
 
 }
