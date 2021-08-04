@@ -56,7 +56,7 @@ class ProcessOneCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $validation = $this->getValidationRepository()->findNextPending();
+        $validation = $this->getValidationRepository()->popNextPending();
         if (is_null($validation)) {
             $this->logger->info("Validation[null]: no validation pending, quitting");
             return 0;

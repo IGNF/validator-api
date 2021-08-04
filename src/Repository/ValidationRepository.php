@@ -21,24 +21,36 @@ class ValidationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Finds the next pending validation
+     * Update next "pending" validation to "processing" and returns it
      *
-     * @return Validation
+     * @return Validation|null
      */
-    public function findNextPending()
+    public function popNextPending()
     {
-        $results = $this->createQueryBuilder('v')
+        $em = $this->getEntityManager();
+        $conn = $em->getConnection();
+
+        $conn->beginTransaction();
+        $conn->executeQuery('LOCK TABLE validation IN ACCESS EXCLUSIVE MODE;');
+
+        /** @var Validation|null $result */
+        $result = $this->createQueryBuilder('v')
             ->where('v.status = :status')
             ->setParameters(['status' => Validation::STATUS_PENDING])
             ->orderBy('v.dateCreation', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getOneOrNullResult()
+        ;
 
-        if (empty($results)) {
-            return null;
+        if (is_null($result)) {
+            return $result;
         }
 
-        return $results[0];
+        $result->setStatus(Validation::STATUS_PROCESSING);
+        $em->flush($result);
+
+        $conn->commit();
+        return $result;
     }
 
     /**
@@ -54,7 +66,7 @@ class ValidationRepository extends ServiceEntityRepository
             ->andWhere('v.status != :ignoredStatus')
             ->setParameters([
                 'expiryDate' => $expiryDate,
-                'ignoredStatus' => Validation::STATUS_ARCHIVED
+                'ignoredStatus' => Validation::STATUS_ARCHIVED,
             ])
             ->getQuery()
             ->getResult()
