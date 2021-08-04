@@ -2,8 +2,6 @@
 
 namespace App\Command\Validations;
 
-use App\Entity\Validation;
-use App\Repository\ValidationRepository;
 use App\Validation\ValidationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -19,19 +17,10 @@ class ProcessOneCommand extends Command
     protected static $defaultName = 'app:validations:process-one';
 
     /**
-     * @var EntityManagerInterface
-     */
-    private $em;
-
-    /**
      * @var ValidationManager
      */
     private $validationManager;
 
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
 
     public function __construct(
         EntityManagerInterface $em,
@@ -48,7 +37,8 @@ class ProcessOneCommand extends Command
     {
         // TODO add --uid option to ease command testing
         $this
-            ->setDescription('Launches a document validation');
+            ->setDescription('Launches a document validation')
+        ;
     }
 
     /**
@@ -56,20 +46,8 @@ class ProcessOneCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $validation = $this->getValidationRepository()->findNextPending();
-        if (is_null($validation)) {
-            $this->logger->info("Validation[null]: no validation pending, quitting");
-            return 0;
-        }
-        $this->validationManager->process($validation);
+        $this->validationManager->processOne();
         return 0;
     }
 
-    /**
-     * @return ValidationRepository
-     */
-    protected function getValidationRepository()
-    {
-        return $this->em->getRepository(Validation::class);
-    }
 }
