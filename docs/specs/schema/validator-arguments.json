@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "description": "Arguments et options du validator-cli.jar",
+  "description": "Arguments et options de IGNF/validator",
   "required": [
     "model",
     "srs"

@@ -1,10 +1,10 @@
-# [GET] /validator/validations/{uid}/files/source <!-- {docsify-ignore-all} -->
+# [GET] /api/validations/{uid}/files/source <!-- {docsify-ignore-all} -->
 
 Télécharger les données de source qui ont subi la validation.
 
 ## URL de la ressource
 
-`[GET] ${base_url}/validator/validations/{uid}/files/source`
+`[GET] ${base_url}/api/validations/{uid}/files/source`
 
 ## Paramètres
 
@@ -16,7 +16,7 @@ Télécharger les données de source qui ont subi la validation.
 
 ```bash
 curl --request GET \
-  --url ${base_url}/validator/validations/k392kn8syily29qjj18959hs/files/source
+  --url ${base_url}/api/validations/k392kn8syily29qjj18959hs/files/source
 ```
 
 ## Réponses HTTP

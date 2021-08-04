@@ -1,10 +1,10 @@
-# [GET] /validator/validations/{uid} <!-- {docsify-ignore-all} -->
+# [GET] /api/validations/{uid} <!-- {docsify-ignore-all} -->
 
 Récupérer tout le détail d'une validation notamment le résultat du validator.
 
 ## URL de la ressource
 
-`[GET] ${base_url}/validator/validations/{uid}`
+`[GET] ${base_url}/api/validations/{uid}`
 
 ## Paramètres
 
@@ -16,7 +16,7 @@ Récupérer tout le détail d'une validation notamment le résultat du validator
 
 ```bash
 curl --request GET \
-  --url ${base_url}/validator/validations/k392kn8syily29qjj18959hs
+  --url ${base_url}/api/validations/k392kn8syily29qjj18959hs
 ```
 
 ## Réponses HTTP

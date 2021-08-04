@@ -13,8 +13,7 @@ module.exports = [
         patterns: [
           //{ from: './node_modules/jquery/dist', to: './vendor/jquery' },
           { from: "./node_modules/@ignf/validator-client/dist", to: "./vendor/validator-api-client" },
-          { from: "./docs/favicon.ico", to: "./favicon.ico", },
-          { from: "./docs/specs", to: "./docs" }
+          { from: "./docs/favicon.ico", to: "./favicon.ico", }
         ]
       })
     ]

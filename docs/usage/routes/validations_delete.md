@@ -1,10 +1,10 @@
-# [DELETE] /validator/validations/{uid} <!-- {docsify-ignore-all} -->
+# [DELETE] /api/validations/{uid} <!-- {docsify-ignore-all} -->
 
 Supprimer une validation et tous ses fichiers sur le serveur.
 
 ## URL de la ressource
 
-`[DELETE] ${base_url}/validator/validations/{uid}`
+`[DELETE] ${base_url}/api/validations/{uid}`
 
 ## Paramètres
 
@@ -16,7 +16,7 @@ Supprimer une validation et tous ses fichiers sur le serveur.
 
 ```bash
 curl --request DELETE \
-  --url ${base_url}/validator/validations/k392kn8syily29qjj18959hs
+  --url ${base_url}/api/validations/k392kn8syily29qjj18959hs
 ```
 
 ## Réponses HTTP

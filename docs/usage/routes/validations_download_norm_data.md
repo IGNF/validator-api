@@ -1,10 +1,10 @@
-# [GET] /validator/validations/{uid}/files/normalized <!-- {docsify-ignore-all} -->
+# [GET] /api/validations/{uid}/files/normalized <!-- {docsify-ignore-all} -->
 
 Télécharger les données normalisées qui ont été générées par le validator durant la validation.
 
 ## URL de la ressource
 
-`[GET] ${base_url}/validator/validations/{uid}/files/normalized`
+`[GET] ${base_url}/api/validations/{uid}/files/normalized`
 
 ## Paramètres
 
@@ -16,7 +16,7 @@ Télécharger les données normalisées qui ont été générées par le validat
 
 ```bash
 curl --request GET \
-  --url ${base_url}/validator/validations/k392kn8syily29qjj18959hs/files/normalized
+  --url ${base_url}/api/validations/k392kn8syily29qjj18959hs/files/normalized
 ```
 
 ## Réponses HTTP

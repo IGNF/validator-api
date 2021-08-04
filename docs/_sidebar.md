@@ -1,9 +1,9 @@
 - Entités
   - [Validation](usage/entities/validation.md)
 - Routes
-  - [[POST] /validator/validations](usage/routes/validations_post_dataset.md)
-  - [[GET] /validator/validations/{uid}](usage/routes/validations_get.md)
-  - [[PATCH] /validator/validations/{uid}](usage/routes/validations_patch_arguments.md)
-  - [[DELETE] /validator/validations/{uid}](usage/routes/validations_delete.md)
-  - [[GET] /validator/validations/{uid}/files/source](usage/routes/validations_download_source_data.md)
-  - [[GET] /validator/validations/{uid}/files/normalized](usage/routes/validations_download_norm_data.md)
+  - [[POST] /api/validations](usage/routes/validations_post_dataset.md)
+  - [[GET] /api/validations/{uid}](usage/routes/validations_get.md)
+  - [[PATCH] /api/validations/{uid}](usage/routes/validations_patch_arguments.md)
+  - [[DELETE] /api/validations/{uid}](usage/routes/validations_delete.md)
+  - [[GET] /api/validations/{uid}/files/source](usage/routes/validations_download_source_data.md)
+  - [[GET] /api/validations/{uid}/files/normalized](usage/routes/validations_download_norm_data.md)
