@@ -45,6 +45,7 @@ class ValidationRepository extends ServiceEntityRepository
 
         if (!is_null($result)) {
             $result->setStatus(Validation::STATUS_PROCESSING);
+            $result->setDateStart(new \DateTime('now'));
             $em->flush($result);
             $em->refresh($result);
         }

@@ -6,6 +6,7 @@ use App\Entity\Validation;
 use App\Storage\ValidationsStorage;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
@@ -76,18 +77,41 @@ class ValidationManager
     }
 
     /**
+     * Process next pending validation.
+     *
+     * @return void
+     */
+    public function processOne(){
+        $validation = $this->getValidationRepository()->popNextPending();
+        if (is_null($validation)) {
+            $this->logger->info("processOne : no validation pending, quitting");
+            return ;
+        }
+        $this->doProcess($validation);
+    }
+
+    /**
      * Process pending validation
      *
      * @param Validation $validation
      * @return void
      */
-    public function process(Validation $validation)
+    private function doProcess(Validation $validation)
     {
         $this->logger->info("Validation[{uid}]: process pending validation...", ['uid' => $validation->getUid()]);
-        $validation->setStatus(Validation::STATUS_PROCESSING);
-        $validation->setDateStart(new \DateTime('now'));
-        $this->em->persist($validation);
-        $this->em->flush();
+
+        /*
+         * force usage of popNextPending to avoid concurrency problems.
+         */
+        if ( Validation::STATUS_PROCESSING !== $validation->getStatus() ){
+            $message = sprintf(
+                'doProcess must be invoked on validation with status %s (current status is %s)',
+                Validation::STATUS_PROCESSING,
+                $validation->getStatus()
+            );
+            $this->logger->error($message, ['uid' => $validation->getUid()]);
+            throw new RuntimeException($message);
+        }
 
         try {
             /*
@@ -223,6 +247,14 @@ class ValidationManager
             ]);
             $fs->remove($tempDatabase);
         }
+    }
+
+    /**
+     * @return ValidationRepository
+     */
+    protected function getValidationRepository()
+    {
+        return $this->em->getRepository(Validation::class);
     }
 
 }
