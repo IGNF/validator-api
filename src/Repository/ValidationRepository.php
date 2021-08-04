@@ -38,16 +38,16 @@ class ValidationRepository extends ServiceEntityRepository
             ->where('v.status = :status')
             ->setParameters(['status' => Validation::STATUS_PENDING])
             ->orderBy('v.dateCreation', 'ASC')
+            ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult()
         ;
 
-        if (is_null($result)) {
-            return $result;
+        if (!is_null($result)) {
+            $result->setStatus(Validation::STATUS_PROCESSING);
+            $em->flush($result);
+            $em->refresh($result);
         }
-
-        $result->setStatus(Validation::STATUS_PROCESSING);
-        $em->flush($result);
 
         $conn->commit();
         return $result;
