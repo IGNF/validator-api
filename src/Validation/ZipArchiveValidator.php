@@ -36,7 +36,7 @@ class ZipArchiveValidator
             $files = $this->listFiles($zipPath);
         } catch (\Exception $ex) {
             $errors[] = [
-                'file' => $zipPath,
+                'file' => pathinfo($zipPath, PATHINFO_BASENAME),
                 'message' => $ex->getMessage(),
                 'code' => self::ERROR_BAD_ARCHIVE,
             ];
@@ -61,14 +61,15 @@ class ZipArchiveValidator
      */
     private function listFiles($zipPath)
     {
+        $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
         if (!file_exists($zipPath)) {
-            throw new \Exception(sprintf("The file %s doesn't exist", $zipPath));
+            throw new \Exception(sprintf("The zip archive file %s doesn't exist", $zipName));
         }
 
         $zipArchive = new ZipArchive();
-        if (!$zipArchive->open($zipPath)) {
-            $this->logger->error(sprintf("[ZipArchiveValidator] Impossible to open %s", $zipPath));
-            throw new \Exception(sprintf("Failure to read contents of the archive %s", $zipPath));
+        if ($zipArchive->open($zipPath) !== true) {
+            $this->logger->error(sprintf("[ZipArchiveValidator] Impossible to open archive %s", $zipPath));
+            throw new \Exception(sprintf("Impossible to open archive %s", $zipName));
         }
 
         $files = [];
@@ -79,7 +80,7 @@ class ZipArchiveValidator
 
         if (empty($files)) {
             $this->logger->error(sprintf('[ZipArchiveValidator] Archive %s is empty', $zipPath));
-            throw new \Exception(sprintf("Failure to read contents of the archive %s", $zipPath));
+            throw new \Exception(sprintf("Archive %s is empty", $zipName));
         }
 
         $zipArchive->close();

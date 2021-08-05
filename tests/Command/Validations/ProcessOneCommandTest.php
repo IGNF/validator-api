@@ -83,7 +83,7 @@ class ProcessOneCommandTest extends WebTestCase
         $this->assertEquals(Validation::STATUS_ERROR, $validation->getStatus());
         $this->assertNotNull($validation->getDateStart());
         $this->assertNotNull($validation->getDateFinish());
-        $this->assertNull($validation->getResults());
+        $this->assertNull($validation->getResults()); // TODO fails intermittently ¯\_(ツ)_/¯
 
         // no validation pending, the command should exit right away
         $command = $application->find('app:validations:process-one');
