@@ -13,6 +13,7 @@ use Symfony\Component\Filesystem\Filesystem;
 class ValidationsFixtures extends Fixture
 {
     const FILENAME_SUP_PM3 = "130010853_PM3_60_20180516.zip";
+    const FILENAME_INVALID_REGEX = "130010853_PM3_60_20180516-invalid-regex.zip";
 
     /**
      * @var ValidatorArgumentsService
@@ -27,8 +28,7 @@ class ValidationsFixtures extends Fixture
     public function __construct(
         ValidatorArgumentsService $valArgsService,
         ValidationsStorage $validationsStorage
-    )
-    {
+    ) {
         $this->valArgsService = $valArgsService;
         $this->validationsStorage = $validationsStorage;
     }
@@ -40,10 +40,11 @@ class ValidationsFixtures extends Fixture
      * @param string $filename
      * @return void
      */
-    private function addSampleArchive(Validation $validation,$filename){
-        $originalPath = __DIR__.'/../Data/'.$filename;
-        if (! file_exists($originalPath) ){
-            throw new RuntimeException('Sample file not found : '.$originalPath);
+    private function addSampleArchive(Validation $validation, $filename)
+    {
+        $originalPath = __DIR__ . '/../Data/' . $filename;
+        if (!file_exists($originalPath)) {
+            throw new RuntimeException('Sample file not found : ' . $originalPath);
         }
 
         $validationDirectory = $this->validationsStorage->getDirectory($validation);
@@ -63,7 +64,7 @@ class ValidationsFixtures extends Fixture
          * validation_no_args - a validation with no args
          */
         $validationNoArgs = new Validation();
-        $this->addSampleArchive($validationNoArgs,self::FILENAME_SUP_PM3);
+        $this->addSampleArchive($validationNoArgs, self::FILENAME_SUP_PM3);
         $em->persist($validationNoArgs);
         $this->addReference('validation_no_args', $validationNoArgs);
 
@@ -87,7 +88,7 @@ class ValidationsFixtures extends Fixture
         $args = $this->valArgsService->validate(\json_encode($args));
 
         $valWithArgs = new Validation();
-        $this->addSampleArchive($valWithArgs,self::FILENAME_SUP_PM3);
+        $this->addSampleArchive($valWithArgs, self::FILENAME_SUP_PM3);
         $valWithArgs->setStatus(Validation::STATUS_PENDING);
         $valWithArgs->setArguments($args);
         $em->persist($valWithArgs);
@@ -104,11 +105,27 @@ class ValidationsFixtures extends Fixture
         $args = $this->valArgsService->validate(\json_encode($args));
 
         $valWithBadArgs = new Validation();
-        $this->addSampleArchive($valWithBadArgs,self::FILENAME_SUP_PM3);
+        $this->addSampleArchive($valWithBadArgs, self::FILENAME_SUP_PM3);
         $valWithBadArgs->setStatus(Validation::STATUS_PENDING);
         $valWithBadArgs->setArguments($args);
         $em->persist($valWithBadArgs);
         $this->addReference('validation_with_bad_args', $valWithBadArgs);
+
+        /*
+         * validation_invalid_regex - a validation whose zip archive is empty
+         */
+        $args = [
+            'srs' => 'EPSG:2154',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
+        ];
+        $args = $this->valArgsService->validate(\json_encode($args));
+
+        $valInvalidRegex = new Validation();
+        $this->addSampleArchive($valInvalidRegex, self::FILENAME_INVALID_REGEX);
+        $valInvalidRegex->setStatus(Validation::STATUS_PENDING);
+        $valInvalidRegex->setArguments($args);
+        $em->persist($valInvalidRegex);
+        $this->addReference('validation_invalid_regex', $valInvalidRegex);
 
         $em->flush();
     }

@@ -20,8 +20,8 @@
         <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak" />
 
         <!-- ###+ symfony/framework-bundle ### -->
-        <env name="APP_ENV" value="dev"/>
-        <env name="APP_SECRET" value="4049513f2a2a7597f3b61c1f199a5bfa"/>
+        <env name="APP_ENV" value="dev" />
+        <env name="APP_SECRET" value="4049513f2a2a7597f3b61c1f199a5bfa" />
         <!-- env name="TRUSTED_PROXIES" value="127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16" -->
         <!-- env name="TRUSTED_HOSTS" value="'^(localhost|example\.com)$'" -->
         <!-- ###- symfony/framework-bundle ### -->
@@ -36,7 +36,7 @@
         <!-- ###- doctrine/doctrine-bundle ### -->
 
         <!-- ###+ nelmio/cors-bundle ### -->
-        <env name="CORS_ALLOW_ORIGIN" value="'^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'"/>
+        <env name="CORS_ALLOW_ORIGIN" value="'^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'" />
         <!-- ###- nelmio/cors-bundle ### -->
     </php>
 
@@ -52,6 +52,7 @@
 
             <exclude>
                 <directory suffix=".php">src/Test</directory>
+                <directory suffix=".php">src/DataFixtures</directory>
                 <file>src/Kernel.php</file>
                 <file>src/.preload.php</file>
                 <file>src/Controller/DefaultController.php</file>
