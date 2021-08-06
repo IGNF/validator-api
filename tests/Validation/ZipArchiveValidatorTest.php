@@ -4,7 +4,7 @@ namespace App\Tests\Validation;
 
 use App\Tests\WebTestCase;
 use App\Validation\ZipArchiveValidator;
-use Monolog\Logger;
+use Psr\Log\NullLogger;
 
 class ZipArchiveValidatorTest extends WebTestCase
 {
@@ -16,8 +16,8 @@ class ZipArchiveValidatorTest extends WebTestCase
 
     public function setUp(): void
     {
-        $logger = new Logger("test");
-        $this->zipArchiveValidator = new ZipArchiveValidator($logger);
+        // to debug : new Logger("test")
+        $this->zipArchiveValidator = new ZipArchiveValidator(new NullLogger());
     }
 
     public function tearDown(): void
