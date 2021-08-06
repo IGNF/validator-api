@@ -74,12 +74,13 @@ class ZipArchiveValidator
             $files[] = $stat['name'];
         }
 
+        $zipArchive->close();
+
         if (empty($files)) {
             $this->logger->error(sprintf('[ZipArchiveValidator] Archive %s is empty', $zipPath));
             throw new \Exception(sprintf("Archive %s is empty", $zipName));
         }
 
-        $zipArchive->close();
         return $files;
     }
 
