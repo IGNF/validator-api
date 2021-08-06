@@ -44,14 +44,14 @@ class ValidationManager
         EntityManagerInterface $em,
         ValidationsStorage $storage,
         ValidatorCLI $validatorCli,
-        LoggerInterface $logger,
-        ZipArchiveValidator $zipArchiveValidator
+        ZipArchiveValidator $zipArchiveValidator,
+        LoggerInterface $logger
     ) {
         $this->em = $em;
         $this->storage = $storage;
         $this->validatorCli = $validatorCli;
-        $this->logger = $logger;
         $this->zipArchiveValidator = $zipArchiveValidator;
+        $this->logger = $logger;
     }
 
     /**

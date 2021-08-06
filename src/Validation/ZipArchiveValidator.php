@@ -5,6 +5,9 @@ namespace App\Validation;
 use Psr\Log\LoggerInterface;
 use ZipArchive;
 
+/**
+ * Component class for the validation of the names of the files in a zip archive
+ */
 class ZipArchiveValidator
 {
 

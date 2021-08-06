@@ -4,9 +4,17 @@ namespace App\Exception;
 
 use Exception;
 
+/**
+ * Exception class for errors raised by ZipArchiveValidator
+ */
 class ZipArchiveValidationException extends Exception
 {
 
+    /**
+     * Array of errors in the same format as validator-cli.jar
+     *
+     * @var array
+     */
     protected $errors;
 
     public function __construct($errors = [])
