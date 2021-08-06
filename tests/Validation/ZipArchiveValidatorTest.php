@@ -2,7 +2,6 @@
 
 namespace App\Tests\Validation;
 
-use App\Exception\ZipArchiveValidationException;
 use App\Tests\WebTestCase;
 use App\Validation\ZipArchiveValidator;
 use Monolog\Logger;
@@ -32,7 +31,7 @@ class ZipArchiveValidatorTest extends WebTestCase
     public function testValidZip()
     {
         $errors = $this->zipArchiveValidator->validate(__DIR__ . '/../Data/130010853_PM3_60_20180516.zip');
-        $this->assertNull($errors);
+        $this->assertEmpty($errors);
     }
 
     /**
@@ -40,27 +39,16 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testEmptyZip()
     {
-        $thrown = false;
         $zipPath = __DIR__ . '/../Data/empty.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
-        try {
-            $this->zipArchiveValidator->validate($zipPath);
-        } catch (ZipArchiveValidationException $ex) {
-            $thrown = true;
-            $this->assertInstanceOf(ZipArchiveValidationException::class, $ex);
+        $errors = $this->zipArchiveValidator->validate($zipPath);
 
-            $errors = $ex->getErrors();
-            $this->assertIsArray($errors);
-            $this->assertEquals(1, count($errors));
-            $this->assertEquals("Zip archive pre-validation failed", $ex->getMessage());
-
-            $this->assertEquals($zipName, $errors[0]['file']);
-            $this->assertEquals(sprintf("Archive %s is empty", $zipName), $errors[0]['message']);
-            $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE, $errors[0]['code']);
-        }
-
-        $this->assertTrue($thrown, sprintf("%s was expected to be thrown", ZipArchiveValidationException::class));
+        $this->assertIsArray($errors);
+        $this->assertEquals(1, count($errors));
+        $this->assertEquals($zipName, $errors[0]['file']);
+        $this->assertEquals(sprintf("Archive %s is empty", $zipName), $errors[0]['message']);
+        $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE, $errors[0]['code']);
     }
 
     /**
@@ -68,27 +56,17 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testImpossibleToOpenZip()
     {
-        $thrown = false;
         $zipPath = __DIR__ . '/../Data/corrupted.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
-        try {
-            $this->zipArchiveValidator->validate($zipPath);
-        } catch (ZipArchiveValidationException $ex) {
-            $thrown = true;
-            $this->assertInstanceOf(ZipArchiveValidationException::class, $ex);
+        $errors = $this->zipArchiveValidator->validate($zipPath);
 
-            $errors = $ex->getErrors();
-            $this->assertIsArray($errors);
-            $this->assertEquals(1, count($errors));
-            $this->assertEquals("Zip archive pre-validation failed", $ex->getMessage());
+        $this->assertIsArray($errors);
+        $this->assertEquals(1, count($errors));
 
-            $this->assertEquals($zipName, $errors[0]['file']);
-            $this->assertEquals(sprintf("Impossible to open archive %s", $zipName), $errors[0]['message']);
-            $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE, $errors[0]['code']);
-        }
-
-        $this->assertTrue($thrown, sprintf("%s was expected to be thrown", ZipArchiveValidationException::class));
+        $this->assertEquals($zipName, $errors[0]['file']);
+        $this->assertEquals(sprintf("Impossible to open archive %s", $zipName), $errors[0]['message']);
+        $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE, $errors[0]['code']);
     }
 
     /**
@@ -96,27 +74,17 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testZipDoesntExist()
     {
-        $thrown = false;
         $zipPath = __DIR__ . '/../Data/doesnt-exist.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
-        try {
-            $this->zipArchiveValidator->validate($zipPath);
-        } catch (ZipArchiveValidationException $ex) {
-            $thrown = true;
-            $this->assertInstanceOf(ZipArchiveValidationException::class, $ex);
+        $errors = $this->zipArchiveValidator->validate($zipPath);
 
-            $errors = $ex->getErrors();
-            $this->assertIsArray($errors);
-            $this->assertEquals(1, count($errors));
-            $this->assertEquals("Zip archive pre-validation failed", $ex->getMessage());
+        $this->assertIsArray($errors);
+        $this->assertEquals(1, count($errors));
 
-            $this->assertEquals($zipName, $errors[0]['file']);
-            $this->assertEquals(sprintf("The zip archive file %s doesn't exist", $zipName), $errors[0]['message']);
-            $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE, $errors[0]['code']);
-        }
-
-        $this->assertTrue($thrown, sprintf("%s was expected to be thrown", ZipArchiveValidationException::class));
+        $this->assertEquals($zipName, $errors[0]['file']);
+        $this->assertEquals(sprintf("The zip archive file %s doesn't exist", $zipName), $errors[0]['message']);
+        $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE, $errors[0]['code']);
     }
 
     /**
@@ -124,27 +92,17 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testZipFilesInvalidName()
     {
-        $thrown = false;
         $zipPath = __DIR__ . '/../Data/130010853_PM3_60_20180516-invalid-regex.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
-        try {
-            $this->zipArchiveValidator->validate($zipPath);
-        } catch (ZipArchiveValidationException $ex) {
-            $thrown = true;
-            $this->assertInstanceOf(ZipArchiveValidationException::class, $ex);
+        $errors = $this->zipArchiveValidator->validate($zipPath);
 
-            $errors = $ex->getErrors();
-            $this->assertIsArray($errors);
-            $this->assertEquals(2, count($errors));
-            $this->assertEquals("Zip archive pre-validation failed", $ex->getMessage());
+        $this->assertIsArray($errors);
+        $this->assertEquals(2, count($errors));
 
-            foreach ($errors as $error) {
-                $this->assertStringContainsStringIgnoringCase("filename is not valid", $error['message']);
-                $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE_FILENAME, $error['code']);
-            }
+        foreach ($errors as $error) {
+            $this->assertStringContainsStringIgnoringCase("filename is not valid", $error['message']);
+            $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE_FILENAME, $error['code']);
         }
-
-        $this->assertTrue($thrown, sprintf("%s was expected to be thrown", ZipArchiveValidationException::class));
     }
 }

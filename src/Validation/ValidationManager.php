@@ -175,7 +175,10 @@ class ValidationManager
     {
         $validationDirectory = $this->storage->getDirectory($validation);
         $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
-        $this->zipArchiveValidator->validate($zipPath);
+        $errors = $this->zipArchiveValidator->validate($zipPath);
+        if (count($errors) > 0) {
+            throw new ZipArchiveValidationException($errors);
+        }
     }
 
     /**

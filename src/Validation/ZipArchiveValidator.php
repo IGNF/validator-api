@@ -2,7 +2,6 @@
 
 namespace App\Validation;
 
-use App\Exception\ZipArchiveValidationException;
 use Psr\Log\LoggerInterface;
 use ZipArchive;
 
@@ -24,8 +23,7 @@ class ZipArchiveValidator
      * Validates a ZIP returning a set of errors in the same format as the validator
      *
      * @param string $zipPath
-     * @return void
-     * @throws ZipArchiveValidationException
+     * @return array
      */
     public function validate($zipPath)
     {
@@ -48,9 +46,7 @@ class ZipArchiveValidator
             }
         }
 
-        if (count($errors) > 0) {
-            throw new ZipArchiveValidationException($errors);
-        }
+        return $errors;
     }
 
     /**
