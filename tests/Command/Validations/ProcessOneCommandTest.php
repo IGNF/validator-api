@@ -85,6 +85,22 @@ class ProcessOneCommandTest extends WebTestCase
         $this->assertNotNull($validation->getDateFinish());
         $this->assertNull($validation->getResults()); // TODO fails intermittently ¯\_(ツ)_/¯
 
+        // this one will fail because the zip archive is invalid
+        $command = $application->find('app:validations:process-one');
+        $commandTester = new CommandTester($command);
+        $statusCode = $commandTester->execute([]);
+
+        $this->assertEquals(0, $statusCode);
+
+        $valInvalidRegex = $this->getReference('validation_invalid_regex');
+        $validation = $repo->findOneByUid($valInvalidRegex->getUid());
+
+        $this->assertEquals('Zip archive pre-validation failed', $validation->getMessage());
+        $this->assertEquals(Validation::STATUS_ERROR, $validation->getStatus());
+        $this->assertNotNull($validation->getDateStart());
+        $this->assertNotNull($validation->getDateFinish());
+        $this->assertEquals(2, count($validation->getResults()));
+
         // no validation pending, the command should exit right away
         $command = $application->find('app:validations:process-one');
         $commandTester = new CommandTester($command);
