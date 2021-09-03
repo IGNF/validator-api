@@ -92,7 +92,7 @@ class ValidationManager
     {
         $validation = $this->getValidationRepository()->popNextPending();
         if (is_null($validation)) {
-            $this->logger->info("processOne : no validation pending, quitting");
+            $this->logger->debug("processOne : no validation pending, quitting");
             return;
         }
         $this->doProcess($validation);
