@@ -105,7 +105,7 @@ RUN apt-get update -qq \
 #----------------------------------------------------------------------
 # Setup /opt/ign-validator/validator-cli.jar
 #----------------------------------------------------------------------
-ARG validator_version=4.2.0
+ARG validator_version=4.2.2
 RUN apt-get update -qq \
  && wget --quiet -O /tmp/validator-cli.deb https://github.com/IGNF/validator/releases/download/v${validator_version}/ign-validator_${validator_version}_all.deb \
  && dpkg -i /tmp/validator-cli.deb \
