@@ -24,7 +24,7 @@ class DocumentationController extends AbstractController
     /**
      * Root path for the API displaying swagger.
      *
-     * @Route("/api/", name="validator_api_root")
+     * @Route("/api", name="validator_api_root")
      */
     public function index()
     {

@@ -10,8 +10,8 @@ info:
   title: "API Validator"
   termsOfService: "" # TODO
   license:
-    name: "CECILL-B"
-    url: "http://www.cecill.info/licences/Licence_CeCILL-B_V1-fr.html"
+    name: "AGPL-3.0-or-later"
+    url: "https://www.gnu.org/licenses/agpl-3.0.txt"
 
 tags:
   - name: "validation"
@@ -133,7 +133,7 @@ paths:
         - validation
       operationId: delete_validation
       summary: "Supprimer une validation"
-      description: "Demander la suppression de la validation et ses fichiers d'entrée"
+      description: "Demander la suppression de la validation et tous les fichiers qui lui sont associés"
       parameters:
         - description: "Identifiant unique de la validation"
           in: path
@@ -163,7 +163,7 @@ paths:
       tags:
         - validation
       summary: "Télécharger les données de source"
-      description: "Télécharger les données de source"
+      description: "Télécharger les données de source dans un fichier compressé (zip) et nommé {nom_dataset}-source.zip"
       parameters:
         - description: "Identifiant unique de la validation"
           in: path
@@ -180,7 +180,7 @@ paths:
               schema:
                 format: binary
         403:
-          description: Aucun contenu téléchargeable trouvé parce que la validation a été archivée (plus de 30 jours dépassés depuis la création)
+          description: Aucun contenu téléchargeable trouvé parce que la validation a été archivée (plus de 30 jours sont passés depuis la création)
           content:
             application/json:
               schema:
@@ -197,7 +197,7 @@ paths:
       tags:
         - validation
       summary: "Télécharger les données normalisées"
-      description: "Télécharger les données normalisées générées par le validator-cli.jar"
+      description: "Télécharger les données normalisées générées par le validateur dans un fichier compressé (zip) nommé {nom_dataset}-normalized.zip"
       parameters:
         - description: "Identifiant unique de la validation"
           in: path

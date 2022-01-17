@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ProcessOneCommand extends Command
 {
-    protected static $defaultName = 'app:validations:process-one';
+    protected static $defaultName = 'ign-validator:validations:process-one';
 
     /**
      * @var ValidationManager

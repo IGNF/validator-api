@@ -17,7 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class CleanupCommand extends Command
 {
-    protected static $defaultName = 'app:validations:cleanup';
+    protected static $defaultName = 'ign-validator:validations:cleanup';
 
     /**
      * Time interval of 30 days
@@ -53,9 +53,9 @@ class CleanupCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Deletes all validation files that were created before max-time duration (default 1 month)')
+            ->setDescription('Deletes all validation files that are older than max-age (default 1 month)')
             ->addOption(
-                'max-time',
+                'max-age',
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Max duration to keep validation files (P1M : 1 month, PT30M : 30 minutes,...)',
@@ -68,12 +68,12 @@ class CleanupCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $maxTime = $input->getOption('max-time');
+        $maxAge = $input->getOption('max-age');
         $today = new \DateTime('now');
-        $dateExpire = $today->sub(new \DateInterval($maxTime));
+        $dateExpire = $today->sub(new \DateInterval($maxAge));
 
-        $this->logger->info('archive validations older than {$maxTime}...', [
-            '$maxTime' => $maxTime
+        $this->logger->info('archive validations older than {$maxAge}...', [
+            '$maxAge' => $maxAge
         ]);
         $validations = $this->getValidationRepository()->findAllToBeArchived($dateExpire);
         $count = 0;
@@ -82,7 +82,7 @@ class CleanupCommand extends Command
             $count++;
         }
         $this->logger->info('archive validations older than {maxTime} : completed, {count} validation(s) processed.', [
-            'maxTime' => $maxTime,
+            'maxTime' => $maxAge,
             'count' => $count
         ]);
         return 0;

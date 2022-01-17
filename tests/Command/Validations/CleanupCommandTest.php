@@ -56,10 +56,10 @@ class CleanupCommandTest extends WebTestCase
         // archive all older than 1 second
         $kernel = static::createKernel();
         $application = new Application($kernel);
-        $command = $application->find('app:validations:cleanup');
+        $command = $application->find('ign-validator:validations:cleanup');
         $commandTester = new CommandTester($command);
         $statusCode = $commandTester->execute([
-            '--max-time'=>'PT1S'
+            '--max-age'=>'PT1S'
         ]);
 
         $this->assertEquals(0, $statusCode);

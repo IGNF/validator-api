@@ -54,7 +54,7 @@ class ProcessOneCommandTest extends WebTestCase
         static::ensureKernelShutdown();
         $kernel = static::createKernel();
         $application = new Application($kernel);
-        $command = $application->find('app:validations:process-one');
+        $command = $application->find('ign-validator:validations:process-one');
         $commandTester = new CommandTester($command);
         $statusCode = $commandTester->execute([]);
 
@@ -70,7 +70,7 @@ class ProcessOneCommandTest extends WebTestCase
         $this->assertNotNull($validation->getResults());
 
         // this one will fail, the model_url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed
-        $command = $application->find('app:validations:process-one');
+        $command = $application->find('ign-validator:validations:process-one');
         $commandTester = new CommandTester($command);
         $statusCode = $commandTester->execute([]);
 
@@ -86,7 +86,7 @@ class ProcessOneCommandTest extends WebTestCase
         $this->assertNull($validation->getResults()); // TODO fails intermittently ¯\_(ツ)_/¯
 
         // this one will fail because the zip archive is invalid
-        $command = $application->find('app:validations:process-one');
+        $command = $application->find('ign-validator:validations:process-one');
         $commandTester = new CommandTester($command);
         $statusCode = $commandTester->execute([]);
 
@@ -102,7 +102,7 @@ class ProcessOneCommandTest extends WebTestCase
         $this->assertEquals(2, count($validation->getResults()));
 
         // no validation pending, the command should exit right away
-        $command = $application->find('app:validations:process-one');
+        $command = $application->find('ign-validator:validations:process-one');
         $commandTester = new CommandTester($command);
         $statusCode = $commandTester->execute([]);
 

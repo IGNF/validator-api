@@ -1,1 +1,1 @@
-validator.setValidatorApiUrl("/api"),validator.createDemoApplication({targetElement:document.getElementById("main")});
+(()=>{let t=document.getElementById("demo-wrapper");validator.setValidatorApiUrl(t.dataset.api),validator.setValidatorSpecsUrl(t.dataset.specs),validator.createDemoApplication({targetElement:t})})();

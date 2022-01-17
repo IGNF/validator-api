@@ -111,12 +111,12 @@ class ValidationNormDataDownloadTest extends WebTestCase
         static::ensureKernelShutdown();
         $kernel = static::createKernel();
         $application = new Application($kernel);
-        $command = $application->find('app:validations:process-one');
+        $command = $application->find('ign-validator:validations:process-one');
         $commandTester = new CommandTester($command);
         $statusCode = $commandTester->execute([]);
         $this->assertEquals(0, $statusCode);
 
-        $command = $application->find('app:validations:process-one');
+        $command = $application->find('ign-validator:validations:process-one');
         $commandTester = new CommandTester($command);
         $statusCode = $commandTester->execute([]);
         $this->assertEquals(0, $statusCode);
