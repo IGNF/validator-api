@@ -12,22 +12,7 @@ class DocumentationControllerTest extends WebTestCase
 {
 
     /**
-     * Get swagger ui page.
-     */
-    public function testIndex()
-    {
-        $client = static::createClient();
-        $client->request(
-            'GET',
-            '/api/',
-        );
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('#swagger-ui-container', "Chargement...");
-    }
-
-    /**
-     * Get specification
+     * Test openapi specification
      */
     public function testSwagger()
     {

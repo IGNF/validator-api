@@ -11,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 class DefaultControllerTest extends WebTestCase
 {
     /**
-     * Get validation
+     * Test homepage with content
      */
     public function testHome()
     {
@@ -21,22 +21,7 @@ class DefaultControllerTest extends WebTestCase
             '/'
         );
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('#main', "Chargement...");
-    }
-
-    /**
-     * Get validation without uid parameter
-     */
-    public function testApidoc()
-    {
-        $client = static::createClient();
-        $client->request(
-            'GET',
-            '/api/',
-        );
-
-        $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('#swagger-ui-container', "Chargement...");
+        $this->assertSelectorTextContains('#demo-wrapper', "Chargement...");
     }
 
 }

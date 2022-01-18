@@ -87,15 +87,15 @@ Voir [.circleci/config.yml](../../.circleci/config.yml)
 
 ### Exécution des tests en local
 
-* 1) Installer les dépendances PHP
+* 1) Installez les dépendances PHP
 
 ```bash
 composer install
 ```
 
-* 2) Configurer la base de données de test
+* 2) Configurez la base de données de test
 
-Dans `.env.test`, ajouter la ligne suivante :
+Dans `.env.test`, ajoutez la ligne suivante :
 
 ```
 DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@localhost:5432/validator_api_test?serverVersion=13&charset=utf8
@@ -112,7 +112,7 @@ php bin/console --env=test doctrine:database:create --if-not-exists
 php bin/console --env=test doctrine:schema:update --force
 ```
 
-* 3) Télécharger l'exécutable java validator-cli.jar
+* 3) Téléchargez l'exécutable java validator-cli.jar
 
 Si `validator-cli.jar` est déjà installé, vous pouvez configurer son emplacement à l'aide de la ligne suivante dans `.env.test` :
 
@@ -122,7 +122,7 @@ VALIDATOR_PATH=/opt/ign-validation/validator-cli.jar
 
 Sinon, vous pouvez lancer `bash download-validator.sh <VALIDATOR_VERSION>` pour le télécharger dans `${projectDir}/bin/validator-cli.jar` (chemin par défaut)
 
-* 4) Exécuter les tests
+* 4) Exécutez les tests
 
 ```bash
 XDEBUG_MODE=coverage APP_ENV=test php vendor/bin/simple-phpunit
