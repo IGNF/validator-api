@@ -31,4 +31,4 @@ Si vous le pouvez et si c'est pertinent, ajoutez des copies d'écran de l'anomal
 **Autres informations de contexte**
 
 Décrivez si nécessaire les logiciels utilisés : OS, navigateur ou client REST...
-Ajoutez toute autre information de contexte sur le problème que vous jugez pertinente.
+Ajoutez toute autre information de contexte sur le problème que vous jugez pertinente. Par exemple le lien vers un jeu de données.
