@@ -11,20 +11,21 @@ module.exports = [
     plugins: [
       new CopyWebpackPlugin({
         patterns: [
-          //{ from: './node_modules/jquery/dist', to: './vendor/jquery' },
-          { from: "./node_modules/@ignf/validator-client/dist", to: "./vendor/validator-api-client" },
-          { from: "./docs/favicon.ico", to: "./favicon.ico", },
           {
-            from: "./assets/css/",
-            to: "build/css/"
+            from: "./node_modules/@ignf/validator-client/dist",
+            to: "./vendor/validator-api-client"
           },
           {
-            from: "./assets/img/",
-            to: "build/img/"
+            from: "./node_modules/@ignf/validator-client/public/css/",
+            to: "css/"
           },
           {
-            from: "./assets/font/",
-            to: "build/font/"
+            from: "./node_modules/@ignf/validator-client/public/img/",
+            to: "img/"
+          },
+          {
+            from: "./node_modules/@ignf/validator-client/public/font/",
+            to: "font/"
           }
         ]
       })
