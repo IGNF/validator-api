@@ -239,6 +239,13 @@ components:
           example: g7258vq1t639uagbv8rg7b97
         status:
           type: string
+          enum:
+            - waiting_for_args
+            - pending
+            - processing
+            - finished
+            - error
+            - archived
           example: waiting_for_args
         dataset_name:
           type: string
