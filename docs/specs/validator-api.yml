@@ -4,11 +4,10 @@ info:
   description: >
     API permettant d'appeler [IGNF/validator](https://github.com/IGNF/validator) pour valider et normaliser des dossiers contenant une arborescence de fichiers.
   contact:
-    name: IGNF
-    email: "loremipsum@ign.fr" # TODO
+    name: IGNF/validator
+    url: "https://github.com/IGNF/validator/issues"
   version: "1.0.0"
   title: "API Validator"
-  termsOfService: "" # TODO
   license:
     name: "AGPL-3.0-or-later"
     url: "https://www.gnu.org/licenses/agpl-3.0.txt"
