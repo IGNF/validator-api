@@ -30,7 +30,7 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testValidZip()
     {
-        $errors = $this->zipArchiveValidator->validate(__DIR__ . '/../Data/130010853_PM3_60_20180516.zip');
+        $errors = $this->zipArchiveValidator->validate(__DIR__ . '/../../../tests/data/130010853_PM3_60_20180516.zip');
         $this->assertEmpty($errors);
     }
 
@@ -39,7 +39,7 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testEmptyZip()
     {
-        $zipPath = __DIR__ . '/../Data/empty.zip';
+        $zipPath = __DIR__ . '/../../../tests/data/empty.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
         $errors = $this->zipArchiveValidator->validate($zipPath);
@@ -56,7 +56,7 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testImpossibleToOpenZip()
     {
-        $zipPath = __DIR__ . '/../Data/corrupted.zip';
+        $zipPath = __DIR__ . '/../../../tests/data/corrupted.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
         $errors = $this->zipArchiveValidator->validate($zipPath);
@@ -74,7 +74,7 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testZipDoesntExist()
     {
-        $zipPath = __DIR__ . '/../Data/doesnt-exist.zip';
+        $zipPath = __DIR__ . '/../../../tests/data/doesnt-exist.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
         $errors = $this->zipArchiveValidator->validate($zipPath);
@@ -92,7 +92,7 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testZipFilesInvalidName()
     {
-        $zipPath = __DIR__ . '/../Data/130010853_PM3_60_20180516-invalid-regex.zip';
+        $zipPath = __DIR__ . '/../../../tests/data/130010853_PM3_60_20180516-invalid-regex.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
         $errors = $this->zipArchiveValidator->validate($zipPath);

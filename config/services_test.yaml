@@ -1,10 +1,19 @@
 services:
   _defaults:
+    autowire: true
+    autoconfigure: true
     bind:
       $validationsDir: "%env(resolve:DATA_DIR)%/validations-test"
+      $projectDir: "%kernel.project_dir%"
+      $validatorPath: "%ignf_validator.path%"
+      $gmlasConfigPath: "%env(resolve:GMLAS_CONFIG)%"
+
+  App\:
+    resource: "../src/"
+    exclude:
+      - "../src/DependencyInjection/"
+      - "../src/Entity/"
+      - "../src/Kernel.php"
 
   App\Storage\ValidationsStorage:
     public: true
-
-  App\Tests\DataFixtures\:
-    resource: "../tests/DataFixtures"

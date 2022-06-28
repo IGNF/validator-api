@@ -6,9 +6,8 @@ parameters:
   level: 2
   paths:
     - src
-    - tests
   excludes_analyse:
-    - tests/bootstrap.php
+    - src/Tests/bootstrap.php
   bootstrapFiles:
     - vendor/bin/.phpunit/phpunit/vendor/autoload.php
   ignoreErrors:

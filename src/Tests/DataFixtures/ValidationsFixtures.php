@@ -42,7 +42,7 @@ class ValidationsFixtures extends Fixture
      */
     private function addSampleArchive(Validation $validation, $filename)
     {
-        $originalPath = __DIR__ . '/../Data/' . $filename;
+        $originalPath = __DIR__ . '/../../../tests/data/' . $filename;
         if (!file_exists($originalPath)) {
             throw new RuntimeException('Sample file not found : ' . $originalPath);
         }

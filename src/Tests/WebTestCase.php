@@ -77,7 +77,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @return UploadedFile
      */
     protected function createFakeUpload($filename,$mineType='application/zip'){
-        $samplePath = __DIR__.'/Data/'.$filename;
+        $samplePath = __DIR__.'/../../tests/data/'.$filename;
         $this->assertFileExists($samplePath);
 
         $tempDirectory = $this->createTempDirectory('upload-');

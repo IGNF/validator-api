@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="bin/.phpunit/phpunit.xsd" backupGlobals="false" colors="true" bootstrap="tests/bootstrap.php">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="bin/.phpunit/phpunit.xsd" backupGlobals="false" colors="true" bootstrap="src/Tests/bootstrap.php">
 
     <logging>
         <log type="coverage-html" target="var/data/output/coverage/" />
@@ -42,7 +42,7 @@
 
     <testsuites>
         <testsuite name="Project Test Suite">
-            <directory>tests</directory>
+            <directory>src/Tests</directory>
         </testsuite>
     </testsuites>
 
@@ -51,7 +51,7 @@
             <directory suffix=".php">src</directory>
 
             <exclude>
-                <directory suffix=".php">src/Test</directory>
+                <directory suffix=".php">src/Tests</directory>
                 <directory suffix=".php">src/DataFixtures</directory>
                 <file>src/Kernel.php</file>
                 <file>src/.preload.php</file>
