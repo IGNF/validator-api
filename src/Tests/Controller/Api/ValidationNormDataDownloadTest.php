@@ -2,7 +2,7 @@
 
 namespace App\Tests\Controller\Api;
 
-use App\Tests\DataFixtures\ValidationsFixtures;
+use App\DataFixtures\ValidationsFixtures;
 use App\Tests\WebTestCase;
 use Liip\TestFixturesBundle\Test\FixturesTrait;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
