@@ -2,23 +2,30 @@
 
 namespace App\Tests\Controller\Api;
 
+use App\DataFixtures\ValidationsFixtures;
 use App\Entity\Validation;
 use App\Service\ValidatorArgumentsService;
-use App\DataFixtures\ValidationsFixtures;
 use App\Tests\WebTestCase;
 use Doctrine\ORM\EntityManagerInterface;
-use Liip\TestFixturesBundle\Test\FixturesTrait;
+use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * Tests for ValidatorController class
+ * Tests for ValidatorController class.
  */
 class ValidationControllerTest extends WebTestCase
 {
-    use FixturesTrait;
+    /**
+     * @var AbstractDatabaseTool
+     */
+    private $databaseTool;
 
+    /**
+     * @var KernelBrowser
+     */
     private $client;
+
     /**
      * @var EntityManagerInterface
      */
@@ -36,7 +43,8 @@ class ValidationControllerTest extends WebTestCase
 
         $this->em = $this->getContainer()->get('doctrine')->getManager();
 
-        $this->fixtures = $this->loadFixtures([
+        $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
+        $this->fixtures = $this->databaseTool->loadFixtures([
             ValidationsFixtures::class,
         ]);
 
@@ -54,7 +62,7 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Get validation
+     * Get validation.
      */
     public function testGetValidation()
     {
@@ -62,7 +70,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
         );
 
         $response = $this->client->getResponse();
@@ -80,7 +88,7 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Get validation without uid parameter
+     * Get validation without uid parameter.
      */
     public function testGetValidationWithoutUid()
     {
@@ -97,7 +105,7 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Get validation with non existent uid
+     * Get validation with non existent uid.
      */
     public function testGetValidationNotFound()
     {
@@ -111,11 +119,10 @@ class ValidationControllerTest extends WebTestCase
 
         $this->assertStatusCode(404, $this->client);
         $this->assertEquals('No record found for uid=no-record-for-this-uid', $json['message']);
-
     }
 
     /**
-     * Testing upload dataset with correct params
+     * Testing upload dataset with correct params.
      */
     public function testUploadDatasetCorrectParams()
     {
@@ -147,7 +154,7 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Uploading correct file (zip), wrong parameter name
+     * Uploading correct file (zip), wrong parameter name.
      */
     public function testUploadDatasetWrongParameterName()
     {
@@ -172,7 +179,7 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Uploading wrong file (not a compressed zip file)
+     * Uploading wrong file (not a compressed zip file).
      */
     public function testUploadDatasetWrongFileType()
     {
@@ -197,7 +204,7 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Uploading no file at all
+     * Uploading no file at all.
      */
     public function testUploadDatasetNoFile()
     {
@@ -216,7 +223,7 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Deleting a validation
+     * Deleting a validation.
      */
     public function testDeleteValidation()
     {
@@ -224,7 +231,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'DELETE',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
         );
 
         $response = $this->client->getResponse();
@@ -236,7 +243,7 @@ class ValidationControllerTest extends WebTestCase
         // trying to delete a validation that does not exist
         $this->client->request(
             'DELETE',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
         );
 
         $response = $this->client->getResponse();
@@ -246,21 +253,21 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Updating arguments with correct parameters
+     * Updating arguments with correct parameters.
      */
     public function testUpdateArguments()
     {
         $validation = $this->getReference('validation_no_args');
 
         $data = [
-            'srs' => "EPSG:2154",
-            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json",
+            'srs' => 'EPSG:2154',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
             'normalize' => true,
         ];
 
         $this->client->request(
             'PATCH',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -287,13 +294,13 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Updating arguments but validation does not exist
+     * Updating arguments but validation does not exist.
      */
     public function testUpdateArgumentsValNotFound()
     {
         $data = [
-            'srs' => "EPSG:2154",
-            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json",
+            'srs' => 'EPSG:2154',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
         ];
 
         $this->client->request(
@@ -313,16 +320,16 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Updating arguments with invalid json
+     * Updating arguments with invalid json.
      */
     public function testUpdateArgumentsInvalidJson()
     {
         $validation = $this->getReference('validation_no_args');
-        $data = "{model = url}";
+        $data = '{model = url}';
 
         $this->client->request(
             'PATCH',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -337,7 +344,7 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Updating arguments, no arguments provided
+     * Updating arguments, no arguments provided.
      */
     public function testUpdateArgumentsNoArguments()
     {
@@ -346,7 +353,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -357,22 +364,22 @@ class ValidationControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Request body must be a valid JSON string", $json['message']);
+        $this->assertEquals('Request body must be a valid JSON string', $json['message']);
     }
 
     /**
-     * Updating arguments, some required arguments are missing
+     * Updating arguments, some required arguments are missing.
      */
     public function testUpdateArgumentsMissingReqArguments()
     {
         $validation = $this->getReference('validation_no_args');
         $data = [
-            'srs' => "EPSG:2154",
+            'srs' => 'EPSG:2154',
         ];
 
         $this->client->request(
             'PATCH',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -390,21 +397,21 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
-     * Updating arguments, with arguments that are unknown, deprecated or unauthorized
+     * Updating arguments, with arguments that are unknown, deprecated or unauthorized.
      */
     public function testUpdateArgumentsUnknownParameters()
     {
         $validation = $this->getReference('validation_no_args');
 
         $data = [
-            'srs' => "EPSG:2154",
-            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json",
+            'srs' => 'EPSG:2154',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
             'foo' => 'bar',
         ];
 
         $this->client->request(
             'PATCH',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -415,25 +422,25 @@ class ValidationControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Invalid arguments, check details", $json['message']);
+        $this->assertEquals('Invalid arguments, check details', $json['message']);
     }
 
     /**
-     * Updating arguments with invalid boolean values
+     * Updating arguments with invalid boolean values.
      */
     public function testUpdateArgumentsInvalidBoolean()
     {
         $validation = $this->getReference('validation_no_args');
 
         $data = [
-            'srs' => "EPSG:2154",
-            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json",
+            'srs' => 'EPSG:2154',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
             'normalize' => 'vrai',
         ];
 
         $this->client->request(
             'PATCH',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -444,24 +451,24 @@ class ValidationControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Invalid arguments, check details", $json['message']);
+        $this->assertEquals('Invalid arguments, check details', $json['message']);
     }
 
     /**
-     * Updating arguments with invalid/unaccepted/unknown projection
+     * Updating arguments with invalid/unaccepted/unknown projection.
      */
     public function testUpdateArgumentsUnknownProjection()
     {
         $validation = $this->getReference('validation_no_args');
 
         $data = [
-            'srs' => "EPSG:9999",
-            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json",
+            'srs' => 'EPSG:9999',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
         ];
 
         $this->client->request(
             'PATCH',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -472,24 +479,24 @@ class ValidationControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Invalid arguments, check details", $json['message']);
+        $this->assertEquals('Invalid arguments, check details', $json['message']);
     }
 
     /**
-     * Updating arguments with invalid model url
+     * Updating arguments with invalid model url.
      */
     public function testUpdateArgumentsInvalidModelUrl()
     {
         $validation = $this->getReference('validation_no_args');
 
         $data = [
-            'srs' => "EPSG:2154",
-            'model' => "geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json",
+            'srs' => 'EPSG:2154',
+            'model' => 'geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
         ];
 
         $this->client->request(
             'PATCH',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -500,24 +507,24 @@ class ValidationControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(400, $this->client);
-        $this->assertEquals("Invalid arguments, check details", $json['message']);
+        $this->assertEquals('Invalid arguments, check details', $json['message']);
     }
 
     /**
-     * Updating arguments but validation already archived
+     * Updating arguments but validation already archived.
      */
     public function testUpdateArgumentsValArchived()
     {
         $validation = $this->getReference('validation_archived');
 
         $data = [
-            'srs' => "EPSG:2154",
-            'model' => "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json",
+            'srs' => 'EPSG:2154',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
         ];
 
         $this->client->request(
             'PATCH',
-            '/api/validations/' . $validation->getUid(),
+            '/api/validations/'.$validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],

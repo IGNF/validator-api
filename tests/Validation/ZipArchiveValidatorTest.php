@@ -8,7 +8,6 @@ use Psr\Log\NullLogger;
 
 class ZipArchiveValidatorTest extends WebTestCase
 {
-
     /**
      * @var ZipArchiveValidator
      */
@@ -26,7 +25,7 @@ class ZipArchiveValidatorTest extends WebTestCase
     }
 
     /**
-     * All the files in the zip have valid names
+     * All the files in the zip have valid names.
      */
     public function testValidZip()
     {
@@ -37,11 +36,11 @@ class ZipArchiveValidatorTest extends WebTestCase
     }
 
     /**
-     * empty zip
+     * empty zip.
      */
     public function testEmptyZip()
     {
-        $zipPath = $this->getTestDataDir() . '/empty.zip';
+        $zipPath = $this->getTestDataDir().'/empty.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
         $errors = $this->zipArchiveValidator->validate($zipPath);
@@ -49,12 +48,12 @@ class ZipArchiveValidatorTest extends WebTestCase
         $this->assertIsArray($errors);
         $this->assertEquals(1, count($errors));
         $this->assertEquals($zipName, $errors[0]['file']);
-        $this->assertEquals(sprintf("Archive %s is empty", $zipName), $errors[0]['message']);
+        $this->assertEquals(sprintf('Archive %s is empty', $zipName), $errors[0]['message']);
         $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE, $errors[0]['code']);
     }
 
     /**
-     * impossible to open zip
+     * impossible to open zip.
      */
     public function testImpossibleToOpenZip()
     {
@@ -67,12 +66,12 @@ class ZipArchiveValidatorTest extends WebTestCase
         $this->assertEquals(1, count($errors));
 
         $this->assertEquals($zipName, $errors[0]['file']);
-        $this->assertEquals(sprintf("Impossible to open archive %s", $zipName), $errors[0]['message']);
+        $this->assertEquals(sprintf('Impossible to open archive %s', $zipName), $errors[0]['message']);
         $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE, $errors[0]['code']);
     }
 
     /**
-     * zip doesn't exist
+     * zip doesn't exist.
      */
     public function testZipDoesntExist()
     {
@@ -90,7 +89,7 @@ class ZipArchiveValidatorTest extends WebTestCase
     }
 
     /**
-     * zip contains files with invalid name (doesn't match regex)
+     * zip contains files with invalid name (doesn't match regex).
      */
     public function testZipFilesInvalidName()
     {
@@ -103,7 +102,7 @@ class ZipArchiveValidatorTest extends WebTestCase
         $this->assertEquals(2, count($errors));
 
         foreach ($errors as $error) {
-            $this->assertStringContainsStringIgnoringCase("filename is not valid", $error['message']);
+            $this->assertStringContainsStringIgnoringCase('filename is not valid', $error['message']);
             $this->assertEquals(ZipArchiveValidator::ERROR_BAD_ARCHIVE_FILENAME, $error['code']);
         }
     }

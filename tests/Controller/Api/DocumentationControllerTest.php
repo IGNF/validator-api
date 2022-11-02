@@ -6,13 +6,12 @@ use App\Tests\WebTestCase;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Tests for ValidatorController class
+ * Tests for ValidatorController class.
  */
 class DocumentationControllerTest extends WebTestCase
 {
-
     /**
-     * Test openapi specification
+     * Test openapi specification.
      */
     public function testSwagger()
     {
@@ -34,7 +33,7 @@ class DocumentationControllerTest extends WebTestCase
     }
 
     /**
-     * Get specification
+     * Get specification.
      */
     public function testSchemaValidatorArguments()
     {
@@ -50,17 +49,17 @@ class DocumentationControllerTest extends WebTestCase
         $this->assertInstanceOf(BinaryFileResponse::class, $response);
 
         $this->assertStringContainsString(
-            "Arguments et options de IGNF/validator",
+            'Arguments et options de IGNF/validator',
             $client->getInternalResponse()->getContent()
         );
     }
 
     /**
-     * Try to get a schema that does not exist
+     * Try to get a schema that does not exist.
      */
     public function testSchemaNotExists()
     {
-        $schemaName = "schema-does-not-exist";
+        $schemaName = 'schema-does-not-exist';
         $client = static::createClient();
         $client->request(
             'GET',
@@ -76,5 +75,4 @@ class DocumentationControllerTest extends WebTestCase
         $this->assertArrayHasKey('message', $responseArray);
         $this->assertEquals("No schema found with name=$schemaName", $responseArray['message']);
     }
-
 }

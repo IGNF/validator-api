@@ -4,18 +4,26 @@ namespace App\Tests\Controller\Api;
 
 use App\DataFixtures\ValidationsFixtures;
 use App\Tests\WebTestCase;
-use Liip\TestFixturesBundle\Test\FixturesTrait;
+use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
+use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Tests for download of normalized data
+ * Tests for download of normalized data.
  */
 class ValidationNormDataDownloadTest extends WebTestCase
 {
-    use FixturesTrait;
+    /**
+     * @var AbstractDatabaseTool
+     */
+    private $databaseTool;
 
+    /**
+     * @var KernelBrowser
+     */
     private $client;
 
     public function setUp(): void
@@ -23,7 +31,8 @@ class ValidationNormDataDownloadTest extends WebTestCase
         static::ensureKernelShutdown();
         $this->client = static::createClient();
 
-        $this->fixtures = $this->loadFixtures([
+        $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
+        $this->fixtures = $this->databaseTool->loadFixtures([
             ValidationsFixtures::class,
         ]);
     }
@@ -37,7 +46,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
     }
 
     /**
-     * Cases where there is no data to download
+     * Cases where there is no data to download.
      */
     public function testDownloadNoData()
     {
@@ -46,7 +55,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/' . $validation->getUid() . '/files/normalized',
+            '/api/validations/'.$validation->getUid().'/files/normalized',
         );
 
         $response = $this->client->getResponse();
@@ -60,7 +69,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/' . $validation->getUid() . '/files/normalized',
+            '/api/validations/'.$validation->getUid().'/files/normalized',
         );
 
         $response = $this->client->getResponse();
@@ -74,25 +83,25 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/' . $validation->getUid() . '/files/normalized',
+            '/api/validations/'.$validation->getUid().'/files/normalized',
         );
 
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation has been archived", $json['message']);
+        $this->assertEquals('Validation has been archived', $json['message']);
     }
 
     /**
-     * No validation corresponds to provided uid
+     * No validation corresponds to provided uid.
      */
     public function testDownloadValNotFound()
     {
-        $uid = "uid-validation-doesnt-exist";
+        $uid = 'uid-validation-doesnt-exist';
         $this->client->request(
             'GET',
-            '/api/validations/' . $uid . '/files/normalized',
+            '/api/validations/'.$uid.'/files/normalized',
         );
 
         $response = $this->client->getResponse();
@@ -103,7 +112,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
     }
 
     /**
-     * Trying to download normalized data after execution of validations command
+     * Trying to download normalized data after execution of validations command.
      */
     public function testDownload()
     {
@@ -126,21 +135,21 @@ class ValidationNormDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/' . $validation2->getUid() . '/files/normalized',
+            '/api/validations/'.$validation2->getUid().'/files/normalized',
         );
 
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation failed, no normalized data", $json['message']);
+        $this->assertEquals('Validation failed, no normalized data', $json['message']);
 
         // this one has succeeded
         $validation = $this->getReference('validation_with_args');
 
         $this->client->request(
             'GET',
-            '/api/validations/' . $validation->getUid() . '/files/normalized',
+            '/api/validations/'.$validation->getUid().'/files/normalized',
         );
 
         $response = $this->client->getResponse();
@@ -154,7 +163,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $headers = $response->headers->all();
 
         $this->assertEquals('application/zip', $headers['content-type'][0]);
-        $this->assertEquals($validation->getDatasetName() . '.zip', $file->getFilename());
+        $this->assertEquals($validation->getDatasetName().'.zip', $file->getFilename());
         $this->assertEquals('zip', $file->getExtension());
     }
 }
