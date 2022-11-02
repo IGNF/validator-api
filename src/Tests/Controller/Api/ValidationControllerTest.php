@@ -4,7 +4,7 @@ namespace App\Tests\Controller\Api;
 
 use App\Entity\Validation;
 use App\Service\ValidatorArgumentsService;
-use App\Tests\DataFixtures\ValidationsFixtures;
+use App\DataFixtures\ValidationsFixtures;
 use App\Tests\WebTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\TestFixturesBundle\Test\FixturesTrait;
