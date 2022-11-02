@@ -30,7 +30,9 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testValidZip()
     {
-        $errors = $this->zipArchiveValidator->validate(__DIR__ . '/../../../tests/data/130010853_PM3_60_20180516.zip');
+        $archivePath = $this->getTestDataDir().'/130010853_PM3_60_20180516.zip';
+        $this->assertFileExists($archivePath);
+        $errors = $this->zipArchiveValidator->validate($archivePath);
         $this->assertEmpty($errors);
     }
 
@@ -39,7 +41,7 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testEmptyZip()
     {
-        $zipPath = __DIR__ . '/../../../tests/data/empty.zip';
+        $zipPath = $this->getTestDataDir() . '/empty.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
         $errors = $this->zipArchiveValidator->validate($zipPath);
@@ -56,7 +58,7 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testImpossibleToOpenZip()
     {
-        $zipPath = __DIR__ . '/../../../tests/data/corrupted.zip';
+        $zipPath = $this->getTestDataDir().'/corrupted.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
         $errors = $this->zipArchiveValidator->validate($zipPath);
@@ -74,7 +76,7 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testZipDoesntExist()
     {
-        $zipPath = __DIR__ . '/../../../tests/data/doesnt-exist.zip';
+        $zipPath = $this->getTestDataDir().'/doesnt-exist.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
         $errors = $this->zipArchiveValidator->validate($zipPath);
@@ -92,7 +94,7 @@ class ZipArchiveValidatorTest extends WebTestCase
      */
     public function testZipFilesInvalidName()
     {
-        $zipPath = __DIR__ . '/../../../tests/data/130010853_PM3_60_20180516-invalid-regex.zip';
+        $zipPath = $this->getTestDataDir().'/130010853_PM3_60_20180516-invalid-regex.zip';
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
 
         $errors = $this->zipArchiveValidator->validate($zipPath);
