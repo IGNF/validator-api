@@ -1,8 +1,11 @@
 PHP_CS_RULES=@Symfony
 PHP_MD_RULES=./phpmd.xml
 
-test: vendor
-	 APP_ENV=test XDEBUG_MODE=coverage vendor/bin/phpunit
+test: vendor bin/validator-cli.jar
+	APP_ENV=test XDEBUG_MODE=coverage vendor/bin/phpunit
+
+bin/validator-cli.jar:
+	bash download-validator.sh
 
 .PHONY: check-rules
 check-rules: vendor
