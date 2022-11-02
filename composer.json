@@ -34,7 +34,7 @@
   "require-dev": {
     "doctrine/doctrine-fixtures-bundle": "^3.4",
     "liip/functional-test-bundle": "^4.5",
-    "liip/test-fixtures-bundle": "1.0.0",
+    "liip/test-fixtures-bundle": "^2.4",
     "friendsofphp/php-cs-fixer": "^3.0",
     "phpmd/phpmd": "^2.10",
     "phpstan/phpstan": "^0.12.92",

@@ -2,34 +2,44 @@
 
 namespace App\Tests\Controller\Api;
 
-use App\Entity\Validation;
 use App\DataFixtures\ValidationsFixtures;
 use App\Tests\WebTestCase;
-use Liip\TestFixturesBundle\Test\FixturesTrait;
+use Doctrine\ORM\EntityManagerInterface;
+use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Tests for download of source data
+ * Tests for download of source data.
  */
 class ValidationSourceDataDownloadTest extends WebTestCase
 {
-    use FixturesTrait;
+    /**
+     * @var AbstractDatabaseTool
+     */
+    private $databaseTool;
 
+    /**
+     * @var KernelBrowser
+     */
     private $client;
-    private $fs;
+
+    /**
+     * @var EntityManagerInterface
+     */
     private $em;
 
     public function setUp(): void
     {
         static::ensureKernelShutdown();
         $this->client = static::createClient();
-        $this->fs = new Filesystem();
 
         $this->em = $this->getContainer()->get('doctrine')->getManager();
 
-        $this->fixtures = $this->loadFixtures([
+        $this->databaseTool = static::getContainer()->get(DatabaseToolCollection::class)->get();
+        $this->fixtures = $this->databaseTool->loadFixtures([
             ValidationsFixtures::class,
         ]);
     }
@@ -38,12 +48,14 @@ class ValidationSourceDataDownloadTest extends WebTestCase
     {
         parent::tearDown();
 
-        $this->fs->remove($this->getValidationsStorage()->getPath());
+        $fs = new Filesystem();
+        $fs->remove($this->getValidationsStorage()->getPath());
+
         $this->em->getConnection()->close();
     }
 
     /**
-     * Cases where there is no data to download
+     * Cases where there is no data to download.
      */
     public function testDownloadNoData()
     {
@@ -52,25 +64,25 @@ class ValidationSourceDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/' . $validation->getUid() . '/files/source',
+            '/api/validations/'.$validation->getUid().'/files/source',
         );
 
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(403, $this->client);
-        $this->assertEquals("Validation has been archived", $json['message']);
+        $this->assertEquals('Validation has been archived', $json['message']);
     }
 
     /**
-     * No validation corresponds to provided uid
+     * No validation corresponds to provided uid.
      */
     public function testDownloadValNotFound()
     {
-        $uid = "uid-validation-doesnt-exist";
+        $uid = 'uid-validation-doesnt-exist';
         $this->client->request(
             'GET',
-            '/api/validations/' . $uid . '/files/source',
+            '/api/validations/'.$uid.'/files/source',
         );
 
         $response = $this->client->getResponse();
@@ -81,7 +93,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
     }
 
     /**
-     * Trying to download source data after execution of validations command
+     * Trying to download source data after execution of validations command.
      */
     public function testDownload()
     {
@@ -104,7 +116,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/' . $validation2->getUid() . '/files/source',
+            '/api/validations/'.$validation2->getUid().'/files/source',
         );
 
         $response = $this->client->getResponse();
@@ -120,7 +132,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
         $headers = $response->headers->all();
 
         $this->assertEquals('application/zip', $headers['content-type'][0]);
-        $this->assertEquals($validation2->getDatasetName() . '.zip', $file->getFilename());
+        $this->assertEquals($validation2->getDatasetName().'.zip', $file->getFilename());
         $this->assertEquals('zip', $file->getExtension());
 
         // this one has succeeded
@@ -128,7 +140,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/' . $validation->getUid() . '/files/source',
+            '/api/validations/'.$validation->getUid().'/files/source',
         );
 
         $response = $this->client->getResponse();
@@ -142,7 +154,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
         $headers = $response->headers->all();
 
         $this->assertEquals('application/zip', $headers['content-type'][0]);
-        $this->assertEquals($validation->getDatasetName() . '.zip', $file->getFilename());
+        $this->assertEquals($validation->getDatasetName().'.zip', $file->getFilename());
         $this->assertEquals('zip', $file->getExtension());
     }
 }
