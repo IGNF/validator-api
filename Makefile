@@ -2,7 +2,7 @@ PHP_CS_RULES=@Symfony
 PHP_MD_RULES=./phpmd.xml
 
 test: vendor
-	 APP_ENV=test XDEBUG_MODE=coverage vendor/bin/simple-phpunit
+	 APP_ENV=test XDEBUG_MODE=coverage vendor/bin/phpunit
 
 .PHONY: check-rules
 check-rules: vendor
