@@ -10,9 +10,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * Description of GcmsTestCase
- *
- * @author RPas
+ * Base helper class to write tests.
  */
 abstract class WebTestCase extends BaseWebTestCase
 {
@@ -69,6 +67,9 @@ abstract class WebTestCase extends BaseWebTestCase
         return $path;
     }
 
+    protected function getTestDataDir(){
+        return __DIR__.'/data/';
+    }
 
     /**
      * Create a fake UploadedFile with a copy of a sample file in tests/Data directory     *
@@ -77,7 +78,7 @@ abstract class WebTestCase extends BaseWebTestCase
      * @return UploadedFile
      */
     protected function createFakeUpload($filename,$mineType='application/zip'){
-        $samplePath = __DIR__.'/../../tests/data/'.$filename;
+        $samplePath = $this->getTestDataDir().'/'.$filename;
         $this->assertFileExists($samplePath);
 
         $tempDirectory = $this->createTempDirectory('upload-');
