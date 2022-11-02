@@ -21,21 +21,12 @@ abstract class WebTestCase extends BaseWebTestCase
     protected $fixtures;
 
     /**
-     * Retourne les fixtures
-     * @return ReferenceRepository
-     */
-    public function getFixtures()
-    {
-        return $this->fixtures;
-    }
-
-    /**
      * Retourne la référence d'une fixture
      * @param string $name Nom de la référence
      * @return mixed (souvent une entité)
      * @throws \Exception
      */
-    public function getReference($name)
+    protected function getReference($name)
     {
         if ($this->fixtures->getReferenceRepository()->hasReference($name)) {
             return $this->fixtures->getReferenceRepository()->getReference($name);
