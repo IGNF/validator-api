@@ -3,6 +3,7 @@
 namespace App\Validation;
 
 use App\Entity\Validation;
+use App\Exception\ValidatorNotFoundException;
 use App\Storage\ValidationsStorage;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
@@ -43,6 +44,9 @@ class ValidatorCLI
     ) {
         $this->storage = $storage;
         $this->validatorPath = $validatorPath;
+        if ( ! file_exists($this->validatorPath) ){
+            throw new ValidatorNotFoundException($this->validatorPath);
+        }
         $this->gmlasConfigPath = $gmlasConfigPath;
         $this->logger = $logger;
     }
