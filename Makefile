@@ -26,6 +26,7 @@ check-style: vendor
 	vendor/bin/php-cs-fixer fix src --rules $(PHP_CS_RULES) -v --dry-run --diff --using-cache=no
 	vendor/bin/php-cs-fixer fix tests --rules $(PHP_CS_RULES) -v --dry-run --diff --using-cache=no
 
+.PHONY: vendor
 vendor:
 	composer install
 

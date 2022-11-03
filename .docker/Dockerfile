@@ -1,4 +1,4 @@
-FROM php:7.4-apache
+FROM php:8.1-apache
 
 #ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN rm /etc/apt/preferences.d/no-debian-php
@@ -21,15 +21,8 @@ ENV NO_PROXY=${no_proxy}
 ENV APP_ENV=prod
 ENV VALIDATOR_PATH=/opt/ign-validator/validator-cli.jar
 
-ENV PGHOST=database
 ENV POSTGRES_USER=validator
 ENV POSTGRES_PASSWORD=validator
-# psql config
-ENV PGUSER=${POSTGRES_USER}
-ENV PGPASSWORD=${POSTGRES_PASSWORD}
-
-# doctrine config
-ENV DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${PGHOST}:5432/validator_api?serverVersion=13&charset=utf8"
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y locales
 

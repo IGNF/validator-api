@@ -2,3 +2,5 @@ var
 .git
 /vendor/
 /node_modules/
+
+/.env.*

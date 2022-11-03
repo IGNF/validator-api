@@ -41,14 +41,14 @@ curl --request GET \
 
 ### États possibles d'une validation :
 
-| État | Signification |
-| ---- | ------------- |
+| État                | Signification                                                                                                                                                                                                                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | STATUS_WAITING_ARGS | Une demande de validation a été créée, mais l'utilisateur n'a pas encore fourni les arguments du validator-cli.jar. Si l'utilisateur ne fournit pas les arguments dans les 30 jours suivant la création, la validation (y compris le jeu de données) sera supprimée. |
-| STATUS_PENDING | L'API a bien reçu les arguments du validator. La validation est prête pour l'exécution. Le moteur de tâches automatiques va donc exécuter cette validation prochainement. |
-| STATUS_PROCESSING | La validation est en cours d'exécution. |
-| STATUS_FINISHED | La validation a terminé et le validator-cli.jar n'a rencontré aucune erreur. |
-| STATUS_ERROR | Le validator-cli.jar a rencontré une erreur. |
-| STATUS_ARCHIVED | La validation a été créée il y a plus de 30 jours, donc elle a été supprimée. |
+| STATUS_PENDING      | L'API a bien reçu les arguments du validator. La validation est prête pour l'exécution. Le moteur de tâches automatiques va donc exécuter cette validation prochainement.                                                                                            |
+| STATUS_PROCESSING   | La validation est en cours d'exécution.                                                                                                                                                                                                                              |
+| STATUS_FINISHED     | La validation a terminé et le validator-cli.jar n'a rencontré aucune erreur.                                                                                                                                                                                         |
+| STATUS_ERROR        | Le validator-cli.jar a rencontré une erreur.                                                                                                                                                                                                                         |
+| STATUS_ARCHIVED     | La validation a été créée il y a plus de 30 jours, donc elle a été supprimée.                                                                                                                                                                                        |
 
 
 ## Récupérer le résultat d'une validation

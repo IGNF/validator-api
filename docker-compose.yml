@@ -14,20 +14,23 @@ services:
         - HTTP_PROXY
         - HTTPS_PROXY
     environment:
+      - APP_ENV=${APP_ENV}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api?serverVersion=13&charset=utf8
     networks:
       - validator
     volumes:
       - api-data:/opt/validator-api/var/data
     ports:
       # local exposure when traefik is not available
-      - "127.0.0.1:8000:8000"
+      - "8000:8000"
     depends_on:
       - database
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.validator-api.rule=Host(`validator-api-v1.${HOST_HOSTNAME}`)"
+      - "traefik.http.services.validator-api-service.loadbalancer.server.port=8000"
     restart: unless-stopped
 
   database:
@@ -35,6 +38,7 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api?serverVersion=13&charset=utf8
     networks:
       - validator
     volumes:
@@ -48,8 +52,10 @@ services:
     image: ignf/validator-api:latest
     command: .docker/application.sh backend
     environment:
+      - APP_ENV=${APP_ENV}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api?serverVersion=13&charset=utf8
     networks:
       - validator
     volumes:

@@ -1,24 +1,25 @@
 # Documentation développeur
 
-## Installation et déploiement
+## Liens utiles
 
-> Dépôt GitHub : [https://github.com/IGNF/validator-api](https://github.com/IGNF/validator-api)
+* Dépôt GitHub : [https://github.com/IGNF/validator-api](https://github.com/IGNF/validator-api)
+* Intégration continue avec [GitHub actions](https://github.com/IGNF/validator-api/actions) configurée via le dossier [.github/workflows](https://github.com/IGNF/validator-api/tree/master/.github/workflows)
 
 ### Prérequis
 
 - Une distribution Linux (de préférence basée sur Debian) pour la machine hôte
 - Git
-- PHP 7.3\* (extensions : pgsql)
-- Yarn\*
-- Serveur web\*
-- Zip/unzip\*
-- Curl\*
-- Java SE >= 11\*
-- ogr2ogr >= 2.3.0\*
+- PHP 7.4 ou 8.1 avec l'extension pgsql
+- Yarn
+- Serveur web
+- Zip/unzip
+- Curl
+- Java SE >= 11
+- ogr2ogr >= 2.3.0
 
 ### Installation classique en local
 
-Clônez le dépôt et installez les dépendances PHP :
+Cloner le dépôt et installez les dépendances PHP :
 
 ```bash
 git clone https://github.com/IGNF/validator-api.git
@@ -37,8 +38,9 @@ php bin/console doctrine:schema:update --force
 ```
 
 Téléchargez le fichier `bin/validator-cli.jar` :
+
 ```bash
-bash download-validator.sh 4.1.0
+bash download-validator.sh 4.3.2
 ```
 
 Lancez l'application :
@@ -78,12 +80,8 @@ docker-compose up -d
 
 ### Données de tests
 
-* Les jeux tests sont dans le dossier `${projectDir}/tests/Data`
+* Les jeux tests sont dans le dossier `${projectDir}/tests/data`
 * Les modèles de données tests utilisés sont des modèles externes (ex : https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json)
-
-### Exécution des tests avec docker
-
-Voir [.circleci/config.yml](../../.circleci/config.yml)
 
 ### Exécution des tests en local
 
