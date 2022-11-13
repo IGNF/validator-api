@@ -10,7 +10,7 @@ nelmio_cors:
     origin_regex: false
     forced_allow_origin_value: ~
   paths:
-    "^/validator/":
+    "^/api/":
       allow_origin: ["%env(resolve:CORS_ALLOW_ORIGIN)%"]
       allow_headers: ["Content-Type", "Authorization"]
       allow_methods: ["GET", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"]
