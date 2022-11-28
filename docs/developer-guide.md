@@ -40,10 +40,12 @@ php bin/console doctrine:schema:update --force
 Téléchargez le fichier `bin/validator-cli.jar` :
 
 ```bash
-bash download-validator.sh 4.3.2
+# bash download-validator.sh [<MAJOR>.<MINOR>.<PATCH>]
+bash download-validator.sh
 ```
 
 Lancez l'application :
+
 ```bash
 symfony server:start
 ```
