@@ -62,8 +62,9 @@
       "description": "Plugins du validator-cli.jar à utiliser",
       "example": "dgpr",
       "enum": [
-        "dgpr",
-        "cnig"
+        "DGPR",
+        "CNIG",
+        "PCRS"
       ]
     },
     "encoding": {
