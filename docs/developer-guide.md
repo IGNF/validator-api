@@ -143,4 +143,4 @@ cd validator-api
 sonar-scanner
 ```
 
-Remarque : Le fichier de configuration du projet Sonarqube est à la racine : [sonar-project.properties](../../sonar-project.properties)
+Remarque : Le fichier de configuration du projet Sonarqube est à la racine : [sonar-project.properties](../sonar-project.properties)
