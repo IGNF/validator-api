@@ -157,6 +157,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+
+
+  /api/validations/{uid}/results.csv:
+    get:
+      tags:
+        - validation
+      operationId: get_validation_csv
+      summary: "Télécharger le résultat au format CSV"
+      description: "Télécharger le résultat au format CSV"
+      parameters:
+        - description: "Identifiant unique de la validation"
+          in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+          example: g7258vq1t639uagbv8rg7b97
+      responses:
+        200:
+          description: Récupération réussie
+          content:
+            text/csv: {}
+        400:
+          description: "Paramètre uid manquant"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: "Aucune demande de validation ne correspond à l'uid"
+          content:
+
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+
   /api/validations/{uid}/files/source:
     get:
       tags:

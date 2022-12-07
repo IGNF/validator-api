@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Validation;
 use App\Exception\ApiException;
+use App\Export\CsvReportWriter;
 use App\Repository\ValidationRepository;
 use App\Service\MimeTypeGuesserService;
 use App\Service\ValidatorArgumentsService;
@@ -17,6 +18,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -94,6 +96,31 @@ class ValidationsController extends AbstractController
         }
 
         return new JsonResponse($this->serializer->toArray($validation), Response::HTTP_OK);
+    }
+
+
+    /**
+     * @Route(
+     *      "/{uid}/results.csv",
+     *      name="validator_api_get_validation_csv",
+     *      methods={"GET"}
+     * )
+     */
+    public function getValidationCsv($uid, CsvReportWriter $csvWriter)
+    {
+        $validation = $this->repository->findOneByUid($uid);
+        if (!$validation) {
+            throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
+        }
+
+        $response = new StreamedResponse(function () use ($validation, $csvWriter) {
+            $csvWriter->write($validation);
+        });
+        $response->headers->set('Content-Type', 'application/force-download');
+        $filename = $uid.'-results.csv';
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
+
+        return $response;
     }
 
     /**
