@@ -9,6 +9,16 @@ use App\Tests\WebTestCase;
 class CsvReportWriterTest extends WebTestCase
 {
     /**
+     * @var bool
+     */
+    private $updateRegressTest;
+
+    public function setUp(): void {
+        parent::setUp();
+        $this->updateRegressTest = getenv('UPDATE_REGRESS_TEST') == '1';
+    }
+
+    /**
      * Test with a report generated with validator 3.3.x.
      *
      * @return void
@@ -26,9 +36,17 @@ class CsvReportWriterTest extends WebTestCase
         $writer = new CsvReportWriter();
         $writer->write($validation, $targetPath);
 
-	// KEEP IT COMMENTED (except if regress test is updated)
-        //$writer->write($validation, $expectedPath);
+	    if ( $this->updateRegressTest ){
+            $writer->write($validation, $expectedPath);
+        }
 
-        $this->assertFileEquals($targetPath, $expectedPath);
+        $this->assertFileEquals(
+            $targetPath,
+            $expectedPath,
+            implode(' ', [
+                'Unexpected result for CsvReportWriterTest.',
+                'Fix the problem or run test once with env UPDATE_REGRESS_TEST=1 if a change is expected'
+            ])
+        );
     }
 }

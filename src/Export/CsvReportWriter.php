@@ -11,13 +11,13 @@ use SplFileObject;
 class CsvReportWriter
 {
     /**
-     * CSV_COLUMN -> JSON_PROPERTY mapping. Note that :
-     * - Naming taken from www.geoportail-urbanisme.gouv.fr
+     * CSV_COLUMN -> JSON_PROPERTY mapping. Note that naming and behavior is
+     * taken from www.geoportail-urbanisme.gouv.fr :
+     * - "scope" is not exported to CSV
      * - Naming WKT the errorGeometry simplifies reading with GDAL/ogr2ogr and QuantumGIS.
      */
     public const MAPPING = [
         'code' => 'code',
-        //"SCOPE" => "scope",
         'level' => 'level',
         'message' => 'message',
         'standard' => 'documentModel',
