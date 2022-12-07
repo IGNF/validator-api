@@ -66,7 +66,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testGetValidation()
     {
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
 
         $this->client->request(
             'GET',
@@ -227,7 +227,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testDeleteValidation()
     {
-        $validation = $this->getReference('validation_archived');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_ARCHIVED);
 
         $this->client->request(
             'DELETE',
@@ -257,7 +257,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUpdateArguments()
     {
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
 
         $data = [
             'srs' => 'EPSG:2154',
@@ -324,7 +324,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsInvalidJson()
     {
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
         $data = '{model = url}';
 
         $this->client->request(
@@ -348,7 +348,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsNoArguments()
     {
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
         $data = [];
 
         $this->client->request(
@@ -372,7 +372,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsMissingReqArguments()
     {
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
         $data = [
             'srs' => 'EPSG:2154',
         ];
@@ -401,7 +401,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsUnknownParameters()
     {
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
 
         $data = [
             'srs' => 'EPSG:2154',
@@ -430,7 +430,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsInvalidBoolean()
     {
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
 
         $data = [
             'srs' => 'EPSG:2154',
@@ -459,7 +459,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsUnknownProjection()
     {
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
 
         $data = [
             'srs' => 'EPSG:9999',
@@ -487,7 +487,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsInvalidModelUrl()
     {
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
 
         $data = [
             'srs' => 'EPSG:2154',
@@ -515,7 +515,7 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUpdateArgumentsValArchived()
     {
-        $validation = $this->getReference('validation_archived');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_ARCHIVED);
 
         $data = [
             'srs' => 'EPSG:2154',

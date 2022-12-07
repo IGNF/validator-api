@@ -51,7 +51,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
     public function testDownloadNoData()
     {
         // validation not yet executed, no args
-        $validation = $this->getReference('validation_no_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_NO_ARGS);
 
         $this->client->request(
             'GET',
@@ -65,7 +65,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $this->assertEquals("Validation hasn't been executed yet", $json['message']);
 
         // validation not yet executed, has args, execution pending
-        $validation = $this->getReference('validation_with_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_WITH_ARGS);
 
         $this->client->request(
             'GET',
@@ -79,7 +79,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $this->assertEquals("Validation hasn't been executed yet", $json['message']);
 
         // validation archived
-        $validation = $this->getReference('validation_archived');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_ARCHIVED);
 
         $this->client->request(
             'GET',
@@ -131,7 +131,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $this->assertEquals(0, $statusCode);
 
         // this one has failed
-        $validation2 = $this->getReference('validation_with_bad_args');
+        $validation2 = $this->getReference(ValidationsFixtures::VALIDATION_WITH_BAD_ARGS);
 
         $this->client->request(
             'GET',
@@ -145,7 +145,7 @@ class ValidationNormDataDownloadTest extends WebTestCase
         $this->assertEquals('Validation failed, no normalized data', $json['message']);
 
         // this one has succeeded
-        $validation = $this->getReference('validation_with_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_WITH_ARGS);
 
         $this->client->request(
             'GET',

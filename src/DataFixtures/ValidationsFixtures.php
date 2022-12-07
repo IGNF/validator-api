@@ -16,6 +16,32 @@ class ValidationsFixtures extends Fixture
     const FILENAME_INVALID_REGEX = "130010853_PM3_60_20180516-invalid-regex.zip";
 
     /**
+     * A validation where args are provided
+     */
+    const VALIDATION_WITH_ARGS = 'validation_with_args';
+    /**
+     * A validation with no args
+     */
+    const VALIDATION_NO_ARGS = 'validation_no_args';
+    /**
+     * A validation that has already been archived
+     * (no file, archived)
+     */
+    const VALIDATION_ARCHIVED = 'validation_archived';
+
+    /**
+     * a validation with bad args
+     * (the model url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed)
+     */
+    const VALIDATION_WITH_BAD_ARGS = 'validation_with_bad_args';
+
+    /**
+     * A validation whose zip archive is empty
+     */
+    const VALIDATION_INVALID_REGEX = 'validation_invalid_regex';
+
+
+    /**
      * @var ValidatorArgumentsService
      */
     private $valArgsService;
@@ -66,7 +92,7 @@ class ValidationsFixtures extends Fixture
         $validationNoArgs = new Validation();
         $this->addSampleArchive($validationNoArgs, self::FILENAME_SUP_PM3);
         $em->persist($validationNoArgs);
-        $this->addReference('validation_no_args', $validationNoArgs);
+        $this->addReference(self::VALIDATION_NO_ARGS, $validationNoArgs);
 
         /*
          * validation_archived - a validation that has already been archived
@@ -76,7 +102,7 @@ class ValidationsFixtures extends Fixture
         $valArchived->setDatasetName('130010853_PM3_60_20180516');
         $valArchived->setStatus(Validation::STATUS_ARCHIVED);
         $em->persist($valArchived);
-        $this->addReference('validation_archived', $valArchived);
+        $this->addReference(ValidationsFixtures::VALIDATION_ARCHIVED, $valArchived);
 
         /*
          * validation_with_args - a validation where args are provided
@@ -92,7 +118,7 @@ class ValidationsFixtures extends Fixture
         $valWithArgs->setStatus(Validation::STATUS_PENDING);
         $valWithArgs->setArguments($args);
         $em->persist($valWithArgs);
-        $this->addReference('validation_with_args', $valWithArgs);
+        $this->addReference(self::VALIDATION_WITH_ARGS, $valWithArgs);
 
         /*
          * validation_with_bad_args - a validation with bad args
@@ -109,7 +135,7 @@ class ValidationsFixtures extends Fixture
         $valWithBadArgs->setStatus(Validation::STATUS_PENDING);
         $valWithBadArgs->setArguments($args);
         $em->persist($valWithBadArgs);
-        $this->addReference('validation_with_bad_args', $valWithBadArgs);
+        $this->addReference(self::VALIDATION_WITH_BAD_ARGS, $valWithBadArgs);
 
         /*
          * validation_invalid_regex - a validation whose zip archive is empty
@@ -125,7 +151,7 @@ class ValidationsFixtures extends Fixture
         $valInvalidRegex->setStatus(Validation::STATUS_PENDING);
         $valInvalidRegex->setArguments($args);
         $em->persist($valInvalidRegex);
-        $this->addReference('validation_invalid_regex', $valInvalidRegex);
+        $this->addReference(self::VALIDATION_INVALID_REGEX, $valInvalidRegex);
 
         $em->flush();
     }
