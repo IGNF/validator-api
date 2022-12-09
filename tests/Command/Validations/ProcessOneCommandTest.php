@@ -66,7 +66,7 @@ class ProcessOneCommandTest extends WebTestCase
 
         $this->assertEquals(0, $statusCode);
 
-        $valWithArgs = $this->getReference('validation_with_args');
+        $valWithArgs = $this->getReference(ValidationsFixtures::VALIDATION_WITH_ARGS);
         $validation = $repo->findOneByUid($valWithArgs->getUid());
 
         $this->assertEquals('', $validation->getMessage());
@@ -82,7 +82,7 @@ class ProcessOneCommandTest extends WebTestCase
 
         $this->assertEquals(0, $statusCode);
 
-        $valWithBadArgs = $this->getReference('validation_with_bad_args');
+        $valWithBadArgs = $this->getReference(ValidationsFixtures::VALIDATION_WITH_BAD_ARGS);
         $validation = $repo->findOneByUid($valWithBadArgs->getUid());
 
         $this->assertNotEquals('', $validation->getMessage());
@@ -98,7 +98,7 @@ class ProcessOneCommandTest extends WebTestCase
 
         $this->assertEquals(0, $statusCode);
 
-        $valInvalidRegex = $this->getReference('validation_invalid_regex');
+        $valInvalidRegex = $this->getReference(ValidationsFixtures::VALIDATION_INVALID_REGEX);
         $validation = $repo->findOneByUid($valInvalidRegex->getUid());
 
         $this->assertEquals('Zip archive pre-validation failed', $validation->getMessage());

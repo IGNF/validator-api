@@ -60,7 +60,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
     public function testDownloadNoData()
     {
         // validation archived
-        $validation = $this->getReference('validation_archived');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_ARCHIVED);
 
         $this->client->request(
             'GET',
@@ -112,7 +112,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
         $this->assertEquals(0, $statusCode);
 
         // this one has failed
-        $validation2 = $this->getReference('validation_with_bad_args');
+        $validation2 = $this->getReference(ValidationsFixtures::VALIDATION_WITH_BAD_ARGS);
 
         $this->client->request(
             'GET',
@@ -136,7 +136,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
         $this->assertEquals('zip', $file->getExtension());
 
         // this one has succeeded
-        $validation = $this->getReference('validation_with_args');
+        $validation = $this->getReference(ValidationsFixtures::VALIDATION_WITH_ARGS);
 
         $this->client->request(
             'GET',
