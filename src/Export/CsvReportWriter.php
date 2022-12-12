@@ -59,7 +59,13 @@ class CsvReportWriter
     {
         $row = [];
         foreach (self::MAPPING as $csvName => $jsonName) {
-            $row[] = @$result[$jsonName];
+            $value = @$result[$jsonName];
+            // feat_bbox
+            if ( is_array($value) ){
+                $row[] = implode(',',$value);
+            }else{
+                $row[] = $value;
+            }
         }
 
         return $row;

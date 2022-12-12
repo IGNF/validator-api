@@ -1,0 +1,10 @@
+code,level,message,standard,fileModel,attribute,file,id,feat_bbox,WKT,feat_id
+VALIDATOR_INFO,INFO,"Validation avec le modèle : CNIG_PCRS_v2.0",,,,,,,,
+VALIDATOR_INFO,INFO,"Version du validateur : 4.4.0",,,,,,,,
+VALIDATOR_INFO,INFO,"Version GDAL utilisée : GDAL 3.2.2, released 2021/03/05",,,,,,,,
+VALIDATOR_PROJECTION_INFO,INFO,"La projection EPSG:3948 (http://www.opengis.net/def/crs/EPSG/0/3948) est utilisée pour la validation",CNIG_PCRS_v2.0,,,cnig-JeuxTestv2-invalide-3948/,,,,
+XSD_SCHEMA_ERROR,ERROR,"Fichier non conforme au schéma XSD",CNIG_PCRS_v2.0,DONNEES,,cnig-pcrs-jeux-test-invalide/JeuxTestv2.gml,18,,,
+XSD_SCHEMA_ERROR,ERROR,"Fichier non conforme au schéma XSD",CNIG_PCRS_v2.0,DONNEES,,cnig-pcrs-jeux-test-invalide/JeuxTestv2.gml,18,,,
+XSD_SCHEMA_ERROR,ERROR,"Fichier non conforme au schéma XSD",CNIG_PCRS_v2.0,DONNEES,,cnig-pcrs-jeux-test-invalide/JeuxTestv2.gml,80,,,
+XSD_SCHEMA_ERROR,ERROR,"Fichier non conforme au schéma XSD",CNIG_PCRS_v2.0,DONNEES,,cnig-pcrs-jeux-test-invalide/JeuxTestv2.gml,80,,,
+ATTRIBUTE_GEOMETRY_INVALID,ERROR,"La géométrie de l'objet n'est pas topologiquement correcte. La géométrie ne contient pas assez de points (au moins 2 pour une ligne, 3 pour un polygone), contient un contour non-fermé, ou bien contient des coordonnées invalides (valeur NULL) (RING_NOT_CLOSED, INVALID_COORDINATE, TOO_FEW_POINTS, INVALID_WKT).",CNIG_PCRS_v2.0,DONNEES,WKT,cnig-pcrs-jeux-test-invalide/JeuxTestv2.gml#SeuilPCRS,1,"7.7676541,48.5677119,7.7676541,48.5677119","POINT (7.76765407686113 48.56771188387738)",SeuilPCRS.0
