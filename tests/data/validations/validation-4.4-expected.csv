@@ -1,4 +1,4 @@
-code,level,message,standard,fileModel,attribute,file,id,feat_bbox,WKT,feat_id,xsd_code,xsd_mess,xsd_path
+code,level,message,standard,fileModel,attribute,file,id,feat_bbox,WKT,feat_id,xsd_code,xsd_msg,xsd_path
 VALIDATOR_INFO,INFO,"Validation avec le modèle : CNIG_PCRS_v2.0",,,,,,,,,,,
 VALIDATOR_INFO,INFO,"Version du validateur : 4.4.0",,,,,,,,,,,
 VALIDATOR_INFO,INFO,"Version GDAL utilisée : GDAL 3.2.2, released 2021/03/05",,,,,,,,,,,

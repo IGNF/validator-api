@@ -29,7 +29,7 @@ class CsvReportWriter
         'WKT' => 'errorGeometry',
         'feat_id' => 'featureId',
         'xsd_code' => 'xsdErrorCode',
-        'xsd_mess' => 'xsdErrorMessage',
+        'xsd_msg' => 'xsdErrorMessage',
         'xsd_path' => 'xsdErrorPath',
     ];
 
