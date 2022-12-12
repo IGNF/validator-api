@@ -28,6 +28,9 @@ class CsvReportWriter
         'feat_bbox' => 'featureBbox',
         'WKT' => 'errorGeometry',
         'feat_id' => 'featureId',
+        'xsd_code' => 'xsdErrorCode',
+        'xsd_mess' => 'xsdErrorMessage',
+        'xsd_path' => 'xsdErrorPath',
     ];
 
     public function write(Validation $validation, $path = 'php://output')
