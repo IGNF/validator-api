@@ -21,3 +21,13 @@ Si vous voulez corriger une anomalie ou apporter une nouvelle fonctionnalité vo
 Consultez la [documentation développeur](docs/developer-guide.md) pour prendre en main ce dépôt.
 
 Attention, nous utilisons `commitlint` pour s'assurer que les messages de commit restent cohérents, avec l'objectif futur d'automatiser la publication de nouvelles release.  Les règles à suivre pour les messages de commit sont celles de [semantic-release](https://github.com/semantic-release/semantic-release)
+
+La première ligne des messages de commit doit se présenter sous la forme :
+
+`<type>(<scope>): <subject>`
+
+`<type>` est à choisir parmi une liste définie dans `.commitlintrc.json`. `<subject>` est un résumé de la modification. `<scope>` est optionnel.
+
+Exemple :
+
+`feat: ajout export CSV des rapports de validation`
