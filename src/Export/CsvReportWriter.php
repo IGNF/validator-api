@@ -28,6 +28,9 @@ class CsvReportWriter
         'feat_bbox' => 'featureBbox',
         'WKT' => 'errorGeometry',
         'feat_id' => 'featureId',
+        'xsd_code' => 'xsdErrorCode',
+        'xsd_msg' => 'xsdErrorMessage',
+        'xsd_path' => 'xsdErrorPath',
     ];
 
     public function write(Validation $validation, $path = 'php://output')
@@ -59,7 +62,13 @@ class CsvReportWriter
     {
         $row = [];
         foreach (self::MAPPING as $csvName => $jsonName) {
-            $row[] = @$result[$jsonName];
+            $value = @$result[$jsonName];
+            // feat_bbox
+            if ( is_array($value) ){
+                $row[] = implode(',',$value);
+            }else{
+                $row[] = $value;
+            }
         }
 
         return $row;
