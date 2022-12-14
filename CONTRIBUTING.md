@@ -2,7 +2,7 @@
 
 Merci d'envisager nous aider sur ce projet. Tout type de contribution est bienvenue
 
-# Contributions autres que du code
+## Contributions autres que du code
 
 N'hésitez pas à formuler toute proposition de nouvelle fonctionnalité, signalement d'anomalie ou même question dans une [nouvelle issue](https://github.com/IGNF/validator-api/issues/new/choose).
 
@@ -14,7 +14,7 @@ Enfin si vous pensez avoir cerné quel partie du validateur est concernée par v
 * [IGNF/validator](https://github.com/IGNF/validator) : le moteur de validation en Java
 * [IGNF/validator-api-client](https://github.com/IGNF/validator-api-client/) : l'interface graphique du démonstrateur
 
-# Modifier le code ou la documentation
+## Modifier le code ou la documentation
 
 Si vous voulez corriger une anomalie ou apporter une nouvelle fonctionnalité vous-même, faites ces modifications dans un fork du dépôt et soumettez-nous une [pull request](https://docs.github.com/fr/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests)
 
@@ -31,3 +31,9 @@ La première ligne des messages de commit doit se présenter sous la forme :
 Exemple :
 
 `feat: ajout export CSV des rapports de validation`
+
+## Livraison d'une nouvelle version
+
+* Renseigner la future version dans [docs/specs/validator-api.yml](docs/specs/validator-api.yml) (ex : `info.version: 0.2.1`)
+* Créer et pousser un tag (ex : `v0.2.1`)
+* Créer une release à partir du tag (voir https://github.com/IGNF/validator-api/tags)
