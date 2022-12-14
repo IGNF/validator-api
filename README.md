@@ -4,6 +4,11 @@
 
 Cette API permet d'appeler [IGNF/validator](https://github.com/IGNF/validator), outil permettant de valider et de normaliser les données présentes dans une arborescence de fichiers. [En savoir plus](https://github.com/IGNF/validator).
 
+## Documentation utilisateur
+
 * [Documentation utilisateur](docs/user-guide.md)
 
+## Documentation contributeur
+
+* [Comment contribuer ?](CONTRIBUTING.md)
 * [Documentation développeur](docs/developer-guide.md)
