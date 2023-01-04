@@ -11,9 +11,9 @@ services:
       args:
         - http_proxy
         - https_proxy
-        - HTTP_PROXY
-        - HTTPS_PROXY
     environment:
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
       - APP_ENV=${APP_ENV}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -52,6 +52,8 @@ services:
     image: ignf/validator-api:latest
     command: .docker/application.sh backend
     environment:
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
       - APP_ENV=${APP_ENV}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -70,5 +72,6 @@ networks:
 volumes:
   # validations files
   api-data:
-  # postgresql files
+  # postgresql files (docker volume create db-data)
   db-data:
+
