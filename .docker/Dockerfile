@@ -3,18 +3,6 @@ FROM php:8.1-apache
 #ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN rm /etc/apt/preferences.d/no-debian-php
 
-ARG http_proxy=""
-ENV http_proxy=${http_proxy}
-ENV HTTP_PROXY=${http_proxy}
-
-ARG https_proxy=""
-ENV https_proxy=${https_proxy}
-ENV HTTPS_PROXY=${https_proxy}
-
-ARG no_proxy=""
-ENV no_proxy=${no_proxy}
-ENV NO_PROXY=${no_proxy}
-
 #----------------------------------------------------------------------
 # Env vars for validator-api
 #----------------------------------------------------------------------
@@ -120,6 +108,7 @@ RUN composer install
 #----------------------------------------------------------------------
 RUN mkdir -p /opt/validator-api/var/data/validations
 VOLUME /opt/validator-api/var/data
+
 
 #----------------------------------------------------------------------
 # Replace default command
