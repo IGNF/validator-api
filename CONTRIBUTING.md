@@ -34,6 +34,6 @@ Exemple :
 
 ## Livraison d'une nouvelle version
 
-* Renseigner la future version dans [docs/specs/validator-api.yml](docs/specs/validator-api.yml) (ex : `info.version: 0.2.1`)
-* Créer et pousser un tag (ex : `v0.2.1`)
+* Renseigner la future version dans [docs/specs/validator-api.yml](docs/specs/validator-api.yml) (ex : `info.version: 0.2.3`)
+* Créer et pousser un tag (ex : `v0.2.3`)
 * Créer une release à partir du tag (voir https://github.com/IGNF/validator-api/tags)
