@@ -113,4 +113,5 @@ VOLUME /opt/validator-api/var/data
 #----------------------------------------------------------------------
 # Replace default command
 #----------------------------------------------------------------------
+EXPOSE 8000
 CMD ["/opt/validator-api/.docker/application.sh"]
