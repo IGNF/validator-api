@@ -3,24 +3,11 @@ set -e
 
 ACTION=${1:-run}
 
-export PGHOST=database
-export PGUSER=$POSTGRES_USER
-export PGPASSWORD=$POSTGRES_PASSWORD
-
-#-------------------------------------------------------------------------------
-# wait for postgresql...
-#-------------------------------------------------------------------------------
-until psql -l &> /dev/null;
-do
-  >&2 echo "PostgreSQL is unavailable - sleeping..."
-  sleep 1
-done
-
 run(){
     #---------------------------------------------------------------------------
     # Ensure that database is created and schema is up to date.
     #---------------------------------------------------------------------------
-    bin/console doctrine:database:create > /dev/null 2>&1 || true
+    bin/console doctrine:database:create --if-not-exists
     bin/console doctrine:schema:update --force
 
     #---------------------------------------------------------------------------
@@ -35,7 +22,9 @@ backend(){
 
 test(){
     export APP_ENV=test
-    export DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api_test?serverVersion=13&charset=utf8
+    export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api_test?serverVersion=13&charset=utf8"
+    bin/console --env=test doctrine:database:create --if-not-exists
+    bin/console --env=test doctrine:schema:update --force
     XDEBUG_MODE=coverage vendor/bin/phpunit
 }
 
