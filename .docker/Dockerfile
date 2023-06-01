@@ -1,4 +1,4 @@
-FROM php:8.1-apache
+FROM php:8.2-apache
 
 #ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN rm /etc/apt/preferences.d/no-debian-php
