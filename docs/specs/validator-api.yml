@@ -6,7 +6,7 @@ info:
   contact:
     name: IGNF/validator
     url: "https://github.com/IGNF/validator/issues"
-  version: "0.2.4"
+  version: "0.3.0"
   title: "API Validator"
   license:
     name: "AGPL-3.0-or-later"
