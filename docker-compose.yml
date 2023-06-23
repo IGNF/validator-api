@@ -4,18 +4,24 @@ services:
 
   # validator-api service
   api:
-    image: ignf/validator-api:latest
+    image: ignf/validator-api:master-dev
     build:
       context: .
       dockerfile: .docker/Dockerfile
+      target: dev
       args:
         - http_proxy
         - https_proxy
     environment:
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
+      # important for ogr2ogr...
+      - http_proxy=${HTTP_PROXY}
+      - https_proxy=${HTTPS_PROXY}
       - APP_ENV=${APP_ENV}
-      - POSTGRES_USER=${POSTGRES_USER}
+      - DB_CREATE=1
+      - DB_UPGRADE=1
+      - POSTGRES_USER=validator
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api?serverVersion=13&charset=utf8
     networks:
@@ -52,12 +58,15 @@ services:
   #-----------------------------------------------------------------------
   # Process validations
   #-----------------------------------------------------------------------
-  orchestrator:
-    image: ignf/validator-api:latest
+  backend:
+    image: ignf/validator-api:master-dev
     command: .docker/application.sh backend
     environment:
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
+      # important for ogr2ogr...
+      - http_proxy=${HTTP_PROXY}
+      - https_proxy=${HTTPS_PROXY}
       - APP_ENV=${APP_ENV}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
