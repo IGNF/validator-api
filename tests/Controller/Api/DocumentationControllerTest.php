@@ -15,6 +15,7 @@ class DocumentationControllerTest extends WebTestCase
      */
     public function testSwagger()
     {
+        self::ensureKernelShutdown();
         $client = static::createClient();
         $client->request(
             'GET',
@@ -37,6 +38,7 @@ class DocumentationControllerTest extends WebTestCase
      */
     public function testSchemaValidatorArguments()
     {
+        self::ensureKernelShutdown();
         $client = static::createClient();
         $client->request(
             'GET',

@@ -4,7 +4,6 @@ namespace App\Tests\Service;
 
 use App\Service\MimeTypeGuesserService;
 use App\Tests\WebTestCase;
-use Exception;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 class MimeTypeGuesserServiceTest extends WebTestCase
@@ -42,7 +41,7 @@ class MimeTypeGuesserServiceTest extends WebTestCase
         $thrown = false;
         try {
             $this->mimeTypeGuesser->guessMimeType(__DIR__.'/not-found.txt');
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->assertInstanceOf(FileNotFoundException::class, $e);
             $this->assertStringContainsString("not-found.txt' not found", $e->getMessage());
             $thrown = true;

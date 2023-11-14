@@ -13,9 +13,10 @@ class CsvReportWriterTest extends WebTestCase
      */
     private $updateRegressTest;
 
-    public function setUp(): void {
+    public function setUp(): void
+    {
         parent::setUp();
-        $this->updateRegressTest = getenv('UPDATE_REGRESS_TEST') == '1';
+        $this->updateRegressTest = '1' == getenv('UPDATE_REGRESS_TEST');
     }
 
     /**
@@ -36,7 +37,7 @@ class CsvReportWriterTest extends WebTestCase
         $writer = new CsvReportWriter();
         $writer->write($validation, $targetPath);
 
-	    if ( $this->updateRegressTest ){
+        if ($this->updateRegressTest) {
             $writer->write($validation, $expectedPath);
         }
 
@@ -45,12 +46,10 @@ class CsvReportWriterTest extends WebTestCase
             $expectedPath,
             implode(' ', [
                 'Unexpected result for CsvReportWriterTest.',
-                'Fix the problem or run test once with env UPDATE_REGRESS_TEST=1 if a change is expected'
+                'Fix the problem or run test once with env UPDATE_REGRESS_TEST=1 if a change is expected',
             ])
         );
     }
-
-
 
     /**
      * Test with a report generated with validator 4.4.x.
@@ -70,7 +69,7 @@ class CsvReportWriterTest extends WebTestCase
         $writer = new CsvReportWriter();
         $writer->write($validation, $targetPath);
 
-	    if ( $this->updateRegressTest ){
+        if ($this->updateRegressTest) {
             $writer->write($validation, $expectedPath);
         }
 
@@ -79,7 +78,7 @@ class CsvReportWriterTest extends WebTestCase
             $expectedPath,
             implode(' ', [
                 'Unexpected result for CsvReportWriterTest.',
-                'Fix the problem or run test once with env UPDATE_REGRESS_TEST=1 if a change is expected'
+                'Fix the problem or run test once with env UPDATE_REGRESS_TEST=1 if a change is expected',
             ])
         );
     }
