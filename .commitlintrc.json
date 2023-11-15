@@ -3,7 +3,7 @@
       "header-max-length": [
         1,
         "always",
-        100
+        150
       ],
       "subject-empty": [
         1,
