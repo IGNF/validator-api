@@ -30,7 +30,8 @@
     "symfony/twig-bundle": "5.4.*",
     "symfony/validator": "5.4.*",
     "symfony/yaml": "5.4.*",
-    "symfony/mime": "5.4.*"
+    "symfony/mime": "5.4.*",
+    "symfony/runtime": "5.4.*"
   },
   "require-dev": {
     "doctrine/doctrine-fixtures-bundle": "^3.4",
@@ -56,7 +57,8 @@
     "sort-packages": false,
     "secure-http": false,
     "allow-plugins": {
-      "symfony/flex": true
+      "symfony/flex": true,
+      "symfony/runtime": true
     }
   },
   "autoload": {

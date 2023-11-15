@@ -2,7 +2,10 @@ PHP_CS_RULES=@Symfony
 PHP_MD_RULES=./phpmd.xml
 
 test: vendor bin/validator-cli.jar
+	# see SYMFONY_DEPRECATIONS_HELPER in phpunit.xml.dist
+	rm -rf var/log/test.deprecations.log
 	APP_ENV=test XDEBUG_MODE=coverage vendor/bin/phpunit
+
 bin/validator-cli.jar:
 	bash download-validator.sh
 
