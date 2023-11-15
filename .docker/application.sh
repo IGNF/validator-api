@@ -27,9 +27,9 @@ run(){
     fi
 
     #---------------------------------------------------------------------------
-    # start apache as www-data
+    # start apache2 server
     #---------------------------------------------------------------------------
-    /usr/sbin/apachectl -D FOREGROUND
+    exec apache2-foreground
 }
 
 backend(){
