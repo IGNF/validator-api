@@ -40,6 +40,12 @@ class ValidationManager
      */
     private $zipArchiveValidator;
 
+    /**
+     * Current validation (in order to handle SIGTERM)
+     * @var Validation
+     */
+    private $currentValidation = null;
+
     public function __construct(
         EntityManagerInterface $em,
         ValidationsStorage $storage,
@@ -90,12 +96,33 @@ class ValidationManager
      */
     public function processOne()
     {
+        sleep(100);
         $validation = $this->getValidationRepository()->popNextPending();
         if (is_null($validation)) {
             $this->logger->debug("processOne : no validation pending, quitting");
             return;
         }
+        $this->currentValidation = $validation;
         $this->doProcess($validation);
+        $this->currentValidation = null;
+    }
+
+    /**
+     * Stop currently running validation (invoked when SIGTERM is received)
+     *
+     * @return void
+     */
+    public function cancelProcessing(){
+        if ( is_null($this->currentValidation) ){
+            $this->logger->debug("SIGTERM received, no validation in progress");
+            return ;
+        }
+        $this->logger->warning("Validation[{uid}]: SIGTERM received, changing state to pending",[
+            "uid" => $this->currentValidation->getUid()
+        ]);
+        $this->currentValidation->setStatus(Validation::STATUS_PENDING);
+        $this->em->persist($this->currentValidation);
+        $this->em->flush();
     }
 
     /**
