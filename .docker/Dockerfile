@@ -6,7 +6,7 @@ FROM composer:2.3 as vendor
 RUN mkdir -p /opt/validator-api
 WORKDIR /opt/validator-api
 COPY composer.json .
-RUN composer install --no-scripts --prefer-dist
+RUN composer install --no-scripts --prefer-dist --ignore-platform-req=ext-pcntl
 
 #----------------------------------------------------------------------
 # Create base layer for dev and production
@@ -49,7 +49,7 @@ COPY .docker/php.ini /usr/local/etc/php/conf.d/app.ini
 RUN apt-get update -qq \
  && apt-get install -y postgresql-client libpq-dev libzip-dev \
  && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
- && docker-php-ext-install opcache pdo pdo_pgsql pgsql zip \
+ && docker-php-ext-install opcache pdo pdo_pgsql pgsql zip pcntl \
  && rm -rf /var/lib/apt/lists/*
 
 #----------------------------------------------------------------------

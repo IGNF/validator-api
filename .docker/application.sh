@@ -33,7 +33,7 @@ run(){
 }
 
 backend(){
-    bash loop-validate.sh
+    exec bash loop-validate.sh
 }
 
 test(){

@@ -60,7 +60,7 @@ services:
   #-----------------------------------------------------------------------
   backend:
     image: ignf/validator-api:master-dev
-    command: ["/bin/bash","loop-validate.sh"]
+    command: [".docker/application.sh","backend"]
     environment:
       - HTTP_PROXY=${HTTP_PROXY}
       - HTTPS_PROXY=${HTTPS_PROXY}
