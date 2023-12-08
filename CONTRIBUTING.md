@@ -34,6 +34,7 @@ Exemple :
 
 ## Livraison d'une nouvelle version
 
+* Consulter le [numéro de la dernière version](https://github.com/IGNF/validator-api/tags).
 * Renseigner la future version dans [docs/specs/validator-api.yml](docs/specs/validator-api.yml) (ex : `info.version: 0.3.0`)
 * Créer et pousser un tag (ex : `v0.3.0`)
 * Créer une release à partir du tag (voir https://github.com/IGNF/validator-api/tags)

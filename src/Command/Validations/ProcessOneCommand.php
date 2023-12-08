@@ -3,8 +3,6 @@
 namespace App\Command\Validations;
 
 use App\Validation\ValidationManager;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,16 +19,11 @@ class ProcessOneCommand extends Command
      */
     private $validationManager;
 
-
     public function __construct(
-        EntityManagerInterface $em,
-        ValidationManager $validationManager,
-        LoggerInterface $logger
+        ValidationManager $validationManager
     ) {
         parent::__construct();
-        $this->em = $em;
         $this->validationManager = $validationManager;
-        $this->logger = $logger;
     }
 
     protected function configure()

@@ -26,8 +26,8 @@
     <server name="SYMFONY_PHPUNIT_REMOVE" value=""/>
     <server name="SYMFONY_PHPUNIT_VERSION" value="7.5"/>
     <server name="KERNEL_CLASS" value="App\Kernel"/>
-    <env name="SYMFONY_DEPRECATIONS_HELPER" value="weak"/>
     <!-- ###+ symfony/framework-bundle ### -->
+    <env name="SYMFONY_DEPRECATIONS_HELPER" value="logFile=var/log/test.deprecations.log"/>
     <env name="APP_ENV" value="test"/>
     <env name="APP_SECRET" value="4049513f2a2a7597f3b61c1f199a5bfa"/>
     <!-- env name="TRUSTED_PROXIES" value="127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16" -->

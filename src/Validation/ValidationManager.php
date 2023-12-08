@@ -228,7 +228,7 @@ class ValidationManager
             return;
         }
 
-        $process = new Process("(cd $normDataParentDir && zip -r $datasetName.zip $datasetName)");
+        $process = new Process(["zip","-r","$datasetName.zip",$datasetName],$normDataParentDir);
         $process->setTimeout(600);
         $process->setIdleTimeout(600);
         $process->run();

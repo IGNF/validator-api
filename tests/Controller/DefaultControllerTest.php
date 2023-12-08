@@ -14,8 +14,9 @@ class DefaultControllerTest extends WebTestCase
      */
     public function testHome()
     {
+        self::ensureKernelShutdown();
         $client = static::createClient();
-        /*$crawler =*/ $client->request(
+        /* $crawler = */ $client->request(
             'GET',
             '/'
         );
