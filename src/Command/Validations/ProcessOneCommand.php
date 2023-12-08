@@ -32,7 +32,6 @@ class ProcessOneCommand extends Command implements SignalableCommandInterface
     ) {
         parent::__construct();
         $this->validationManager = $validationManager;
-        $this->logger = $logger;
     }
 
     protected function configure()
