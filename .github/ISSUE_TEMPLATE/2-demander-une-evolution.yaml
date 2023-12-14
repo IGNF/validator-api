@@ -1,5 +1,5 @@
 name: 🚀 Demander une évolution
-description: Suggérer une idée d'évolution ou de nouvelle fonctionnalité pour le validateur
+description: Suggérez une idée d'évolution ou une nouvelle fonctionnalité pour le validateur
 labels: [enhancement]
 body:
   - type: textarea
@@ -8,6 +8,7 @@ body:
         label: Le besoin que vous rencontrez
         description: |
           Décrivez de façon claire et concise à quel besoin vous êtes confronté.
+          Par exemple : "Je souhaite pouvoir valider mes données dans le système de coordonnées EPSG:3128"
     validations:
         required: true
   - type: textarea
