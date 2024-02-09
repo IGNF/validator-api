@@ -17,6 +17,7 @@ services:
       $validationsDir: "%env(resolve:DATA_DIR)%/validations"
       $projectDir: "%kernel.project_dir%"
       $validatorPath: "%ignf_validator.path%"
+      $validatorJavaOpts: "%env(resolve:VALIDATOR_JAVA_OPTS)%"
       $gmlasConfigPath: "%env(resolve:GMLAS_CONFIG)%"
 
   # makes classes in src/ available to be used as services

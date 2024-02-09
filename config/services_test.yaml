@@ -6,6 +6,7 @@ services:
       $validationsDir: "%env(resolve:DATA_DIR)%/validations-test"
       $projectDir: "%kernel.project_dir%"
       $validatorPath: "%ignf_validator.path%"
+      $validatorJavaOpts: "%env(resolve:VALIDATOR_JAVA_OPTS)%"
       $gmlasConfigPath: "%env(resolve:GMLAS_CONFIG)%"
 
   App\:
