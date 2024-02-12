@@ -25,6 +25,11 @@ class ValidatorCLI
     private $validatorPath;
 
     /**
+     * @var string
+     */
+    private $validatorJavaOpts;
+
+    /**
      * GMLAS_CONFIG environment variable for validator-cli.jar to avoid lower case renaming for GML validation.
      *
      * @var string
@@ -39,6 +44,7 @@ class ValidatorCLI
     public function __construct(
         ValidationsStorage $storage,
         $validatorPath,
+        $validatorJavaOpts,
         $gmlasConfigPath,
         LoggerInterface $logger
     ) {
@@ -47,6 +53,7 @@ class ValidatorCLI
         if ( ! file_exists($this->validatorPath) ){
             throw new ValidatorNotFoundException($this->validatorPath);
         }
+        $this->validatorJavaOpts = $validatorJavaOpts;
         $this->gmlasConfigPath = $gmlasConfigPath;
         $this->logger = $logger;
     }
@@ -66,9 +73,16 @@ class ValidatorCLI
         $env = $_ENV;
         $env['GMLAS_CONFIG'] = $this->gmlasConfigPath;
 
-        $args = $this->reconstructArgs($validation);
+        
         $sourceDataDir = $validationDirectory.'/'.$validation->getDatasetName();
-        $cmd = ['java', '-jar', $this->validatorPath, 'document_validator', '--input', $sourceDataDir];
+        $cmd = ['java'];
+        $cmd = \array_merge($cmd, explode(' ',$this->validatorJavaOpts));
+        $cmd = \array_merge($cmd,[
+            '-jar', $this->validatorPath, 
+            'document_validator', 
+            '--input', $sourceDataDir
+        ]);
+        $args = $this->reconstructArgs($validation);
         $cmd = \array_merge($cmd, $args);
 
         // executing validation program
