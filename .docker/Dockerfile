@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------
 # Download vendor from composer.json in dedicated layer
 #----------------------------------------------------------------------
-FROM composer:2.6 as vendor
+FROM composer:2.8 as vendor
 
 RUN mkdir -p /opt/validator-api
 WORKDIR /opt/validator-api
