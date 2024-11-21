@@ -78,8 +78,8 @@ class ValidatorCLI
         $cmd = ['java'];
         $cmd = \array_merge($cmd, explode(' ',$this->validatorJavaOpts));
         $cmd = \array_merge($cmd,[
-            '-jar', $this->validatorPath, 
-            'document_validator', 
+            '-jar', $this->validatorPath,
+            'document_validator',
             '--input', $sourceDataDir
         ]);
         $args = $this->reconstructArgs($validation);

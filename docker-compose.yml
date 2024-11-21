@@ -87,4 +87,3 @@ volumes:
   api-data:
   # postgresql files (docker volume create db-data)
   db-data:
-

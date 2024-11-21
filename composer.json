@@ -32,7 +32,10 @@
     "symfony/validator": "5.4.*",
     "symfony/yaml": "5.4.*",
     "symfony/mime": "5.4.*",
-    "symfony/runtime": "5.4.*"
+    "symfony/runtime": "5.4.*",
+    "league/flysystem-bundle": "^3.3",
+    "league/flysystem-async-aws-s3": "*",
+    "league/flysystem-aws-s3-v3": "^3.29",
   },
   "require-dev": {
     "doctrine/doctrine-fixtures-bundle": "^3.4",
