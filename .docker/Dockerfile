@@ -11,7 +11,7 @@ RUN composer install --no-scripts --prefer-dist --ignore-platform-req=ext-pcntl
 #----------------------------------------------------------------------
 # Create base layer for dev and production
 #----------------------------------------------------------------------
-FROM php:8.2-apache as base
+FROM php:8.4-apache as base
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG fr_FR.UTF-8
