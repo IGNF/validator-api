@@ -332,7 +332,7 @@ class ValidationsController extends AbstractController
             'Content-Transfer-Encoding', 'binary',
             'Content-Type' => 'application/zip',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
-            'Content-Length' => fstat($stream)['size'],
+            'Content-Length' => fstat($stream)['size']
         ]);
     }
 }
