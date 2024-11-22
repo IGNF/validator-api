@@ -20,4 +20,4 @@ flysystem:
             adapter: 'asyncaws'
             options:
                 client: 's3_client'
-                bucket: '%env(S3_BUCKET_DATA)%'
+                bucket: '%env(S3_BUCKET)%'
