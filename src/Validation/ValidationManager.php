@@ -222,10 +222,16 @@ class ValidationManager
         ]);
 
         $validationDirectory = $this->storage->getDirectory($validation);
+
+        if (!is_dir($validationDirectory)) {
+            mkdir($validationDirectory);
+        }
+        
         $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
+
         file_put_contents(
             $zipPath,
-            $this->dataStorage->readStream('validations/' . $validation->getDatasetName() . '.zip')
+            $this->dataStorage->read('validations/' . $validation->getDatasetName() . '.zip')
         );
     }
 
@@ -357,7 +363,7 @@ class ValidationManager
             'datasetName' => $validation->getDatasetName(),
         ]);
         $validationDirectory = $this->storage->getDirectory($validation);
-        $normDataPath = $validationDirectory . '/validation/' . $validation->getDatasetName() . 'zip';
+        $normDataPath = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
 
         if ($this->dataStorage->fileExists($normDataPath)){
             $this->dataStorage->delete($normDataPath);

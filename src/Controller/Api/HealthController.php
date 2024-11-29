@@ -38,11 +38,15 @@ class HealthController extends AbstractController
      *
      * @Route("/s3", name="heatlh_s3")
      */
-    public function headthS3(FilesystemOperator $dataStorage)
+    public function heatlhS3(FilesystemOperator $dataStorage)
     {
         try {
-            $dataStorage->listContents('.', False);
-            return new JsonResponse(True, Response::HTTP_OK);
+            $files = $dataStorage->listContents('.', TRUE);
+            $response = [];
+            foreach ($files as $file) {
+                $response[] = $file->path();
+            }
+            return new JsonResponse($response, Response::HTTP_OK);
         } catch (Exception $e) {
             return new JsonResponse(False, Response::HTTP_NOT_FOUND);
         }
