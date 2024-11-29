@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Api;
 
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,15 +33,15 @@ class HealthController extends AbstractController
         }
     }
 
-        /**
-     * Checks for Database connection
+    /**
+     * Checks for S3 connection
      *
      * @Route("/s3", name="heatlh_s3")
      */
     public function headthS3(FilesystemOperator $dataStorage)
     {
         try {
-            $dataStorage->listContents('/', False);
+            $dataStorage->listContents('.', False);
             return new JsonResponse(True, Response::HTTP_OK);
         } catch (Exception $e) {
             return new JsonResponse(False, Response::HTTP_NOT_FOUND);
