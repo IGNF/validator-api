@@ -55,12 +55,14 @@ class ValidationManager
     public function __construct(
         EntityManagerInterface $em,
         ValidationsStorage $storage,
+        FilesystemOperator $dataStorage,
         ValidatorCLI $validatorCli,
         ZipArchiveValidator $zipArchiveValidator,
         LoggerInterface $logger
     ) {
         $this->em = $em;
         $this->storage = $storage;
+        $this->dataStorage = $dataStorage;
         $this->validatorCli = $validatorCli;
         $this->zipArchiveValidator = $zipArchiveValidator;
         $this->logger = $logger;
@@ -218,11 +220,12 @@ class ValidationManager
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
+
         $validationDirectory = $this->storage->getDirectory($validation);
         $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
         file_put_contents(
             $zipPath,
-            $this->dataStorage->readStream($zipPath)
+            $this->dataStorage->readStream('validations/' . $validation->getDatasetName() . '.zip')
         );
     }
 

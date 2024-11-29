@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------
 # Download vendor from composer.json in dedicated layer
 #----------------------------------------------------------------------
-FROM composer:2.6 as vendor
+FROM composer:latest AS vendor
 
 RUN mkdir -p /opt/validator-api
 WORKDIR /opt/validator-api
@@ -11,7 +11,7 @@ RUN composer install --no-scripts --prefer-dist --ignore-platform-req=ext-pcntl
 #----------------------------------------------------------------------
 # Create base layer for dev and production
 #----------------------------------------------------------------------
-FROM php:8.2-apache as base
+FROM php:8.3-apache AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG fr_FR.UTF-8
@@ -107,7 +107,7 @@ CMD ["/opt/validator-api/.docker/application.sh"]
 #----------------------------------------------------------------------
 # DEV image with xdebug
 #----------------------------------------------------------------------
-FROM base as dev
+FROM base AS dev
 
 ENV APP_ENV=dev
 
@@ -122,6 +122,6 @@ USER www-data
 #----------------------------------------------------------------------
 # Production image without xdebug
 #----------------------------------------------------------------------
-FROM base as prod
+FROM base AS prod
 
 ENV APP_ENV=prod

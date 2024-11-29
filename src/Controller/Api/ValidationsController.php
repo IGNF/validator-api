@@ -62,12 +62,14 @@ class ValidationsController extends AbstractController
         ValidationRepository $repository,
         SerializerInterface $serializer,
         ValidationsStorage $storage,
+        FilesystemOperator $dataStorage,
         ValidatorArgumentsService $valArgsService,
         MimeTypeGuesserService $mimeTypeGuesserService
     )
     {
         $this->repository = $repository;
         $this->storage = $storage;
+        $this->dataStorage = $dataStorage;
         $this->valArgsService = $valArgsService;
         $this->mimeTypeGuesserService = $mimeTypeGuesserService;
         $this->serializer = $serializer;
@@ -161,10 +163,7 @@ class ValidationsController extends AbstractController
         $validation->setDatasetName($datasetName);
 
         // Save file to storage
-        $fileLocation = $this->storage->getDirectory($validation) .
-            '/' .
-            $validation->getDatasetName() .
-            '.zip';
+        $fileLocation = 'validations/'.$validation->getDatasetName().'.zip';
         if ($this->dataStorage->fileExists($fileLocation)){
             $this->dataStorage->delete($fileLocation);
         }
