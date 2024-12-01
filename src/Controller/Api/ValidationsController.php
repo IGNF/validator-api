@@ -104,6 +104,35 @@ class ValidationsController extends AbstractController
         return new JsonResponse($this->serializer->toArray($validation), Response::HTTP_OK);
     }
 
+    /**
+     * @Route(
+     *      "/{uid}/console",
+     *      name="validator_api_read_console",
+     *      methods={"GET"}
+     * )
+     */
+    public function readConsole($uid)
+    {
+        $validation = $this->repository->findOneByUid($uid);
+        if (!$validation) {
+            throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
+        }
+
+        if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
+            throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
+        }
+
+        $validationDirectory = $this->storage->getDirectory($validation) ;
+        $filepath = $validationDirectory . '/validator-debug.log';
+
+        $content = file_get_contents($filepath, true);
+
+        return new Response(
+            $content,
+            Response::HTTP_CREATED
+        );
+    }
+
 
     /**
      * @Route(

@@ -76,6 +76,21 @@
         "UTF-8",
         "LATIN1"
       ]
+    },
+    "dgpr-tolerance": {
+      "type": "integer",
+      "description": "tolerance expresed in meter",
+      "example": 10
+    },
+    "dgpr-simplify": {
+      "type": "integer",
+      "description": "geometry simplification before postgis validation expresed in meters",
+      "example": 2
+    },
+    "dgpr-safe-simplify": {
+      "type": "boolean",
+      "description": "geometry simplification method",
+      "example": true
     }
   },
   "additionalProperties": false

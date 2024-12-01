@@ -71,8 +71,8 @@ class ValidatorCLI
 
         /* prepare validator-cli.jar command */
         $env = $_ENV;
+        $env['DB_SCHEMA'] = "validation" . $validation->getUid();
         $env['GMLAS_CONFIG'] = $this->gmlasConfigPath;
-
         
         $sourceDataDir = $validationDirectory.'/'.$validation->getDatasetName();
         $cmd = ['java'];
