@@ -375,11 +375,19 @@ class ValidationManager
         // clean validation temporary zip
         $tempZip = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
         if ($fs->exists($tempZip)) {
-            $this->logger->debug('Validation[{uid}] : rm -f {uid}/validation/' . $validation->getDatasetName() . '.zip...', [
+            $this->logger->debug('Validation[{uid}] : rm -f {uid}/validation/{datasetName}.zip...', [
                 'uid' => $validation->getUid(),
                 'datasetName' => $validation->getDatasetName(),
             ]);
             $fs->remove($tempZip);
+        }
+
+        // clean validation directory
+        if ($fs->exists($validationDirectory)) {
+            $this->logger->debug('Validation[{uid}] : rm -rf {uid}', [
+                'uid' => $validation->getUid(),
+            ]);
+            $fs->remove($validationDirectory);
         }
     }
 
