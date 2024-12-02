@@ -2,6 +2,7 @@
 
 namespace App\Tests;
 
+use App\Entity\Validation;
 use App\Storage\ValidationsStorage;
 use Doctrine\Common\DataFixtures\Executor\AbstractExecutor;
 use Liip\FunctionalTestBundle\Test\WebTestCase as BaseWebTestCase;
@@ -27,10 +28,10 @@ abstract class WebTestCase extends BaseWebTestCase
      *
      * @throws \Exception
      */
-    protected function getReference($name)
+    protected function getValidationFixture($name): Validation
     {
-        if ($this->fixtures->getReferenceRepository()->hasReference($name)) {
-            return $this->fixtures->getReferenceRepository()->getReference($name);
+        if ($this->fixtures->getReferenceRepository()->hasReference($name, Validation::class)) {
+            return $this->fixtures->getReferenceRepository()->getReference($name, Validation::class);
         } else {
             throw new \Exception("No reference found for $name");
         }

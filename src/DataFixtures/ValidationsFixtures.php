@@ -82,7 +82,7 @@ class ValidationsFixtures extends Fixture
         );
     }
 
-    public function load(ObjectManager $em)
+    public function load(ObjectManager $em): void
     {
         $fs = new Filesystem();
 

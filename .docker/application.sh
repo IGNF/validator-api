@@ -38,7 +38,7 @@ backend(){
 
 test(){
     export APP_ENV=test
-    export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api_test?serverVersion=13&charset=utf8"
+    export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api_test?serverVersion=15&charset=utf8"
     bin/console --env=test doctrine:database:create --if-not-exists
     bin/console --env=test doctrine:schema:update --complete --force
     XDEBUG_MODE=coverage vendor/bin/phpunit
