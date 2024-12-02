@@ -192,7 +192,10 @@ class ValidationsController extends AbstractController
         $validation->setDatasetName($datasetName);
 
         // Save file to storage
-        $fileLocation = 'validations/'.$validation->getDatasetName().'.zip';
+        if (! $this->dataStorage->directoryExists('upload')) {
+            $this->dataStorage->createDirectory('upload');
+        }
+        $fileLocation = 'upload/'.$validation->getDatasetName().'.zip';
         if ($this->dataStorage->fileExists($fileLocation)){
             $this->dataStorage->delete($fileLocation);
         }
