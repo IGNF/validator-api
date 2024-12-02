@@ -125,7 +125,7 @@ class ValidationsController extends AbstractController
         $validationDirectory = $this->storage->getDirectory($validation) ;
         $filepath = $validationDirectory . '/validator-debug.log';
 
-        $content = file_get_contents($filepath, true);
+        $content = $this->dataStorage->read($filepath);
 
         return new Response(
             $content,
@@ -337,8 +337,8 @@ class ValidationsController extends AbstractController
             throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
         }
 
-        $validationDirectory = $this->storage->getDirectory($validation) ;
-        $zipFilepath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
+        $uploadDirectory = $validation->getUid() . '/upload/' ;
+        $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
         return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-source.zip");
     }
 
