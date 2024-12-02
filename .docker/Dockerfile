@@ -1,7 +1,8 @@
 #----------------------------------------------------------------------
 # Download vendor from composer.json in dedicated layer
 #----------------------------------------------------------------------
-FROM composer:latest AS vendor
+ARG registry=docker.io
+FROM ${registry}/library/composer:latest AS vendor
 
 RUN mkdir -p /opt/validator-api
 WORKDIR /opt/validator-api
@@ -9,9 +10,9 @@ COPY composer.json .
 RUN composer install --no-scripts --prefer-dist --ignore-platform-req=ext-pcntl
 
 #----------------------------------------------------------------------
-# Create base layer for dev and production
+# Create application container
 #----------------------------------------------------------------------
-FROM php:8.3-apache AS base
+FROM ${registry}/library/ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=fr_FR.UTF-8
@@ -33,22 +34,62 @@ RUN apt-get update && apt-get install --no-install-recommends -y locales \
 RUN apt-get update \
   && apt-get install --no-install-recommends -y \
     unzip zip \
-    curl \
+    curl wget \
+    file \
+    postgresql-client \
  && rm -rf /var/lib/apt/lists/*
+
+
+#------------------------------------------------------------------------
+# Configure https://packages.sury.org/php/ to get latests PHP versions
+#------------------------------------------------------------------------
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y gnupg2 software-properties-common \
+ && add-apt-repository -y ppa:ondrej/php \
+ && apt-get remove -y software-properties-common \
+ && rm -rf /var/lib/apt/lists/*
+
+#----------------------------------------------------------------------
+# Install Apache, PHP and its extensions
+# TODO : php8.3-pcntl ?
+#----------------------------------------------------------------------
+RUN apt-get update \
+  && apt-get install --no-install-recommends -y \
+      apache2 php8.3 libapache2-mod-php8.3 \
+      php8.3-opcache php8.3-xml \
+      php8.3-pdo php8.3-pgsql php8.3-zip \
+  && rm -rf /var/lib/apt/lists/*
+
+#------------------------------------------------------------------------
+# Add helper script to start apache
+# (see https://github.com/docker-library/php)
+#------------------------------------------------------------------------
+COPY .docker/apache2-foreground /usr/local/bin/apache2-foreground
+RUN chmod +x /usr/local/bin/apache2-foreground
+
+#------------------------------------------------------------------------
+# Create apache2 repository
+# (see https://github.com/docker-library/php)
+#------------------------------------------------------------------------
+RUN mkdir -p /var/run/apache2 && chown -R www-data:www-data /var/run/apache2 \
+ && mkdir -p /var/lock/apache2 && chown -R www-data:www-data /var/lock/apache2 \
+ && mkdir -p /var/log/apache2 && chown -R www-data:www-data /var/log/apache2
+   
+#------------------------------------------------------------------------
+# Redirects logs to stdout / stderr
+# (see https://github.com/docker-library/php)
+#------------------------------------------------------------------------
+RUN ln -sfT /dev/stderr "/var/log/apache2/error.log" \
+ && ln -sfT /dev/stdout "/var/log/apache2/access.log" \
+ && ln -sfT /dev/stdout "/var/log/apache2/other_vhosts_access.log" \
+ && chown www-data:www-data /var/log/apache2/*.log
+
 
 #----------------------------------------------------------------------
 # Configure PHP
 #----------------------------------------------------------------------
-COPY .docker/php.ini /usr/local/etc/php/conf.d/app.ini
-
-#----------------------------------------------------------------------
-# Install PHP extensions
-#----------------------------------------------------------------------
-RUN apt-get update -qq \
- && apt-get install --no-install-recommends -y postgresql-client libpq-dev libzip-dev \
- && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
- && docker-php-ext-install opcache pdo pdo_pgsql pgsql zip pcntl \
- && rm -rf /var/lib/apt/lists/*
+COPY .docker/php.ini /etc/php/8.3/apache2/php.ini
+# TODO .docker/php.ini /etc/php/8.3/cli/php.ini
 
 #----------------------------------------------------------------------
 # Configure apache
@@ -58,6 +99,7 @@ COPY .docker/apache-security.conf /etc/apache2/conf-enabled/security.conf
 COPY .docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
 
 RUN a2enmod rewrite remoteip
+
 
 #----------------------------------------------------------------------
 # Setup validator-cli.jar dependencies (java & ogr2ogr)
@@ -75,7 +117,7 @@ RUN apt-get update -qq \
 #----------------------------------------------------------------------
 ARG validator_version=4.4.5
 RUN mkdir -p /opt/ign-validator \
- && curl -sS -o ${VALIDATOR_PATH} https://github.com/IGNF/validator/releases/download/v${validator_version}/validator-cli.jar \
+ && wget --quiet -O ${VALIDATOR_PATH} https://github.com/IGNF/validator/releases/download/v${validator_version}/validator-cli.jar \
  && echo "validator-cli.jar version : $(java -jar /opt/ign-validator/validator-cli.jar version)"
 
 #----------------------------------------------------------------------
