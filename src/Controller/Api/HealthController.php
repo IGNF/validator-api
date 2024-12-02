@@ -19,9 +19,9 @@ class HealthController extends AbstractController
     /**
      * Checks for Database connection
      *
-     * @Route("/db", name="heatlh_db")
+     * @Route("/db", name="health_db")
      */
-    public function headthDB(EntityManager $entityManager)
+    public function healthDB(EntityManager $entityManager)
     {
         try{
             $entityManager->getConnection()->connect();
@@ -36,9 +36,9 @@ class HealthController extends AbstractController
     /**
      * Checks for S3 connection
      *
-     * @Route("/s3", name="heatlh_s3")
+     * @Route("/s3", name="health_s3")
      */
-    public function heatlhS3(FilesystemOperator $dataStorage)
+    public function healthS3(FilesystemOperator $dataStorage)
     {
         try {
             $files = $dataStorage->listContents('.', TRUE);
