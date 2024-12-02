@@ -101,27 +101,8 @@ VOLUME /opt/validator-api/var/data
 
 USER www-data
 
+ENV APP_ENV=prod
+
 EXPOSE 8000
 CMD ["/opt/validator-api/.docker/application.sh"]
 
-#----------------------------------------------------------------------
-# DEV image with xdebug
-#----------------------------------------------------------------------
-FROM base AS dev
-
-ENV APP_ENV=dev
-
-USER root
-# install xdebug extension for php
-RUN pear config-set http_proxy ${http_proxy} \
- && pear config-set php_ini $PHP_INI_DIR/php.ini \
- && pecl install xdebug \
- && docker-php-ext-enable xdebug
-USER www-data
-
-#----------------------------------------------------------------------
-# Production image without xdebug
-#----------------------------------------------------------------------
-FROM base AS prod
-
-ENV APP_ENV=prod

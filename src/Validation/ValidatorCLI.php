@@ -71,9 +71,13 @@ class ValidatorCLI
 
         /* prepare validator-cli.jar command */
         $env = $_ENV;
-        $env['DB_SCHEMA'] = "validation" . $validation->getUid();
         $env['GMLAS_CONFIG'] = $this->gmlasConfigPath;
-        
+        /*
+         * specify validation schema
+         * TODO : compute DB_URL=jdbc:postgresql:${PGDATABASE}, DB_USER et DB_PASSWORD according to doctrine?
+         */
+        $env['DB_SCHEMA'] = "validation" . $validation->getUid();
+
         $sourceDataDir = $validationDirectory.'/'.$validation->getDatasetName();
         $cmd = ['java'];
         $cmd = \array_merge($cmd, explode(' ',$this->validatorJavaOpts));

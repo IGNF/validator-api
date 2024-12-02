@@ -31,6 +31,8 @@ sonar-scanner
 node_modules
 
 /output/
+# vscode
+*.bkp
 
 ###> friendsofphp/php-cs-fixer ###
 /.php-cs-fixer.php
