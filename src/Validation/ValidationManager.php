@@ -222,16 +222,17 @@ class ValidationManager
         ]);
 
         $validationDirectory = $this->storage->getDirectory($validation);
+        $uploadFile = $validation->getUid() . '/upload/' . $validation->getDatasetName() . '.zip';
 
         if (!is_dir($validationDirectory)) {
             mkdir($validationDirectory);
         }
-        
+
         $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
 
         file_put_contents(
             $zipPath,
-            $this->dataStorage->read('upload/' . $validation->getDatasetName() . '.zip')
+            $this->dataStorage->read($uploadFile)
         );
     }
 
