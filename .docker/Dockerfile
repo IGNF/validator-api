@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y locales \
 RUN apt-get update \
   && apt-get install --no-install-recommends -y \
     unzip zip \
-    curl \
+    curl wget \
     file \
     postgresql-client \
  && rm -rf /var/lib/apt/lists/*
@@ -117,7 +117,7 @@ RUN apt-get update -qq \
 #----------------------------------------------------------------------
 ARG validator_version=4.4.5
 RUN mkdir -p /opt/ign-validator \
- && curl -sS -o ${VALIDATOR_PATH} https://github.com/IGNF/validator/releases/download/v${validator_version}/validator-cli.jar \
+ && wget --quiet -O ${VALIDATOR_PATH} https://github.com/IGNF/validator/releases/download/v${validator_version}/validator-cli.jar \
  && echo "validator-cli.jar version : $(java -jar /opt/ign-validator/validator-cli.jar version)"
 
 #----------------------------------------------------------------------
