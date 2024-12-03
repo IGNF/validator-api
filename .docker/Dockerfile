@@ -51,7 +51,6 @@ RUN apt-get update \
 
 #----------------------------------------------------------------------
 # Install Apache, PHP and its extensions
-# TODO : php8.3-pcntl ?
 #----------------------------------------------------------------------
 RUN apt-get update \
   && apt-get install --no-install-recommends -y \
