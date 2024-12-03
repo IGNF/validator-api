@@ -16,8 +16,8 @@ services:
       - http_proxy=${HTTP_PROXY}
       - https_proxy=${HTTPS_PROXY}
       - APP_ENV=${APP_ENV}
-      - DB_CREATE=${DB_CREATE:-1}
-      - DB_UPGRADE=${DB_UPGRADE:-1}
+      - DB_CREATE=${DB_CREATE:-0}
+      - DB_UPGRADE=${DB_UPGRADE:-0}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api?serverVersion=13&charset=utf8
