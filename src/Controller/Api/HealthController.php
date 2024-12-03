@@ -6,6 +6,7 @@ use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use League\Flysystem\FilesystemOperator;
@@ -21,15 +22,15 @@ class HealthController extends AbstractController
      *
      * @Route("/db", name="health_db")
      */
-    public function healthDB(EntityManager $entityManager)
+    public function healthDB(EntityManagerInterface $entityManager)
     {
+        $sql = "SELECT postgis_version() as postgis_version";
         try{
-            $entityManager->getConnection()->connect();
-            $check = $entityManager->getConnection()->isConnected();
-            $httpCode = $check ? Response::HTTP_OK : Response::HTTP_SERVICE_UNAVAILABLE;
-            return new JsonResponse($check, $httpCode);
+            $stmt = $entityManager->getConnection()->prepare($sql);
+            $result = $stmt->executeQuery();
+            return new JsonResponse($result->fetchOne(), Response::HTTP_OK);
         } catch (Exception $e){
-            return new JsonResponse(False, Response::HTTP_NOT_FOUND);
+            return new JsonResponse($e->getMessage(), Response::HTTP_NOT_FOUND);
         }
     }
 
@@ -41,12 +42,9 @@ class HealthController extends AbstractController
     public function healthS3(FilesystemOperator $dataStorage)
     {
         try {
-            $files = $dataStorage->listContents('.', TRUE);
-            $response = [];
-            foreach ($files as $file) {
-                $response[] = $file->path();
-            }
-            return new JsonResponse($response, Response::HTTP_OK);
+            $files = $dataStorage->listContents('.', false);
+            $numFiles = count($files->toArray());
+            return new JsonResponse('found '.$numFiles.' files', Response::HTTP_OK);
         } catch (Exception $e) {
             return new JsonResponse(False, Response::HTTP_NOT_FOUND);
         }

@@ -87,8 +87,8 @@ RUN ln -sfT /dev/stderr "/var/log/apache2/error.log" \
 #----------------------------------------------------------------------
 # Configure PHP
 #----------------------------------------------------------------------
-COPY .docker/php.ini /etc/php/8.3/apache2/php.ini
-# TODO .docker/php.ini /etc/php/8.3/cli/php.ini
+COPY .docker/php.ini /etc/php/8.3/apache2/conf.d/99-app.ini
+COPY .docker/php.ini /etc/php/8.3/cli/conf.d/99-app.ini
 
 #----------------------------------------------------------------------
 # Configure apache
