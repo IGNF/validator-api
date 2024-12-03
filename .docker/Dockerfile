@@ -144,7 +144,7 @@ ENV APP_ENV=prod
 # Ensure apache2 can read /etc/apache2/envvars
 # if not we got the following error
 # apache2: Syntax error on line 80 of /etc/apache2/apache2.conf: DefaultRuntimeDir must be a valid directory, absolute or relative to ServerRoot
-source /etc/apache2/envvars
+RUN source /etc/apache2/envvars
 
 EXPOSE 8000
 CMD ["/opt/validator-api/.docker/application.sh"]
