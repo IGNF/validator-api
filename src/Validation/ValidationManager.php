@@ -321,6 +321,7 @@ class ValidationManager
         ]);
         $validationDirectory = $this->storage->getDirectory($validation);
         $normDataPath = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
+        $logsPath = $validationDirectory . '/validator-debug.log';
 
         if (! $this->dataStorage->directoryExists($validationDirectory . 'validation')){
             $this->dataStorage->createDirectory($validationDirectory . 'validation');
@@ -328,9 +329,15 @@ class ValidationManager
         if ($this->dataStorage->fileExists($normDataPath)){
             $this->dataStorage->delete($normDataPath);
         }
-        $stream = fopen($normDataPath, 'r+');
-        $this->dataStorage->writeStream($normDataPath, $stream);
-        fclose($stream);
+        if ($this->dataStorage->fileExists($logsPath)){
+            $this->dataStorage->delete($logsPath);
+        }
+        $dataStream = fopen($normDataPath, 'r+');
+        $this->dataStorage->writeStream($normDataPath, $dataStream);
+        fclose($dataStream);
+        $logStream = fopen($logsPath, 'r+');
+        $this->dataStorage->writeStream($logsPath, $logStream);
+        fclose($logStream);
     }
 
     /**
