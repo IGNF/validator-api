@@ -12,6 +12,7 @@ use App\Storage\ValidationsStorage;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerInterface;
 use League\Flysystem\FilesystemOperator;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,54 +26,16 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ValidationsController extends AbstractController
 {
-
-    /**
-     * @var ValidationsStorage
-     */
-    private $storage;
-
-    /**
-     * Helper class to validate arguments.
-     *
-     * @var ValidatorArgumentsService
-     */
-    private $valArgsService;
-
-    /**
-     * @var MimeTypeGuesserService
-     */
-    private $mimeTypeGuesserService;
-
-    /**
-     * @var Serializer
-     */
-    private $serializer;
-
-    /**
-     * @var ValidationRepository
-     */
-    private $repository;
-
-    /**
-     * @var FilesystemOperator
-     */
-    private $dataStorage;
-
     public function __construct(
-        ValidationRepository $repository,
-        SerializerInterface $serializer,
-        ValidationsStorage $storage,
-        FilesystemOperator $dataStorage,
-        ValidatorArgumentsService $valArgsService,
-        MimeTypeGuesserService $mimeTypeGuesserService
-    )
-    {
-        $this->repository = $repository;
-        $this->storage = $storage;
-        $this->dataStorage = $dataStorage;
-        $this->valArgsService = $valArgsService;
-        $this->mimeTypeGuesserService = $mimeTypeGuesserService;
-        $this->serializer = $serializer;
+        private ValidationRepository $repository,
+        private SerializerInterface $serializer,
+        private ValidationsStorage $storage,
+        private FilesystemOperator $dataStorage,
+        private ValidatorArgumentsService $valArgsService,
+        private MimeTypeGuesserService $mimeTypeGuesserService,
+        private LoggerInterface $logger
+    ) {
+
     }
 
     /**
@@ -122,7 +85,7 @@ class ValidationsController extends AbstractController
             throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
         }
 
-        $validationDirectory = $this->storage->getDirectory($validation) ;
+        $validationDirectory = $this->storage->getDirectory($validation);
         $filepath = $validationDirectory . '/validator-debug.log';
 
         $content = $this->dataStorage->read($filepath);
@@ -152,8 +115,8 @@ class ValidationsController extends AbstractController
             $csvWriter->write($validation);
         });
         $response->headers->set('Content-Type', 'application/force-download');
-        $filename = $uid.'-results.csv';
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
+        $filename = $uid . '-results.csv';
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
 
         return $response;
     }
@@ -175,6 +138,12 @@ class ValidationsController extends AbstractController
         if (!$file) {
             throw new ApiException("Argument [dataset] is missing", Response::HTTP_BAD_REQUEST);
         }
+
+        $this->logger->info('handle new upload...',[
+            'path_name' => $file->getPathName(),
+            'client_original_name' => $file->getClientOriginalName()
+        ]);
+
         /*
          * Ensure that input file is a ZIP file.
          */
@@ -193,11 +162,11 @@ class ValidationsController extends AbstractController
 
         // Save file to storage
         $uploadDirectory = $validation->getUid() . '/upload/';
-        if (! $this->dataStorage->directoryExists($uploadDirectory)) {
+        if (!$this->dataStorage->directoryExists($uploadDirectory)) {
             $this->dataStorage->createDirectory($uploadDirectory);
         }
-        $fileLocation = $uploadDirectory . $validation->getDatasetName().'.zip';
-        if ($this->dataStorage->fileExists($fileLocation)){
+        $fileLocation = $uploadDirectory . $validation->getDatasetName() . '.zip';
+        if ($this->dataStorage->fileExists($fileLocation)) {
             $this->dataStorage->delete($fileLocation);
         }
         $stream = fopen($file->getRealPath(), 'r+');
@@ -275,13 +244,13 @@ class ValidationsController extends AbstractController
         $em->flush();
 
         $fs = new FileSystem();
-        $validationDirectory = $this->storage->getDirectory($validation) ;
+        $validationDirectory = $this->storage->getDirectory($validation);
         if ($fs->exists($validationDirectory)) {
             $fs->remove($validationDirectory);
         }
 
         // Delete from storage
-        if ($this->dataStorage->directoryExists($validationDirectory)){
+        if ($this->dataStorage->directoryExists($validationDirectory)) {
             $this->dataStorage->deleteDirectory($validationDirectory);
         }
 
@@ -314,7 +283,7 @@ class ValidationsController extends AbstractController
             throw new ApiException("Validation hasn't been executed yet", Response::HTTP_FORBIDDEN);
         }
 
-        $validationDirectory = $this->storage->getDirectory($validation) ;
+        $validationDirectory = $this->storage->getDirectory($validation);
         $zipFilepath = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
         return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-normalized.zip");
     }
@@ -337,7 +306,7 @@ class ValidationsController extends AbstractController
             throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
         }
 
-        $uploadDirectory = $validation->getUid() . '/upload/' ;
+        $uploadDirectory = $validation->getUid() . '/upload/';
         $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
         return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-source.zip");
     }
@@ -351,7 +320,7 @@ class ValidationsController extends AbstractController
      */
     private function getDownloadResponse($filepath, $filename)
     {
-        if (! $this->dataStorage->has($filepath)) {
+        if (!$this->dataStorage->has($filepath)) {
             throw new ApiException("Requested files not found for this validation", Response::HTTP_FORBIDDEN);
         }
 
@@ -361,7 +330,8 @@ class ValidationsController extends AbstractController
             fpassthru($stream);
             exit();
         }, 200, [
-            'Content-Transfer-Encoding', 'binary',
+            'Content-Transfer-Encoding',
+            'binary',
             'Content-Type' => 'application/zip',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
             'Content-Length' => fstat($stream)['size']
