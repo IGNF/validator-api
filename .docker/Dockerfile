@@ -58,6 +58,7 @@ RUN apt-get update \
       apache2 php8.3 libapache2-mod-php8.3 \
       php8.3-opcache php8.3-xml \
       php8.3-pdo php8.3-pgsql php8.3-zip \
+      php8.3-curl \
   && rm -rf /var/lib/apt/lists/*
 
 #------------------------------------------------------------------------
