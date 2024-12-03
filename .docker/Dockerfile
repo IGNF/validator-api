@@ -74,7 +74,7 @@ RUN chmod +x /usr/local/bin/apache2-foreground
 RUN mkdir -p /var/run/apache2 && chown -R www-data:www-data /var/run/apache2 \
  && mkdir -p /var/lock/apache2 && chown -R www-data:www-data /var/lock/apache2 \
  && mkdir -p /var/log/apache2 && chown -R www-data:www-data /var/log/apache2
-   
+
 #------------------------------------------------------------------------
 # Redirects logs to stdout / stderr
 # (see https://github.com/docker-library/php)
@@ -83,7 +83,6 @@ RUN ln -sfT /dev/stderr "/var/log/apache2/error.log" \
  && ln -sfT /dev/stdout "/var/log/apache2/access.log" \
  && ln -sfT /dev/stdout "/var/log/apache2/other_vhosts_access.log" \
  && chown www-data:www-data /var/log/apache2/*.log
-
 
 #----------------------------------------------------------------------
 # Configure PHP
@@ -99,7 +98,6 @@ COPY .docker/apache-security.conf /etc/apache2/conf-enabled/security.conf
 COPY .docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
 
 RUN a2enmod rewrite remoteip
-
 
 #----------------------------------------------------------------------
 # Setup validator-cli.jar dependencies (java & ogr2ogr)
@@ -143,6 +141,10 @@ USER www-data
 
 ENV APP_ENV=prod
 
+# Ensure apache2 can read /etc/apache2/envvars
+# if not we got the following error
+# apache2: Syntax error on line 80 of /etc/apache2/apache2.conf: DefaultRuntimeDir must be a valid directory, absolute or relative to ServerRoot
+source /etc/apache2/envvars
+
 EXPOSE 8000
 CMD ["/opt/validator-api/.docker/application.sh"]
-
