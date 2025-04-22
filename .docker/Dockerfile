@@ -113,7 +113,7 @@ RUN apt-get update -qq \
 #----------------------------------------------------------------------
 # Setup /opt/ign-validator/validator-cli.jar
 #----------------------------------------------------------------------
-ARG validator_version=4.4.5
+ARG validator_version=4.4.8
 RUN mkdir -p /opt/ign-validator \
  && wget --quiet -O ${VALIDATOR_PATH} https://github.com/IGNF/validator/releases/download/v${validator_version}/validator-cli.jar \
  && echo "validator-cli.jar version : $(java -jar /opt/ign-validator/validator-cli.jar version)"
