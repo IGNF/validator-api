@@ -88,6 +88,22 @@ class ValidationManager
             ]);
             $fs->remove($validationDirectory);
         }
+
+        // Delete from storage
+        $this->logger->info('Validation[{uid}] : remove upload files', [
+            'uid' => $validation->getUid(),
+        ]);
+        $uploadDirectory = $this->storage->getUploadDirectory($validation);
+        if ($this->dataStorage->directoryExists($uploadDirectory)) {
+            $this->dataStorage->deleteDirectory($uploadDirectory);
+        }
+        $this->logger->info('Validation[{uid}] : remove output files', [
+            'uid' => $validation->getUid(),
+        ]);
+        $outputDirectory = $this->storage->getOutputDirectory($validation);
+        if ($this->dataStorage->directoryExists($outputDirectory)) {
+            $this->dataStorage->deleteDirectory($outputDirectory);
+        }
         $this->logger->info('Validation[{uid}] : archive removing all files : completed', [
             'uid' => $validation->getUid(),
             'status' => Validation::STATUS_ARCHIVED,
@@ -216,7 +232,7 @@ class ValidationManager
      */
     private function getZip(Validation $validation)
     {
-        $this->logger->info('Validation[{uid}] : Get from storage...', [
+        $this->logger->info('Validation[{uid}] : get from storage...', [
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
@@ -245,6 +261,10 @@ class ValidationManager
      */
     private function validateZip($validation)
     {
+        $this->logger->info('Validation[{uid}] : validate zip archive...', [
+            'uid' => $validation->getUid(),
+            'datasetName' => $validation->getDatasetName(),
+        ]);
         $validationDirectory = $this->storage->getDirectory($validation);
         $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
         $errors = $this->zipArchiveValidator->validate($zipPath);
@@ -316,7 +336,7 @@ class ValidationManager
     private function saveToStorage(Validation $validation)
     {
         // Saves normalized data to storage
-        $this->logger->info('Validation[{uid}] : saving...', [
+        $this->logger->info('Validation[{uid}] : saving normalized data...', [
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
@@ -335,11 +355,13 @@ class ValidationManager
         fclose($stream);
 
         // Saves validator logs to storage
+        $this->logger->info('Validation[{uid}] : saving logs...', [
+            'uid' => $validation->getUid(),
+            'datasetName' => $validation->getDatasetName(),
+        ]);
         $logPath = $validationDirectory . '/validator-debug.log';
         $outputPath = $outputDirectory . '/validator-debug.log';
-        if ($this->dataStorage->fileExists($outputPath)){
-            $this->dataStorage->delete($outputPath);
-        }
+
         $stream = fopen($logPath, 'r+');
         $this->dataStorage->writeStream($outputPath, $stream);
         fclose($stream);

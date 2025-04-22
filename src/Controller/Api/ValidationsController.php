@@ -248,19 +248,23 @@ class ValidationsController extends AbstractController
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
 
+        $this->logger->info('Validation[{uid}] : removing all saved data...', [
+            'uid' => $validation->getUid(),
+            'datasetName' => $validation->getDatasetName(),
+        ]);
+
         $em = $this->getDoctrine()->getManager();
         $em->remove($validation);
         $em->flush();
 
-        $fs = new FileSystem();
-        $validationDirectory = $this->storage->getDirectory($validation);
-        if ($fs->exists($validationDirectory)) {
-            $fs->remove($validationDirectory);
-        }
-
         // Delete from storage
-        if ($this->dataStorage->directoryExists($validationDirectory)) {
-            $this->dataStorage->deleteDirectory($validationDirectory);
+        $uploadDirectory = $this->storage->getUploadDirectory($validation);
+        if ($this->dataStorage->directoryExists($uploadDirectory)) {
+            $this->dataStorage->deleteDirectory($uploadDirectory);
+        }
+        $outputDirectory = $this->storage->getOutputDirectory($validation);
+        if ($this->dataStorage->directoryExists($outputDirectory)) {
+            $this->dataStorage->deleteDirectory($outputDirectory);
         }
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);

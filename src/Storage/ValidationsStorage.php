@@ -41,7 +41,7 @@ class ValidationsStorage {
      * @return string
      */
     public function getUploadDirectory(Validation $validation){
-        return $this->getDirectory($validation) . "/upload/";
+        return $validation->getUid() . "/upload/";
     }
 
     /**
@@ -49,7 +49,7 @@ class ValidationsStorage {
      * @return string
      */
     public function getOutputDirectory(Validation $validation){
-        return $this->getDirectory($validation) . "/output/";
+        return $validation->getUid() . "/output/";
     }
 
 
