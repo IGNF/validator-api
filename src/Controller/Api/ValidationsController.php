@@ -69,8 +69,8 @@ class ValidationsController extends AbstractController
 
     /**
      * @Route(
-     *      "/{uid}/console",
-     *      name="validator_api_read_console",
+     *      "/{uid}/logs",
+     *      name="validator_api_read_logs",
      *      methods={"GET"}
      * )
      */
@@ -85,8 +85,8 @@ class ValidationsController extends AbstractController
             throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
         }
 
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $filepath = $validationDirectory . '/validator-debug.log';
+        $outputDirectory = $this->storage->getOutputDirectory($validation);
+        $filepath = $outputDirectory . '/validator-debug.log';
 
         $content = $this->dataStorage->read($filepath);
 
@@ -161,7 +161,7 @@ class ValidationsController extends AbstractController
         $validation->setDatasetName($datasetName);
 
         // Save file to storage
-        $uploadDirectory = $validation->getUid() . '/upload/';
+        $uploadDirectory = $this->storage->getUploadDirectory($validation);
         if (!$this->dataStorage->directoryExists($uploadDirectory)) {
             $this->dataStorage->createDirectory($uploadDirectory);
         }
@@ -172,6 +172,15 @@ class ValidationsController extends AbstractController
         $stream = fopen($file->getRealPath(), 'r+');
         $this->dataStorage->writeStream($fileLocation, $stream);
         fclose($stream);
+
+        $fs = new Filesystem;
+        if ($fs->exists($file->getRealPath())) {
+            $this->logger->debug('Validation[{uid}] : rm -rf {path}...', [
+                'uid' => $validation->getUid(),
+                'path' => $file->getRealPath(),
+            ]);
+            $fs->remove($file->getRealPath());
+        }
 
         $em = $this->getDoctrine()->getManager();
         $em->persist($validation);
@@ -283,8 +292,8 @@ class ValidationsController extends AbstractController
             throw new ApiException("Validation hasn't been executed yet", Response::HTTP_FORBIDDEN);
         }
 
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $zipFilepath = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
+        $outputDirectory = $this->storage->getOutputDirectory($validation);
+        $zipFilepath = $outputDirectory . $validation->getDatasetName() . '.zip';
         return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-normalized.zip");
     }
 
@@ -306,7 +315,7 @@ class ValidationsController extends AbstractController
             throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
         }
 
-        $uploadDirectory = $validation->getUid() . '/upload/';
+        $uploadDirectory = $this->storage->getUploadDirectory($validation);
         $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
         return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-source.zip");
     }

@@ -36,6 +36,22 @@ class ValidationsStorage {
         return $this->path.'/'.$validation->getUid();
     }
 
+    /**
+     * @param Validation $validation
+     * @return string
+     */
+    public function getUploadDirectory(Validation $validation){
+        return $this->getDirectory($validation) . "/upload/";
+    }
+
+    /**
+     * @param Validation $validation
+     * @return string
+     */
+    public function getOutputDirectory(Validation $validation){
+        return $this->getDirectory($validation) . "/output/";
+    }
+
 
 }
 
