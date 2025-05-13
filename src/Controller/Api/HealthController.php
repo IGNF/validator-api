@@ -2,6 +2,7 @@
 
 namespace App\Controller\Api;
 
+use App\Storage\ValidationsStorage;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,7 +18,9 @@ use Psr\Log\LoggerInterface;
  */
 class HealthController extends AbstractController
 {
-    public function __construct(private LoggerInterface $logger){
+    public function __construct(
+        private LoggerInterface $logger,
+        private ValidationsStorage $storage){
 
     }
 
@@ -47,11 +50,11 @@ class HealthController extends AbstractController
      *
      * @Route("/s3", name="health_s3")
      */
-    public function healthS3(FilesystemOperator $dataStorage)
+    public function healthS3()
     {
         $this->logger->info('list files from S3 bucket...');
         try {
-            $files = $dataStorage->listContents('.', false);
+            $files = $this->storage->getStorage()->listContents('.', false);
             $numFiles = count($files->toArray());
             return new JsonResponse('found '.$numFiles.' files', Response::HTTP_OK);
         } catch (Exception $e) {
