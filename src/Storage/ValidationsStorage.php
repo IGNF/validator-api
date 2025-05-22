@@ -3,6 +3,7 @@
 namespace App\Storage ;
 
 use App\Entity\Validation;
+use League\Flysystem\FilesystemOperator;
 
 /**
  * Manage validation files
@@ -16,9 +17,24 @@ class ValidationsStorage {
      */
     private $path;
 
-    public function __construct($validationsDir)
+    /**
+     * Flysystem storage
+     *
+     * @var FilesystemOperator
+     */
+    private $storageSystem;
+
+    public function __construct($validationsDir,
+        FilesystemOperator $dataStorage,
+        FilesystemOperator $defaultStorage)
     {
         $this->path = $validationsDir;
+        // Assign storage based on env
+        if (getenv("STORAGE_TYPE") === "S3"){
+            $this->storageSystem = $dataStorage;
+        } else {
+            $this->storageSystem = $defaultStorage;
+        }
     }
 
     /**
@@ -26,6 +42,13 @@ class ValidationsStorage {
      */
     public function getPath(){
         return $this->path;
+    }
+
+    /**
+     * @return FilesystemOperator
+     */
+    public function getStorage(){
+        return $this->storageSystem;
     }
 
     /**

@@ -11,7 +11,6 @@ use App\Service\ValidatorArgumentsService;
 use App\Storage\ValidationsStorage;
 use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerInterface;
-use League\Flysystem\FilesystemOperator;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
@@ -30,7 +29,6 @@ class ValidationsController extends AbstractController
         private ValidationRepository $repository,
         private SerializerInterface $serializer,
         private ValidationsStorage $storage,
-        private FilesystemOperator $dataStorage,
         private ValidatorArgumentsService $valArgsService,
         private MimeTypeGuesserService $mimeTypeGuesserService,
         private LoggerInterface $logger
@@ -88,7 +86,7 @@ class ValidationsController extends AbstractController
         $outputDirectory = $this->storage->getOutputDirectory($validation);
         $filepath = $outputDirectory . '/validator-debug.log';
 
-        $content = $this->dataStorage->read($filepath);
+        $content = $this->storage->getStorage()->read($filepath);
 
         return new Response(
             $content,
@@ -162,15 +160,15 @@ class ValidationsController extends AbstractController
 
         // Save file to storage
         $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        if (!$this->dataStorage->directoryExists($uploadDirectory)) {
-            $this->dataStorage->createDirectory($uploadDirectory);
+        if (!$this->storage->getStorage()->directoryExists($uploadDirectory)) {
+            $this->storage->getStorage()->createDirectory($uploadDirectory);
         }
         $fileLocation = $uploadDirectory . $validation->getDatasetName() . '.zip';
-        if ($this->dataStorage->fileExists($fileLocation)) {
-            $this->dataStorage->delete($fileLocation);
+        if ($this->storage->getStorage()->fileExists($fileLocation)) {
+            $this->storage->getStorage()->delete($fileLocation);
         }
         $stream = fopen($file->getRealPath(), 'r+');
-        $this->dataStorage->writeStream($fileLocation, $stream);
+        $this->storage->getStorage()->writeStream($fileLocation, $stream);
         fclose($stream);
 
         $fs = new Filesystem;
@@ -259,12 +257,12 @@ class ValidationsController extends AbstractController
 
         // Delete from storage
         $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        if ($this->dataStorage->directoryExists($uploadDirectory)) {
-            $this->dataStorage->deleteDirectory($uploadDirectory);
+        if ($this->storage->getStorage()->directoryExists($uploadDirectory)) {
+            $this->storage->getStorage()->deleteDirectory($uploadDirectory);
         }
         $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if ($this->dataStorage->directoryExists($outputDirectory)) {
-            $this->dataStorage->deleteDirectory($outputDirectory);
+        if ($this->storage->getStorage()->directoryExists($outputDirectory)) {
+            $this->storage->getStorage()->deleteDirectory($outputDirectory);
         }
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
@@ -333,11 +331,11 @@ class ValidationsController extends AbstractController
      */
     private function getDownloadResponse($filepath, $filename)
     {
-        if (!$this->dataStorage->has($filepath)) {
+        if (!$this->storage->getStorage()->has($filepath)) {
             throw new ApiException("Requested files not found for this validation", Response::HTTP_FORBIDDEN);
         }
 
-        $stream = $this->dataStorage->readStream($filepath);
+        $stream = $this->storage->getStorage()->readStream($filepath);
 
         return new StreamedResponse(function () use ($stream) {
             fpassthru($stream);

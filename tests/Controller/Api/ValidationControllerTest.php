@@ -126,8 +126,6 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testUploadDatasetCorrectParams()
     {
-        $this->markTestSkipped('TODO : fix test (use local directory for dev and test?)');
-        
         $filename = ValidationsFixtures::FILENAME_SUP_PM3;
         $dataset = $this->createFakeUpload(
             $filename,
@@ -229,8 +227,6 @@ class ValidationControllerTest extends WebTestCase
      */
     public function testDeleteValidation()
     {
-        $this->markTestSkipped('TODO : fix test (use local directory for dev and test?)');
-        
         $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_ARCHIVED);
 
         $this->client->request(

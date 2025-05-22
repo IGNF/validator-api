@@ -11,7 +11,6 @@ use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
-use League\Flysystem\FilesystemOperator;
 
 class ValidationManager
 {
@@ -42,11 +41,6 @@ class ValidationManager
     private $zipArchiveValidator;
 
     /**
-     * @var FilesystemOperator
-     */
-    private $dataStorage;
-
-    /**
      * Current validation (in order to handle SIGTERM)
      * @var Validation
      */
@@ -55,14 +49,12 @@ class ValidationManager
     public function __construct(
         EntityManagerInterface $em,
         ValidationsStorage $storage,
-        FilesystemOperator $dataStorage,
         ValidatorCLI $validatorCli,
         ZipArchiveValidator $zipArchiveValidator,
         LoggerInterface $logger
     ) {
         $this->em = $em;
         $this->storage = $storage;
-        $this->dataStorage = $dataStorage;
         $this->validatorCli = $validatorCli;
         $this->zipArchiveValidator = $zipArchiveValidator;
         $this->logger = $logger;
@@ -94,15 +86,15 @@ class ValidationManager
             'uid' => $validation->getUid(),
         ]);
         $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        if ($this->dataStorage->directoryExists($uploadDirectory)) {
-            $this->dataStorage->deleteDirectory($uploadDirectory);
+        if ($this->storage->getStorage()->directoryExists($uploadDirectory)) {
+            $this->storage->getStorage()->deleteDirectory($uploadDirectory);
         }
         $this->logger->info('Validation[{uid}] : remove output files', [
             'uid' => $validation->getUid(),
         ]);
         $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if ($this->dataStorage->directoryExists($outputDirectory)) {
-            $this->dataStorage->deleteDirectory($outputDirectory);
+        if ($this->storage->getStorage()->directoryExists($outputDirectory)) {
+            $this->storage->getStorage()->deleteDirectory($outputDirectory);
         }
         $this->logger->info('Validation[{uid}] : archive removing all files : completed', [
             'uid' => $validation->getUid(),
@@ -248,7 +240,7 @@ class ValidationManager
 
         file_put_contents(
             $zipPath,
-            $this->dataStorage->read($uploadFile)
+            $this->storage->getStorage()->read($uploadFile)
         );
     }
 
@@ -343,15 +335,15 @@ class ValidationManager
         $validationDirectory = $this->storage->getDirectory($validation);
         $normDataPath = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
         $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if (! $this->dataStorage->directoryExists($outputDirectory)){
-            $this->dataStorage->createDirectory($outputDirectory);
+        if (! $this->storage->getStorage()->directoryExists($outputDirectory)){
+            $this->storage->getStorage()->createDirectory($outputDirectory);
         }
         $outputPath = $outputDirectory . $validation->getDatasetName() . '.zip';
-        if ($this->dataStorage->fileExists($outputPath)){
-            $this->dataStorage->delete($outputPath);
+        if ($this->storage->getStorage()->fileExists($outputPath)){
+            $this->storage->getStorage()->delete($outputPath);
         }
         $stream = fopen($normDataPath, 'r+');
-        $this->dataStorage->writeStream($outputPath, $stream);
+        $this->storage->getStorage()->writeStream($outputPath, $stream);
         fclose($stream);
 
         // Saves validator logs to storage
@@ -363,7 +355,7 @@ class ValidationManager
         $outputPath = $outputDirectory . '/validator-debug.log';
 
         $stream = fopen($logPath, 'r+');
-        $this->dataStorage->writeStream($outputPath, $stream);
+        $this->storage->getStorage()->writeStream($outputPath, $stream);
         fclose($stream);
     }
 

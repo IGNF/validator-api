@@ -54,9 +54,6 @@ class CleanupCommandTest extends WebTestCase
      */
     public function testCleanupOneSecond()
     {
-
-        $this->markTestSkipped('TODO : fix test (use local directory for dev and test?)');
-
         static::ensureKernelShutdown();
 
         // wait for 2 seconds
