@@ -4,8 +4,8 @@
 ARG registry=docker.io
 FROM ${registry}/library/composer:latest AS vendor
 
-RUN mkdir -p /opt/validator-api
-WORKDIR /opt/validator-api
+RUN mkdir -p /opt/validator-publi
+WORKDIR /opt/validator-publi
 COPY composer.json .
 RUN composer install --no-scripts --prefer-dist --ignore-platform-req=ext-pcntl
 
@@ -119,27 +119,27 @@ RUN mkdir -p /opt/ign-validator \
  && echo "validator-cli.jar version : $(java -jar /opt/ign-validator/validator-cli.jar version)"
 
 #----------------------------------------------------------------------
-# Install validator-api
+# Install validator-publi
 #----------------------------------------------------------------------
-COPY . /opt/validator-api
-WORKDIR /opt/validator-api
-COPY --from=vendor /opt/validator-api/vendor vendor
+COPY . /opt/validator-publi
+WORKDIR /opt/validator-publi
+COPY --from=vendor /opt/validator-publi/vendor vendor
 
 #----------------------------------------------------------------------
 # Prepare data storage
-# (Note that /opt/validator-api/var/data is shared between containers)
+# (Note that /opt/validator-publi/var/data is shared between containers)
 #----------------------------------------------------------------------
-RUN mkdir -p /opt/validator-api/var/data/validations \
- && chown -R www-data:www-data /opt/validator-api/var
+RUN mkdir -p /opt/validator-publi/var/data/validations \
+ && chown -R www-data:www-data /opt/validator-publi/var
 
 # ensure ogr2ogr can write in $HOME/.gdal ...
-ENV HOME=/opt/validator-api/var
+ENV HOME=/opt/validator-publi/var
 
-VOLUME /opt/validator-api/var/data
+VOLUME /opt/validator-publi/var/data
 
 USER www-data
 
 ENV APP_ENV=prod
 
 EXPOSE 8000
-CMD ["/opt/validator-api/.docker/application.sh"]
+CMD ["/opt/validator-publi/.docker/application.sh"]

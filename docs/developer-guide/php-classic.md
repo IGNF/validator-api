@@ -18,8 +18,8 @@
 * Cloner le dépôt et installez les dépendances PHP :
 
 ```bash
-git clone https://github.com/IGNF/validator-api.git
-cd validator-api
+git clone https://github.com/IGNF/validator-publi.git
+cd validator-publi
 composer install
 ```
 
@@ -57,7 +57,7 @@ L'application est consultable à l'adresse http://localhost:8000
 Dans `.env.test`, ajoutez la ligne suivante :
 
 ```
-DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@localhost:5432/validator_api_test?serverVersion=15&charset=utf8
+DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@localhost:5432/validator_publi_test?serverVersion=15&charset=utf8
 ```
 
 > [Comment configurer la variable DATABASE_URL (documentation Symfony)](https://symfony.com/doc/4.4/doctrine.html#configuring-the-database)

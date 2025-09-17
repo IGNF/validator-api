@@ -1,6 +1,6 @@
 {
-  "name": "ignf/validator-api",
-  "description": "APIsation of Validator, a tool that allows to validate and normalize datasets according to a file mapping and a FeatureCatalog.",
+  "name": "ignf/validator-publi",
+  "description": "Service providing Validator, a tool that allows to validate and normalize datasets according to a file mapping and a FeatureCatalog.",
   "type": "project",
   "license": "AGPL-3.0-or-later",
   "require": {

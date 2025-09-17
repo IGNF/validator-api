@@ -12,7 +12,7 @@ Un fichier de configuration du projet Sonarqube à la racine du projet : [sonar-
 * Exécuter `sonar-scanner` :
 
 ```bash
-cd validator-api
+cd validator-publi
 # lancer l'analyse de code
 sonar-scanner
 ```

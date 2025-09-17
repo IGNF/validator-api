@@ -19,11 +19,11 @@ class ValidatorArgumentsService
     /**
      * Validates the arguments posted by the user
      *
-     * @param array $args
+     * @param string $args
      * @return array
      * @throws ApiException
      */
-    public function validate($args)
+    public function validate(string $args)
     {
         $args = json_decode($args);
 

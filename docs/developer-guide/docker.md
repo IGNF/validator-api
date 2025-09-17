@@ -16,7 +16,7 @@
 
 Le paramétrage de l'application est réalisé via des variables d'environnements. Voir [.env](../../.env) servant de modèle.
 
-Le script [.docker/application.sh](../../.docker/application.sh) comporte des options spécifiques au démarrage de l'API :
+Le script [.docker/application.sh](../../.docker/application.sh) comporte des options spécifiques au démarrage du service :
 
 * `DB_CREATE` à définir à 0 ou 1 pour créer automatiquement la base de données
 * `DB_UPGRADE` à définir à 0 ou 1 pour mettre à jour automatiquement la structure
@@ -24,8 +24,8 @@ Le script [.docker/application.sh](../../.docker/application.sh) comporte des op
 ## Construction et démarrage de l'application
 
 ```bash
-git clone https://github.com/IGNF/validator-api.git
-cd validator-api
+git clone https://github.com/IGNF/validator-publi.git
+cd validator-publi
 # Construction de l'image docker
 docker compose build
 # Démarrage de la stack de développement

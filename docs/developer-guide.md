@@ -6,8 +6,8 @@
 
 ## Liens utiles
 
-* Dépôt GitHub : [https://github.com/IGNF/validator-api](https://github.com/IGNF/validator-api)
-* Intégration continue avec [GitHub actions](https://github.com/IGNF/validator-api/actions) configurée via le dossier [.github/workflows](https://github.com/IGNF/validator-api/tree/master/.github/workflows)
+* Dépôt GitHub : [https://github.com/IGNF/validator-api](https://github.com/IGNF/validator-publi)
+* Intégration continue avec [GitHub actions](https://github.com/IGNF/validator-publi/actions) configurée via le dossier [.github/workflows](https://github.com/IGNF/validator-publi/tree/master/.github/workflows)
 
 ## Données des tests
 

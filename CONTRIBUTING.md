@@ -4,14 +4,14 @@ Merci d'envisager nous aider sur ce projet. Tout type de contribution est bienve
 
 ## Contributions autres que du code
 
-N'hésitez pas à formuler toute proposition de nouvelle fonctionnalité, signalement d'anomalie ou même question dans une [nouvelle issue](https://github.com/IGNF/validator-api/issues/new/choose).
+N'hésitez pas à formuler toute proposition de nouvelle fonctionnalité, signalement d'anomalie ou même question dans une [nouvelle issue](https://github.com/IGNF/validator-publi/issues/new/choose).
 
-Vous pouvez également parcourir les [issues existantes](https://github.com/IGNF/validator-api/issues) pour voir si le sujet n'a pas déjà été abordé et apporter des informations complémentaires ou proposer des pistes de solutions.
+Vous pouvez également parcourir les [issues existantes](https://github.com/IGNF/validator-publi/issues) pour voir si le sujet n'a pas déjà été abordé et apporter des informations complémentaires ou proposer des pistes de solutions.
 
 Enfin si vous pensez avoir cerné quelle partie du validateur est concernée par votre contribution, vous pouvez créer l'issue dans le dépôt qui est le plus approprié parmi :
 
 * [IGNF/validator](https://github.com/IGNF/validator) : le moteur de validation en Java
-* [IGNF/validator-api](https://github.com/IGNF/validator-api) : la surcouche API REST en PHP (le présent dépôt)
+* [IGNF/validator-api](https://github.com/IGNF/validator-api) : la surcouche API REST en PHP
 * [IGNF/validator-api-client](https://github.com/IGNF/validator-api-client/) : l'interface graphique du démonstrateur
 
 ## Modifier le code ou la documentation
@@ -34,7 +34,7 @@ Exemple :
 
 ## Livraison d'une nouvelle version
 
-* Consulter le [numéro de la dernière version](https://github.com/IGNF/validator-api/tags).
+* Consulter le [numéro de la dernière version](https://github.com/IGNF/validator-publi/tags).
 * Renseigner la future version dans [docs/specs/validator-api.yml](docs/specs/validator-api.yml) (ex : `info.version: 0.3.0`)
 * Créer et pousser un tag (ex : `v0.3.0`)
-* Créer une release à partir du tag (voir https://github.com/IGNF/validator-api/tags)
+* Créer une release à partir du tag (voir https://github.com/IGNF/validator-publi/tags)

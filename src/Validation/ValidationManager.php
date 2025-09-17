@@ -15,36 +15,11 @@ use Symfony\Component\Process\Process;
 class ValidationManager
 {
 
-    /**
-     * @var EntityManagerInterface
-     */
-    private $em;
-
-    /**
-     * @var ValidationsStorage
-     */
-    private $storage;
-
-    /**
-     * @var ValidatorCLI
-     */
-    private $validatorCli;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
-    /**
-     * @var ZipArchiveValidator
-     */
-    private $zipArchiveValidator;
-
-    /**
-     * Current validation (in order to handle SIGTERM)
-     * @var Validation
-     */
-    private $currentValidation = null;
+    private EntityManagerInterface $em;
+    private ValidationsStorage $storage;
+    private ValidatorCLI $validatorCli;
+    private LoggerInterface $logger;
+    private ZipArchiveValidator $zipArchiveValidator;
 
     public function __construct(
         EntityManagerInterface $em,

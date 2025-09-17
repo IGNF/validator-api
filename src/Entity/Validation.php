@@ -112,14 +112,16 @@ class Validation
     private $results;
 
     /**
+     * Path to upload file
+     *
+     *@ORM\Column(type="text", nullable=true)
+     */
+    private string $pathName;
+
+    /**
      * Constructor
      */
-    public function __construct()
-    {
-        $this->setDateCreation(new \DateTime('now'));
-        $this->setStatus($this::STATUS_WAITING_ARGS);
-        $this->setUid($this->generateUid());
-    }
+    public function __construct() {}
 
     public function getUid(): ?string
     {
@@ -229,6 +231,16 @@ class Validation
         return $this;
     }
 
+    public function getPathName(): string
+    {
+        return $this->pathName;
+    }
+
+    public function setPathName(string $pathName): void
+    {
+        $this->pathName = $pathName;
+    }
+
     /**
      * Reset all attributes because user has requested a validation with updated parameters
      *
@@ -251,19 +263,4 @@ class Validation
      * @param integer $length
      * @return string
      */
-    private function generateUid($length = 24)
-    {
-        $randomUid = "";
-
-        for ($i = 0; $i < $length; $i++) {
-            if (random_int(1, 2) == 1) {
-                // a digit between 0 and 9
-                $randomUid .= chr(random_int(48, 57));
-            } else {
-                // a lowercase letter between a and z
-                $randomUid .= chr(random_int(97, 122));
-            }
-        }
-        return $randomUid;
-    }
 }
