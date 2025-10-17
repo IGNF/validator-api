@@ -11,31 +11,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Service\MimeTypeGuesserService;
 use App\Service\ValidatorArgumentsService;
+use Symfony\Component\Filesystem\Filesystem;
 
 class ValidationFactory
 {
 
-    private LoggerInterface $logger;
-    private MimeTypeGuesserService $mimeTypeGuesserService;
-    private ValidatorArgumentsService $validatorArgumentsService;
-
     public function __construct(
-        EntityManagerInterface $em,
-        ValidationsStorage $storage,
-        ValidatorCLI $validatorCli,
-        ZipArchiveValidator $zipArchiveValidator,
-        LoggerInterface $logger,
-        MimeTypeGuesserService $mimeTypeGuesserService,
-        ValidatorArgumentsService $validatorArgumentsService
-    ) {
-        $this->em = $em;
-        $this->storage = $storage;
-        $this->validatorCli = $validatorCli;
-        $this->zipArchiveValidator = $zipArchiveValidator;
-        $this->logger = $logger;
-        $this->mimeTypeGuesserService -> $mimeTypeGuesserService;
-        $this->validatorArgumentsService -> $validatorArgumentsService;
-    }
+        private LoggerInterface $logger,
+        private MimeTypeGuesserService $mimeTypeGuesserService,
+        private ValidatorArgumentsService $validatorArgumentsService,
+        private EntityManagerInterface $entityManager,
+        private ValidationsStorage $storage,
+    ) {}
 
     /**
      * Create valiation based on request
@@ -55,31 +42,39 @@ class ValidationFactory
 
         $validation->setUid($uid);
         $validation->setDateCreation(new \DateTime('now'));
-        $validation->setStatus(Validation::STATUS_PENDING);
+        $validation->setStatus(Validation::STATUS_WAITING_ARGS);
+        $validation->setProcessing(false);
 
         $arguments = $this->validatorArgumentsService->validate($request->request->get('args'));
         $validation->setArguments($arguments);
 
-        $files = $request->files;
+        $this->saveFile($request->files->get('dataset'), $validation);
 
-        //Ensure that input file is submitted
-        $file = $files->get('dataset');
+        $this->entityManager->persist($validation);
+        $this->entityManager->flush();
+
+        return $validation;
+    }
+
+    function saveFile($file, Validation $validation)
+    {
+        // Ensure that input file is submitted
         if (!$file) {
             throw new ApiException("Argument [dataset] is missing", Response::HTTP_BAD_REQUEST);
         }
 
-        //Ensure that input file is a ZIP file.
+        // Ensure that input file is a ZIP file.
         $mimeType = $this->mimeTypeGuesserService->guessMimeType($file->getPathName());
         if ($mimeType !== 'application/zip') {
             throw new ApiException("Dataset must be in a compressed [.zip] file", Response::HTTP_BAD_REQUEST);
         }
 
-        $validation->setPathName($file->getPathName());
-
         $datasetName = str_replace('.zip', '', $file->getClientOriginalName());
         $validation->setDatasetName($datasetName);
 
-        return $validation;
+        // Save file to storage
+        $this->storage->init($validation);
+        $this->storage->write($file, true);
     }
 
     private function generateUid($length = 24)

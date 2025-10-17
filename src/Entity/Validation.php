@@ -17,25 +17,29 @@ use Doctrine\ORM\Mapping as ORM;
 class Validation
 {
     /**
-     * User has uploaded a dataset but is yet to post the arguments
-     * User has 30 days to provide the arguments, otherwise the dataset will be deleted
+     * User has uploaded a dataset but is yet to be considered
      */
     const STATUS_WAITING_ARGS = 'waiting_for_args';
 
     /**
-     * The validation request by user has been recorded (both dataset and arguments received) but is yet to be carried out
+     * The validation request by user is waiting to be uploaded to the validation API
      */
-    const STATUS_PENDING = 'pending';
+    const STATUS_UPLOADABLE = 'uploadable';
 
     /**
-     * Validation is being carried out right now
+     * Validation is waiting to be patched with its args
      */
-    const STATUS_PROCESSING = 'processing';
+    const STATUS_PATCHABLE = 'patchable';
 
     /**
-     * Validation is done and the results are available
+     * Validation is being processed by the API
      */
-    const STATUS_FINISHED = 'finished';
+    const STATUS_WAITING_VALIDATION = 'waiting_valid';
+
+    /**
+     * Validation is done
+     */
+    const STATUS_VALIDATED = 'validated';
 
     /**
      * A runtime error has occured
@@ -43,9 +47,34 @@ class Validation
     const STATUS_ERROR = 'error';
 
     /**
+     * Validation cancelled
+     */
+    const STATUS_ABORTED = "aborted";
+
+    /**
      * Validation created 30 days ago and its files have been deleted automatically to save space on the server
      */
     const STATUS_ARCHIVED = 'archived';
+
+    /**
+     * Status where validation is stale
+     */
+    const STALE_STATUSES = [
+        Validation::STATUS_ERROR,
+        Validation::STATUS_ABORTED,
+        Validation::STATUS_ARCHIVED
+    ];
+
+    /**
+     * Work Statuses
+     */
+    const PENDING_STATUSES = [
+        Validation::STATUS_WAITING_ARGS,
+        Validation::STATUS_UPLOADABLE,
+        Validation::STATUS_PATCHABLE,
+        Validation::STATUS_WAITING_VALIDATION,
+        Validation::STATUS_VALIDATED
+    ];
 
     /**
      * Unique identifier
@@ -63,11 +92,32 @@ class Validation
     private $datasetName;
 
     /**
-     * CLI Arguments for the Java executable program
+     * Model to use for validation
      *
-     * @ORM\Column(type="json", nullable=true)
+     * @ORM\Column(type="text", nullable=false)
      */
-    private $arguments;
+    private $model;
+
+    /**
+     * SRS to use for validation
+     *
+     * @ORM\Column(type="text", nullable=false)
+     */
+    private $srs;
+
+    /**
+     * Whether to keep validation data
+     *
+     * @ORM\Column(type="boolean", nullable=false)
+     */
+    private $keepData;
+
+    /**
+     * Plugins to use during validation
+     *
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $plugins;
 
     /**
      * Date of creation
@@ -79,7 +129,7 @@ class Validation
     /**
      * Status
      *
-     * @ORM\Column(type="string", length=16, nullable=false, options={"default":"waiting_for_args"}, columnDefinition="character varying(16) CHECK (status IN ('waiting_for_args','pending','processing','finished','archived','error'))")
+     * @ORM\Column(type="string", length=16, nullable=false, options={"default":"waiting_for_args"}, columnDefinition="character varying(16) CHECK (status IN ('waiting_for_args','uploadable','patchable','waiting_valid','validated','error','aborted','archived'))")
      */
     private $status;
 
@@ -112,11 +162,19 @@ class Validation
     private $results;
 
     /**
-     * Path to upload file
+     * Api uid
      *
-     *@ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
-    private string $pathName;
+    private string $apiId;
+
+
+    /**
+     * Whether the validation is currently being processed
+     *
+     * @ORM\Column(type="boolean", nullable=false)
+     */
+    private bool $processing;
 
     /**
      * Constructor
@@ -147,15 +205,38 @@ class Validation
         return $this;
     }
 
-    public function getArguments()
+    public function getModel(): string
     {
-        return $this->arguments;
+        return $this->model;
     }
 
-    public function setArguments($arguments): self
+    public function getSRS(): string
     {
-        $this->arguments = $arguments;
+        return $this->srs;
+    }
 
+    public function getKeepData(): bool
+    {
+        return $this->keepData;
+    }
+
+    public function setArguments(array $arguments): self
+    {
+        $this->model = $arguments['model'];
+        $this->srs = $arguments['srs'];
+        $this->keepData = $arguments['keepData'];
+
+        return $this;
+    }
+
+    public function getPlugins(): array
+    {
+        return $this->plugins;
+    }
+
+    public function setPlugins(array $plugins): self
+    {
+        $this->plugins = $plugins;
         return $this;
     }
 
@@ -231,14 +312,25 @@ class Validation
         return $this;
     }
 
-    public function getPathName(): string
+    public function getApiId(): string
     {
-        return $this->pathName;
+        return $this->apiId;
     }
 
-    public function setPathName(string $pathName): void
+    public function setApiId(String $apiId): void
     {
-        $this->pathName = $pathName;
+        $this->apiId = $apiId;
+    }
+
+    public function getProcessing(): bool
+    {
+        return $this->processing;
+    }
+
+    public function setProcessing(bool $processing): self
+    {
+        $this->processing = $processing;
+        return $this;
     }
 
     /**
@@ -248,7 +340,7 @@ class Validation
      */
     public function reset()
     {
-        $this->setStatus($this::STATUS_PENDING);
+        $this->setStatus($this::STATUS_WAITING_ARGS);
         $this->setMessage(null);
         $this->setDateStart(null);
         $this->setDateFinish(null);
@@ -256,11 +348,4 @@ class Validation
 
         return $this;
     }
-
-    /**
-     * Generate UID
-     *
-     * @param integer $length
-     * @return string
-     */
 }

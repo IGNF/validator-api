@@ -91,6 +91,11 @@
       "type": "boolean",
       "description": "geometry simplification method",
       "example": true
+    },
+    "keepData": {
+      "type": "boolean",
+      "description": "whether to keep source and validation data",
+      "example": true
     }
   },
   "additionalProperties": false

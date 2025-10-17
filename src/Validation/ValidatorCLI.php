@@ -67,7 +67,7 @@ class ValidatorCLI
      */
     public function process(Validation $validation)
     {
-        $validationDirectory = $this->storage->getDirectory($validation);
+        $validationDirectory = './public/' . $this->storage->getPath();
 
         /* prepare validator-cli.jar command */
         $env = $_ENV;
@@ -78,7 +78,7 @@ class ValidatorCLI
          */
         $env['DB_SCHEMA'] = "validation" . $validation->getUid();
 
-        $sourceDataDir = $validationDirectory.'/'.$validation->getDatasetName();
+        $sourceDataDir = $validation->getDatasetName();
         $cmd = ['java'];
         $cmd = \array_merge($cmd, explode(' ',$this->validatorJavaOpts));
         $cmd = \array_merge($cmd,[
@@ -126,7 +126,10 @@ class ValidatorCLI
     private function reconstructArgs(Validation $validation)
     {
         $args = [];
-        $arguments = $validation->getArguments();
+        $arguments = [
+            'srs' => $validation->getSRS(),
+            'model' => $validation->getModel(),
+        ];
 
         foreach ($arguments as $key => $value) {
             if (!$value || '' == $value || null == $value) {

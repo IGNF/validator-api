@@ -3,14 +3,19 @@
 namespace App\Validation;
 
 use App\Entity\Validation;
-use App\Exception\ZipArchiveValidationException;
 use App\Storage\ValidationsStorage;
 use Doctrine\ORM\EntityManagerInterface;
+use FFI\Exception;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\Mime\Part\Multipart\FormDataPart;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Yaml\Exception\ParseException;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use App\Exception\ZipArchiveValidationException;
 
 class ValidationManager
 {
@@ -20,19 +25,23 @@ class ValidationManager
     private ValidatorCLI $validatorCli;
     private LoggerInterface $logger;
     private ZipArchiveValidator $zipArchiveValidator;
+    private ?Validation $currentValidation = null;
+    private HttpClientInterface $client;
 
     public function __construct(
         EntityManagerInterface $em,
         ValidationsStorage $storage,
         ValidatorCLI $validatorCli,
         ZipArchiveValidator $zipArchiveValidator,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        HttpClientInterface $client,
     ) {
         $this->em = $em;
         $this->storage = $storage;
         $this->validatorCli = $validatorCli;
         $this->zipArchiveValidator = $zipArchiveValidator;
         $this->logger = $logger;
+        $this->client = $client;
     }
 
     /**
@@ -93,7 +102,13 @@ class ValidationManager
             return;
         }
         $this->currentValidation = $validation;
+        $this->storage->init($validation);
         $this->doProcess($validation);
+
+        $validation->setProcessing(false);
+        $this->em->persist($validation);
+        $this->em->flush();
+
         $this->currentValidation = null;
     }
 
@@ -110,7 +125,7 @@ class ValidationManager
         $this->logger->warning("Validation[{uid}]: SIGTERM received, changing state to pending",[
             "uid" => $this->currentValidation->getUid()
         ]);
-        $this->currentValidation->setStatus(Validation::STATUS_PENDING);
+        $this->currentValidation->setStatus(Validation::STATUS_ABORTED);
         $this->em->persist($this->currentValidation);
         $this->em->flush();
     }
@@ -128,95 +143,116 @@ class ValidationManager
         /*
          * force usage of popNextPending to avoid concurrency problems.
          */
-        if (Validation::STATUS_PROCESSING !== $validation->getStatus()) {
-            $message = sprintf(
-                'doProcess must be invoked on validation with status %s (current status is %s)',
-                Validation::STATUS_PROCESSING,
-                $validation->getStatus()
-            );
-            $this->logger->error($message, ['uid' => $validation->getUid()]);
-            throw new RuntimeException($message);
-        }
 
         try {
-            /*
-             * get files from storage
-             */
-            $this->getZip($validation);
+            switch($validation->getStatus()) {
 
-            /*
-             * pre-validating the names of the files in the zip archive
-             */
-            $this->validateZip($validation);
+                case Validation::STATUS_WAITING_ARGS :
+                    $this->logger->info( "Validation[{uid}]: Validating arguments...", ['uid' => $validation->getUid()]);
+                    $this->validateArgs($validation);
+                    break;
 
-            /*
-             * unzip dataset
-             */
-            $this->unzip($validation);
+                case Validation::STATUS_UPLOADABLE :
+                    $this->logger->info( "Validation[{uid}]: Uploading...", ['uid' => $validation->getUid()]);
+                    $this->upload($validation);
+                    break;
 
-            /*
-             * run validator-cli.jar command
-             */
-            $this->validatorCli->process($validation);
+                case Validation::STATUS_PATCHABLE :
+                    $this->logger->info( "Validation[{uid}]: Patching arguments...", ['uid' => $validation->getUid()]);
+                    $this->patch($validation);
+                    break;
 
-            /*
-             * zip normalized results
-             */
-            $this->zipNormData($validation);
+                case Validation::STATUS_WAITING_VALIDATION :
+                    $this->logger->info( "Validation[{uid}]: Waiting on validation...", ['uid' => $validation->getUid()]);
+                    $this->pingAPI($validation);
+                    break;
 
-            /*
-             * Save validation data to storage
-             */
-            $this->saveToStorage($validation);
+                case Validation::STATUS_VALIDATED :
+                    $this->logger->info( "Validation[{uid}]: Cleaning up...", ['uid' => $validation->getUid()]);
+                    $this->cleanUp($validation);
+                    break;
+            }
 
-            /*
-             * cleanup data
-             */
-            $this->cleanUp($validation);
-
-            $validation->setStatus(Validation::STATUS_FINISHED);
-            $this->logger->info("Validation[{uid}]: validation carried out successfully", ['uid' => $validation->getUid()]);
-        } catch (ZipArchiveValidationException $ex) {
-            $validation->setStatus(Validation::STATUS_ERROR);
-            $validation->setMessage($ex->getMessage());
-            $validation->setResults($ex->getErrors());
-            $this->logger->error("Validation[{uid}]: {message}: {errors}", ['uid' => $validation->getUid(), 'message' => $ex->getMessage(), 'errors' => $ex->getErrors()]);
         } catch (\Throwable $th) {
-            $validation->setStatus(Validation::STATUS_ERROR);
+            // $validation->setStatus(Validation::STATUS_ERROR);
             $validation->setMessage($th->getMessage());
             $this->logger->error("Validation[{uid}]: {message}", ['uid' => $validation->getUid(), 'message' => $th->getMessage()]);
         }
-
-        $validation->setDateFinish(new \DateTime('now'));
-        $this->em->persist($validation);
-        $this->em->flush();
     }
 
     /**
-     * Get Zip file from storage to validate
+     * Asserting Args conforming to validation model
      * @param Validation $validation
      * @return void
      */
-    private function getZip(Validation $validation)
+    private function validateArgs(Validation $validation): void
     {
-        $this->logger->info('Validation[{uid}] : get from storage...', [
-            'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
-        ]);
-
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $uploadFile = $this->storage->getUploadDirectory($validation) . $validation->getDatasetName() . '.zip';
-
-        if (!is_dir($validationDirectory)) {
-            mkdir($validationDirectory);
+        if(($validation->getModel() == "canalisations") && ($validation.getKeepData())) {
+            throw new ParseException("Le modèle Canalisation n'a pas la possibilité de conserver les données.", );
         }
+        $validation->setStatus(Validation::STATUS_UPLOADABLE);
+    }
 
-        $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
+    private function upload(Validation $validation): void
+    {
 
-        file_put_contents(
-            $zipPath,
-            $this->storage->getStorage()->read($uploadFile)
-        );
+        $formFields = [
+            'dataset' => DataPart::fromPath($this->storage->getSource())
+        ];
+        $formData = new FormDataPart($formFields);
+
+        $response = $this->client->request('POST', $_ENV['API_URL'],
+        [
+            'headers' => $formData->getPreparedHeaders()->toArray(),
+            'body' => $formData->bodyToIterable()
+        ]);
+        if ($response->getStatusCode() != Response::HTTP_CREATED) {
+            throw new ParseException(sprintf("Erreur dans l'envoi de fichier à l'API : %s", $response->toArray()['error']));
+        }
+        // $statusCode = 201
+        $validation->setApiId($response->toArray()['uid']);
+
+        $validation->setStatus(Validation::STATUS_PATCHABLE);
+    }
+
+    private function patch(Validation $validation): void
+    {
+        // $body = [
+        //         "model" => $validation->getModel(),
+        //         "srs" => $validation->getSRS(),
+        //         "max-errors" => 30,
+        //         "normalize" => true,
+        //         "plugins" => $validation->getPlugins(),
+        //         "encoding" => "UTF-8",
+        //         "dgpr-tolerance" => 10,
+        //         "dgpr-simplify" => 2,
+        //         "dgpr-safe-simplify" => true
+        // ];
+        // $response = $this->client->request('PATCH', $_ENV['API_URL'] . $validation->getApiId(),
+        // [
+        //     'body' => json_encode($body)
+        // ]);
+        // if ($response->getStatusCode() != Response::HTTP_OK) {
+        //     throw new ParseException(sprintf("Erreur dans l'envoi des paramètres à l'API : %s", $response->toArray()['error']));
+        // }
+
+        /*
+            * pre-validating the names of the files in the zip archive
+            */
+        $this->validateZip($validation);
+
+        /*
+            * unzip dataset
+            */
+        $this->unzip($validation);
+
+        /*
+            * run validator-cli.jar command
+            */
+        $this->validatorCli->process($validation);
+
+        // $statusCode = 200
+        $validation->setStatus(Validation::STATUS_WAITING_VALIDATION);
     }
 
     /**
@@ -231,9 +267,7 @@ class ValidationManager
         $this->logger->info('Validation[{uid}] : validate zip archive...', [
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
-        ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
+        ]);        $zipPath = $this->storage->getSource();
         $errors = $this->zipArchiveValidator->validate($zipPath);
         if (count($errors) > 0) {
             throw new ZipArchiveValidationException($errors);
@@ -252,8 +286,8 @@ class ValidationManager
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $zipFilename = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
+        $validationDirectory = './public/' . $this->storage->getPath();
+        $zipFilename = $this->storage->getSource();
         $zip = new \ZipArchive();
 
         if ($zip->open($zipFilename) === true) {
@@ -264,74 +298,25 @@ class ValidationManager
         }
     }
 
-    /**
-     * Zips the generated normalized data
-     *
-     * @param Validation $validation
-     * @return void
-     */
-    private function zipNormData(Validation $validation)
+    private function pingAPI(Validation $validation): void
     {
-        $this->logger->info('Validation[{uid}] : compress normalized data...', [
+        // $response = $this->client->request('GET', $_ENV['API_URL'] . $validation->getApiId());
+
+        // if ($response->getStatusCode() != Response::HTTP_OK) {
+        //     throw new ParseException("Erreur dans l'obtention des informations de la validation.");
+        // }
+
+        $this->logger->info('Validation[{uid}] : Checking if validation is over...', [
             'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
         ]);
-        $fs = new Filesystem();
-
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $normDataParentDir = $validationDirectory . '/validation/';
-        $datasetName = $validation->getDatasetName();
-
-        // checking if normalized data is present
-        if (!$fs->exists($normDataParentDir . $datasetName)) {
-            return;
+        if ($this->storage->getReportPathExists())
+        {
+            $this->logger->info('Validation[{uid}] : Validation is over...', [
+                'uid' => $validation->getUid(),
+            ]);
+            $validation->setStatus(Validation::STATUS_VALIDATED);
         }
-
-        $process = new Process(["zip","-r","$datasetName.zip",$datasetName],$normDataParentDir);
-        $process->setTimeout(600);
-        $process->setIdleTimeout(600);
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
-    }
-
-    /**
-     * Saves output to storage
-     */
-    private function saveToStorage(Validation $validation)
-    {
-        // Saves normalized data to storage
-        $this->logger->info('Validation[{uid}] : saving normalized data...', [
-            'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
-        ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $normDataPath = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if (! $this->storage->getStorage()->directoryExists($outputDirectory)){
-            $this->storage->getStorage()->createDirectory($outputDirectory);
-        }
-        $outputPath = $outputDirectory . $validation->getDatasetName() . '.zip';
-        if ($this->storage->getStorage()->fileExists($outputPath)){
-            $this->storage->getStorage()->delete($outputPath);
-        }
-        $stream = fopen($normDataPath, 'r+');
-        $this->storage->getStorage()->writeStream($outputPath, $stream);
-        fclose($stream);
-
-        // Saves validator logs to storage
-        $this->logger->info('Validation[{uid}] : saving logs...', [
-            'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
-        ]);
-        $logPath = $validationDirectory . '/validator-debug.log';
-        $outputPath = $outputDirectory . '/validator-debug.log';
-
-        $stream = fopen($logPath, 'r+');
-        $this->storage->getStorage()->writeStream($outputPath, $stream);
-        fclose($stream);
+        // $statusCode = 200
     }
 
     /**
@@ -341,20 +326,23 @@ class ValidationManager
      */
     private function cleanUp(Validation $validation)
     {
+
+        $validation->setStatus(Validation::STATUS_ARCHIVED);
+
         $this->logger->info('Validation[{uid}] : cleanup...', [
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
 
-        $fs = new FileSystem();
-        if ($fs->exists($validationDirectory)) {
-            $this->logger->debug('Validation[{uid}] : rm -rf {uid}/{datasetName}/...', [
-                'uid' => $validation->getUid(),
-                'datasetName' => $validation->getDatasetName(),
-            ]);
-            $fs->remove($validationDirectory);
-        }
+        $this->logger->info('Validation[{uid}]: Removing API data...', [
+            'uid' => $validation->getUid(),
+        ]);
+
+
+
+        $this->storage->cleanLocal();
+
+        // clean gpf
     }
 
     /**

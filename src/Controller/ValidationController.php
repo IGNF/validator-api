@@ -10,13 +10,10 @@ use App\Service\MimeTypeGuesserService;
 use App\Service\ValidatorArgumentsService;
 use App\Storage\ValidationsStorage;
 use App\Validation\ValidationFactory;
-use Aws\Api\Validator;
 use Doctrine\ORM\EntityManagerInterface;
-use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,7 +21,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/validation")
+ * @Route("/api/validation")
  */
 class ValidationController extends AbstractController
 {
@@ -60,7 +57,7 @@ class ValidationController extends AbstractController
      *      methods={"GET"}
      * )
      */
-    public function getValidation($uid)
+    public function getValidationApi($uid)
     {
         $validation = $this->repository->findOneByUid($uid);
         if (!$validation) {
@@ -88,10 +85,10 @@ class ValidationController extends AbstractController
             throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
         }
 
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        $filepath = $outputDirectory . '/validator-debug.log';
+        // $outputDirectory = $this->storage->getOutputDirectory($validation);
+        // $filepath = $outputDirectory . '/validator-debug.log';
 
-        $content = $this->storage->getStorage()->read($filepath);
+        // $content = $this->storage->getStorage()->read($filepath);
 
         return new Response(
             $content,
@@ -126,25 +123,19 @@ class ValidationController extends AbstractController
 
     /**
      * @Route(
-     *      "/",
+     *      "/create",
      *      name="validator_publi_upload_dataset",
      *      methods={"POST"}
      * )
      */
     public function uploadDataset(Request $request)
     {
-        $request->request->all();
-
         $validation = $this->validationFactory->create($request);
-        // TODO : check getClientOriginalName
-
-
-        $this->entityManager->persist($validation);
-        $this->entityManager->flush();
 
         return new JsonResponse(
             $this->serializer->toArray($validation),
-            Response::HTTP_CREATED
+            Response::HTTP_CREATED,
+            ["Access-Control-Allow-Origin" => $_ENV["API_URL"]]
         );
     }
 
@@ -172,14 +163,14 @@ class ValidationController extends AbstractController
         $em->flush();
 
         // Delete from storage
-        $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        if ($this->storage->getStorage()->directoryExists($uploadDirectory)) {
-            $this->storage->getStorage()->deleteDirectory($uploadDirectory);
-        }
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if ($this->storage->getStorage()->directoryExists($outputDirectory)) {
-            $this->storage->getStorage()->deleteDirectory($outputDirectory);
-        }
+        // $uploadDirectory = $this->storage->getUploadDirectory($validation);
+        // if ($this->storage->getStorage()->directoryExists($uploadDirectory)) {
+        //     $this->storage->getStorage()->deleteDirectory($uploadDirectory);
+        // }
+        // $outputDirectory = $this->storage->getOutputDirectory($validation);
+        // if ($this->storage->getStorage()->directoryExists($outputDirectory)) {
+        //     $this->storage->getStorage()->deleteDirectory($outputDirectory);
+        // }
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
@@ -210,9 +201,9 @@ class ValidationController extends AbstractController
             throw new ApiException("Validation hasn't been executed yet", Response::HTTP_FORBIDDEN);
         }
 
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        $zipFilepath = $outputDirectory . $validation->getDatasetName() . '.zip';
-        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-normalized.zip");
+        // $outputDirectory = $this->storage->getOutputDirectory($validation);
+        // $zipFilepath = $outputDirectory . $validation->getDatasetName() . '.zip';
+        // return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-normalized.zip");
     }
 
     /**
@@ -233,9 +224,24 @@ class ValidationController extends AbstractController
             throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
         }
 
-        $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
-        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-source.zip");
+        // $uploadDirectory = $this->storage->getUploadDirectory($validation);
+        // $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
+        // return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-source.zip");
+    }
+
+    /**
+     * @Route(
+     *      "/by-user/{uid}",
+     *      name="validator_publi_by_user",
+     *      methods={"GET"}
+     * )
+     */
+    public function validationsByUser($uid): JsonResponse
+    {
+        // TODO: if not user : get rejected
+
+        //get user by uid
+        return $this->json($this->repository->getByUser($uid));
     }
 
     /**
@@ -247,11 +253,11 @@ class ValidationController extends AbstractController
      */
     private function getDownloadResponse($filepath, $filename)
     {
-        if (!$this->storage->getStorage()->has($filepath)) {
-            throw new ApiException("Requested files not found for this validation", Response::HTTP_FORBIDDEN);
-        }
+        // if (!$this->storage->getStorage()->has($filepath)) {
+        //     throw new ApiException("Requested files not found for this validation", Response::HTTP_FORBIDDEN);
+        // }
 
-        $stream = $this->storage->getStorage()->readStream($filepath);
+        // $stream = $this->storage->getStorage()->readStream($filepath);
 
         return new StreamedResponse(function () use ($stream) {
             fpassthru($stream);

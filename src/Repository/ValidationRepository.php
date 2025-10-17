@@ -27,6 +27,7 @@ class ValidationRepository extends ServiceEntityRepository
      */
     public function popNextPending()
     {
+        $statusParameter = "('" . implode("','", Validation::PENDING_STATUSES) . "')";
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
 
@@ -35,8 +36,8 @@ class ValidationRepository extends ServiceEntityRepository
 
         /** @var Validation|null $result */
         $result = $this->createQueryBuilder('v')
-            ->where('v.status = :status')
-            ->setParameters(['status' => Validation::STATUS_PENDING])
+            ->where('v.status IN ' . $statusParameter)
+            ->andWhere('NOT v.processing = true') //sadge
             ->orderBy('v.dateCreation', 'ASC')
             ->setMaxResults(1)
             ->getQuery()
@@ -44,9 +45,9 @@ class ValidationRepository extends ServiceEntityRepository
         ;
 
         if (!is_null($result)) {
-            $result->setStatus(Validation::STATUS_PROCESSING);
-            $result->setDateStart(new \DateTime('now'));
-            $em->flush($result);
+            $result->setProcessing(true);
+            $result->setDateStart(new DateTime('now'));
+            $em->flush();
             $em->refresh($result);
         }
 
@@ -70,7 +71,22 @@ class ValidationRepository extends ServiceEntityRepository
                 'ignoredStatus' => Validation::STATUS_ARCHIVED,
             ])
             ->getQuery()
-            ->getResult()
+            ->getArrayResult()
+        ;
+    }
+
+    /**
+     * Finds all  validations by user.
+     *
+     * @param string $uid
+     * @return array<Validation>
+     */
+    public function getByUser(string $uid): mixed
+    {
+        return $this->createQueryBuilder('v')
+            //TODO: ->where(user = uid)
+            ->getQuery()
+            ->getArrayResult()
         ;
     }
 }
