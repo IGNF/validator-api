@@ -2,7 +2,7 @@ name: PHP CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "validator-publi" ]
   pull_request:
     branches: [ "master" ]
 
