@@ -14,6 +14,6 @@ class ValidationsStorageTest extends WebTestCase
     public function testPathIsSuffixed()
     {
         $storage = $this->getValidationsStorage();
-        $this->assertStringEndsWith('data/validations-test', $storage->getPath());
+        $this->assertStringEndsWith('var/data/', $storage->getPath());
     }
 }

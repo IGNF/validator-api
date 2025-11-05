@@ -64,7 +64,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/'.$validation->getUid().'/files/source',
+            '/api/validation/'.$validation->getUid().'/files/source',
         );
 
         $response = $this->client->getResponse();
@@ -82,7 +82,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
         $uid = 'uid-validation-doesnt-exist';
         $this->client->request(
             'GET',
-            '/api/validations/'.$uid.'/files/source',
+            '/api/validation/'.$uid.'/files/source',
         );
 
         $response = $this->client->getResponse();
@@ -118,7 +118,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/'.$validation2->getUid().'/files/source',
+            '/api/validation/'.$validation2->getUid().'/files/source',
         );
 
         $response = $this->client->getResponse();
@@ -142,7 +142,7 @@ class ValidationSourceDataDownloadTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/'.$validation->getUid().'/files/source',
+            '/api/validation/'.$validation->getUid().'/files/source',
         );
 
         $response = $this->client->getResponse();

@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Validation;
 use App\Service\ValidatorArgumentsService;
 use App\Storage\ValidationsStorage;
+use App\Validation\ValidationFactory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
@@ -73,7 +74,8 @@ class ValidationsFixtures extends Fixture
             throw new RuntimeException('Sample file not found : ' . $originalPath);
         }
 
-        $validationDirectory = $this->validationsStorage->getDirectory($validation);
+        $this->validationsStorage->init($validation);
+        $validationDirectory = $this->validationsStorage->getPath();
         $fs = new Filesystem();
         $validation->setDatasetName(str_replace('.zip', '', $filename));
         $fs->copy(
@@ -90,15 +92,17 @@ class ValidationsFixtures extends Fixture
          * validation_no_args - a validation with no args
          */
         $validationNoArgs = new Validation();
+        $validationNoArgs->setUid(ValidationFactory::generateUid());
         $this->addSampleArchive($validationNoArgs, self::FILENAME_SUP_PM3);
         $em->persist($validationNoArgs);
-        $this->addReference(self::VALIDATION_NO_ARGS, $validationNoArgs);
+        $this->addReference( self::VALIDATION_NO_ARGS, $validationNoArgs);
 
         /*
          * validation_archived - a validation that has already been archived
          * (no file, archived)
          */
         $valArchived = new Validation();
+        $valArchived->setUid(ValidationFactory::generateUid());
         $valArchived->setDatasetName('130010853_PM3_60_20180516');
         $valArchived->setStatus(Validation::STATUS_ARCHIVED);
         $em->persist($valArchived);
@@ -110,12 +114,14 @@ class ValidationsFixtures extends Fixture
         $args = [
             'srs' => 'EPSG:2154',
             'model' => 'https://ignf.github.io/validator/validator-plugin-cnig/src/test/resources/config/cnig_SUP_PM3_2016.json',
+            'keepData' => false
         ];
         $args = $this->valArgsService->validate(\json_encode($args));
 
         $valWithArgs = new Validation();
+        $valWithArgs->setUid(ValidationFactory::generateUid());
         $this->addSampleArchive($valWithArgs, self::FILENAME_SUP_PM3);
-        $valWithArgs->setStatus(Validation::STATUS_PENDING);
+        $valWithArgs->setStatus(Validation::STATUS_WAITING_ARGS);
         $valWithArgs->setArguments($args);
         $em->persist($valWithArgs);
         $this->addReference(self::VALIDATION_WITH_ARGS, $valWithArgs);
@@ -127,12 +133,15 @@ class ValidationsFixtures extends Fixture
         $args = [
             'srs' => 'EPSG:2154',
             'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016-test.json',
+            'keepData' => false
         ];
         $args = $this->valArgsService->validate(\json_encode($args));
 
         $valWithBadArgs = new Validation();
+        $valWithBadArgs->setUid(ValidationFactory::generateUid());
+
         $this->addSampleArchive($valWithBadArgs, self::FILENAME_SUP_PM3);
-        $valWithBadArgs->setStatus(Validation::STATUS_PENDING);
+        $valWithBadArgs->setStatus(Validation::STATUS_WAITING_ARGS);
         $valWithBadArgs->setArguments($args);
         $em->persist($valWithBadArgs);
         $this->addReference(self::VALIDATION_WITH_BAD_ARGS, $valWithBadArgs);
@@ -143,12 +152,15 @@ class ValidationsFixtures extends Fixture
         $args = [
             'srs' => 'EPSG:2154',
             'model' => 'https://ignf.github.io/validator/validator-plugin-cnig/src/test/resources/config/cnig_SUP_PM3_2016.json',
+            'keepData' => false
         ];
         $args = $this->valArgsService->validate(\json_encode($args));
 
         $valInvalidRegex = new Validation();
+        $valInvalidRegex->setUid(ValidationFactory::generateUid());
+
         $this->addSampleArchive($valInvalidRegex, self::FILENAME_INVALID_REGEX);
-        $valInvalidRegex->setStatus(Validation::STATUS_PENDING);
+        $valInvalidRegex->setStatus(Validation::STATUS_WAITING_ARGS);
         $valInvalidRegex->setArguments($args);
         $em->persist($valInvalidRegex);
         $this->addReference(self::VALIDATION_INVALID_REGEX, $valInvalidRegex);

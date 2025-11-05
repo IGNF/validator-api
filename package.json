@@ -9,7 +9,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@ignf/validator-client": "git+https://github.com/IGNF/validator-api-client.git#v0.5.3",
+    "@ignf/validator-client": "git+https://github.com/IGNF/validator-api-client.git#v0.5.5",
     "copy-webpack-plugin": "^9.0.1",
     "webpack": "^5.44.0",
     "webpack-cli": "^4.7.2",

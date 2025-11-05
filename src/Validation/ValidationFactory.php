@@ -77,7 +77,7 @@ class ValidationFactory
         $this->storage->write($file, true);
     }
 
-    private function generateUid($length = 24)
+    public static function generateUid($length = 24)
     {
         $randomUid = "";
 

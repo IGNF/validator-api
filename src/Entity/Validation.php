@@ -94,21 +94,21 @@ class Validation
     /**
      * Model to use for validation
      *
-     * @ORM\Column(type="text", nullable=false)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $model;
 
     /**
      * SRS to use for validation
      *
-     * @ORM\Column(type="text", nullable=false)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $srs;
 
     /**
      * Whether to keep validation data
      *
-     * @ORM\Column(type="boolean", nullable=false)
+     * @ORM\Column(type="boolean", nullable=true)
      */
     private $keepData;
 
@@ -122,14 +122,14 @@ class Validation
     /**
      * Date of creation
      *
-     * @ORM\Column(type="datetime", nullable=false)
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $dateCreation;
 
     /**
      * Status
      *
-     * @ORM\Column(type="string", length=16, nullable=false, options={"default":"waiting_for_args"}, columnDefinition="character varying(16) CHECK (status IN ('waiting_for_args','uploadable','patchable','waiting_valid','validated','error','aborted','archived'))")
+     * @ORM\Column(type="string", length=16, nullable=true, options={"default":"waiting_for_args"}, columnDefinition="character varying(16) CHECK (status IN ('waiting_for_args','uploadable','patchable','waiting_valid','validated','error','aborted','archived'))")
      */
     private $status;
 
@@ -172,7 +172,7 @@ class Validation
     /**
      * Whether the validation is currently being processed
      *
-     * @ORM\Column(type="boolean", nullable=false)
+     * @ORM\Column(type="boolean", nullable=true)
      */
     private bool $processing;
 

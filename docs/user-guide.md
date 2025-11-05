@@ -6,7 +6,7 @@ Exemple de requête :
 
 ```bash
 curl --request POST \
-  --url ${base_url}/api/validations/ \
+  --url ${base_url}/api/validation/ \
   --header 'Content-Type: multipart/form-data' \
   --header 'content-type: multipart/form-data; boundary=---011000010111000001101001' \
   --form dataset=@92022_PLU_20200415.zip;type=application/x-zip-compressed
@@ -20,7 +20,7 @@ Exemple de requête :
 
 ```bash
 curl --request PATCH \
-  --url  ${base_url}/api/validations/k392kn8syily29qjj18959hs \
+  --url  ${base_url}/api/validation/k392kn8syily29qjj18959hs \
   --header 'Content-Type: application/json' \
   --data '{
             "srs": "EPSG:2154",
@@ -36,7 +36,7 @@ Exemple de requête :
 
 ```bash
 curl --request GET \
-  --url ${base_url}/api/validations/k392kn8syily29qjj18959hs
+  --url ${base_url}/api/validation/k392kn8syily29qjj18959hs
 ```
 
 ### États possibles d'une validation :
@@ -57,7 +57,7 @@ Exemple de requête :
 
 ```bash
 curl --request GET \
-  --url ${base_url}/api/validations/k392kn8syily29qjj18959hs/files/normalized
+  --url ${base_url}/api/validation/k392kn8syily29qjj18959hs/files/normalized
 ```
 
 Le résultat de cette requête est un fichier compressé (zip) nommé {nom_dataset}-normalized.zip et contenant les données normalisées par le validateur.
@@ -66,7 +66,7 @@ Il est également possible de récupérer les fichiers originaux de la validatio
 
 ```bash
 curl --request GET \
-  --url ${base_url}/api/validations/k392kn8syily29qjj18959hs/files/source
+  --url ${base_url}/api/validation/k392kn8syily29qjj18959hs/files/source
 ```
 
 
@@ -76,7 +76,7 @@ Exemple de requête :
 
 ```bash
 curl --request DELETE \
-  --url ${base_url}/api/validations/k392kn8syily29qjj18959hs
+  --url ${base_url}/api/validation/k392kn8syily29qjj18959hs
 ```
 
 Si la suppression se déroule correctement, le statut de réponse sera 204 sans contenu.

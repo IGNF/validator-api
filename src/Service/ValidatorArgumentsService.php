@@ -23,8 +23,12 @@ class ValidatorArgumentsService
      * @return array
      * @throws ApiException
      */
-    public function validate(string $args)
+    public function validate(?string $args)
     {
+        if ($args === null){
+            throw new ApiException("No arguments provided", Response::HTTP_BAD_REQUEST);
+        }
+
         $args = json_decode($args);
 
         $validator = new Validator();

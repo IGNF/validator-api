@@ -45,51 +45,6 @@ class ValidationManager
     }
 
     /**
-     * Archive a given validation removing all local files.
-     *
-     * @param Validation $validation
-     * @return void
-     */
-    public function archive(Validation $validation)
-    {
-        $this->logger->info('Validation[{uid}] : archive removing all files...', [
-            'uid' => $validation->getUid(),
-        ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $fs = new Filesystem();
-        if ($fs->exists($validationDirectory)) {
-            $this->logger->debug('Validation[{uid}] : remove validation directory ...', [
-                'uid' => $validation->getUid(),
-                'validationDirectory' => $validationDirectory,
-            ]);
-            $fs->remove($validationDirectory);
-        }
-
-        // Delete from storage
-        $this->logger->info('Validation[{uid}] : remove upload files', [
-            'uid' => $validation->getUid(),
-        ]);
-        $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        if ($this->storage->getStorage()->directoryExists($uploadDirectory)) {
-            $this->storage->getStorage()->deleteDirectory($uploadDirectory);
-        }
-        $this->logger->info('Validation[{uid}] : remove output files', [
-            'uid' => $validation->getUid(),
-        ]);
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if ($this->storage->getStorage()->directoryExists($outputDirectory)) {
-            $this->storage->getStorage()->deleteDirectory($outputDirectory);
-        }
-        $this->logger->info('Validation[{uid}] : archive removing all files : completed', [
-            'uid' => $validation->getUid(),
-            'status' => Validation::STATUS_ARCHIVED,
-        ]);
-        $validation->setStatus(Validation::STATUS_ARCHIVED);
-        $this->em->persist($validation);
-        $this->em->flush();
-    }
-
-    /**
      * Process next pending validation.
      *
      * @return void
@@ -338,11 +293,14 @@ class ValidationManager
             'uid' => $validation->getUid(),
         ]);
 
-
-
         $this->storage->cleanLocal();
 
         // clean gpf
+    }
+
+    public function archive(Validation $validation): void
+    {
+        $this->cleanUp($validation);
     }
 
     /**

@@ -17,7 +17,7 @@ tags:
     description: "Une demande de validation de documents"
 
 paths:
-  /api/validations/:
+  /api/validation/:
     post:
       tags:
         - validation
@@ -47,7 +47,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/validations/{uid}:
+  /api/validation/{uid}:
     get:
       tags:
         - validation
@@ -159,7 +159,7 @@ paths:
 
 
 
-  /api/validations/{uid}/results.csv:
+  /api/validation/{uid}/results.csv:
     get:
       tags:
         - validation
@@ -194,7 +194,7 @@ paths:
                 $ref: "#/components/schemas/Error"
 
 
-  /api/validations/{uid}/files/source:
+  /api/validation/{uid}/files/source:
     get:
       tags:
         - validation
@@ -228,7 +228,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/validations/{uid}/files/normalized:
+  /api/validation/{uid}/files/normalized:
     get:
       tags:
         - validation
