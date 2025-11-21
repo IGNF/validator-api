@@ -28,7 +28,7 @@ services:
     networks:
       - validator
     volumes:
-      - publi-data:/opt/validator-publi/var/data
+      - publi-data:/opt/validator-api/var/data
     ports:
       # local exposure when traefik is not available
       - "8000:8000"
