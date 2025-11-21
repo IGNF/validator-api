@@ -85,7 +85,7 @@ services:
     networks:
       - validator
     volumes:
-      - publi-data:/opt/validator-publi/var/data
+      - publi-data:/opt/validator-api/var/data
     depends_on:
       - publi
     restart: unless-stopped
