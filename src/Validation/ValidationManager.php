@@ -4,6 +4,7 @@ namespace App\Validation;
 
 use App\Entity\Validation;
 use App\Exception\ZipArchiveValidationException;
+use App\Repository\ValidationRepository;
 use App\Storage\ValidationsStorage;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -41,6 +42,11 @@ class ValidationManager
     private $zipArchiveValidator;
 
     /**
+     * @var ValidationRepository
+     */
+    private $validationRepository;
+
+    /**
      * Current validation (in order to handle SIGTERM)
      * @var Validation
      */
@@ -51,13 +57,15 @@ class ValidationManager
         ValidationsStorage $storage,
         ValidatorCLI $validatorCli,
         ZipArchiveValidator $zipArchiveValidator,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ValidationRepository $validationRepository
     ) {
         $this->em = $em;
         $this->storage = $storage;
         $this->validatorCli = $validatorCli;
         $this->zipArchiveValidator = $zipArchiveValidator;
         $this->logger = $logger;
+        $this->validationRepository = $validationRepository;
     }
 
     /**
@@ -96,6 +104,10 @@ class ValidationManager
         if ($this->storage->getStorage()->directoryExists($outputDirectory)) {
             $this->storage->getStorage()->deleteDirectory($outputDirectory);
         }
+        $this->logger->info('Validation[{uid}] : drop validation schema', [
+            'uid' => $validation->getUid(),
+        ]);
+        $this->validationRepository->dropSchema($validation);
         $this->logger->info('Validation[{uid}] : archive removing all files : completed', [
             'uid' => $validation->getUid(),
             'status' => Validation::STATUS_ARCHIVED,

@@ -73,4 +73,17 @@ class ValidationRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+
+    /**
+     * Drop schema corresponding to input validation
+     *
+     * @param Validation $validation
+     * @return boolean
+     */
+    public function dropSchema(Validation $validation)
+    {
+        $sql = sprintf('DROP SCHEMA IF EXISTS "validation%s" CASCADE', $validation->getUid());
+        $reponse = $this->getEntityManager()->getConnection()->executeQuery($sql);
+        return $reponse->rowCount() != 0;
+    }
 }
