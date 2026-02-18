@@ -54,10 +54,10 @@ RUN apt-get update \
 #----------------------------------------------------------------------
 RUN apt-get update \
   && apt-get install --no-install-recommends -y \
-      apache2 php8.3 libapache2-mod-php8.3 \
-      php8.3-opcache php8.3-xml \
-      php8.3-pdo php8.3-pgsql php8.3-zip \
-      php8.3-curl \
+      apache2 php8.4 libapache2-mod-php8.4 \
+      php8.4-opcache php8.4-xml \
+      php8.4-pdo php8.4-pgsql php8.4-zip \
+      php8.4-curl \
   && rm -rf /var/lib/apt/lists/*
 
 #------------------------------------------------------------------------
@@ -87,8 +87,8 @@ RUN ln -sfT /dev/stderr "/var/log/apache2/error.log" \
 #----------------------------------------------------------------------
 # Configure PHP
 #----------------------------------------------------------------------
-COPY .docker/php.ini /etc/php/8.3/apache2/conf.d/99-app.ini
-COPY .docker/php.ini /etc/php/8.3/cli/conf.d/99-app.ini
+COPY .docker/php.ini /etc/php/8.4/apache2/conf.d/99-app.ini
+COPY .docker/php.ini /etc/php/8.4/cli/conf.d/99-app.ini
 
 #----------------------------------------------------------------------
 # Configure apache
@@ -113,7 +113,7 @@ RUN apt-get update -qq \
 #----------------------------------------------------------------------
 # Setup /opt/ign-validator/validator-cli.jar
 #----------------------------------------------------------------------
-ARG validator_version=4.4.8
+ARG validator_version=4.4.18
 RUN mkdir -p /opt/ign-validator \
  && wget --quiet -O ${VALIDATOR_PATH} https://github.com/IGNF/validator/releases/download/v${validator_version}/validator-cli.jar \
  && echo "validator-cli.jar version : $(java -jar /opt/ign-validator/validator-cli.jar version)"
