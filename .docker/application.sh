@@ -52,6 +52,8 @@ if [ $ACTION = "run" ]; then
     run;
 elif [ $ACTION = "backend" ]; then
     backend;
+elif [ $ACTION = "archive" ]; then
+    archive;
 elif [ $ACTION = "test" ]; then
     test;
 else
