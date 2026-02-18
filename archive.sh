@@ -22,10 +22,9 @@ trap _term SIGTERM SIGINT SIGWINCH
 echo "$BASH_SOURCE - started with PID=$$"
 
 if [ $RUNNING -eq 1 ]
-do
+then
 	php "${SCRIPT_DIR}/bin/console" ign-validator:validations:cleanup -vvv &
 	child_pid=$!
 	wait $child_pid
-done
 
 echo "$BASH_SOURCE - ended"
