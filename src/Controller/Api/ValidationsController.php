@@ -214,8 +214,8 @@ class ValidationsController extends AbstractController
         $arguments = $this->valArgsService->validate($data);
 
         // checks if we need to keep data
-        $validation->setDeleteData($arguments['deleteData']);
-        unset($arguments['deleteData']);
+        $validation->setDeleteData($arguments['delete-data']);
+        unset($arguments['delete-data']);
 
         $validation->reset();
         $validation->setArguments($arguments);

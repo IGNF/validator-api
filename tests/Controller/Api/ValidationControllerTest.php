@@ -275,7 +275,7 @@ class ValidationControllerTest extends WebTestCase
         );
 
         $data = $this->valArgsService->validate(json_encode($data));
-        unset($data['deleteData']);
+        unset($data['delete-data']);
 
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);

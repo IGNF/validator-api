@@ -92,7 +92,7 @@
       "description": "geometry simplification method",
       "example": true
     },
-    "deleteData": {
+    "delete-data": {
       "type": "boolean",
       "description": "Donnees à supprimer immédiatement après la validation.",
       "default": false,
