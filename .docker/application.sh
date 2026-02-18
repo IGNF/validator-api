@@ -36,6 +36,10 @@ backend(){
     exec bash loop-validate.sh
 }
 
+archive(){
+    exec bash archive.sh
+}
+
 test(){
     export APP_ENV=test
     export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api_test?serverVersion=15&charset=utf8"
