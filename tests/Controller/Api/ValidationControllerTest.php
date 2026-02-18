@@ -70,7 +70,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'GET',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
         );
 
         $response = $this->client->getResponse();
@@ -231,7 +231,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'DELETE',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
         );
 
         $response = $this->client->getResponse();
@@ -243,7 +243,7 @@ class ValidationControllerTest extends WebTestCase
         // trying to delete a validation that does not exist
         $this->client->request(
             'DELETE',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
         );
 
         $response = $this->client->getResponse();
@@ -267,7 +267,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -279,6 +279,7 @@ class ValidationControllerTest extends WebTestCase
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
         $arguments = $json['arguments'];
+        unset($arguments['deleteData']);
 
         $this->assertStatusCode(200, $this->client);
         $this->assertSame($data, $arguments);
@@ -329,7 +330,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -353,7 +354,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -379,7 +380,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -411,7 +412,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -440,7 +441,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -468,7 +469,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -496,7 +497,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
@@ -524,7 +525,7 @@ class ValidationControllerTest extends WebTestCase
 
         $this->client->request(
             'PATCH',
-            '/api/validations/'.$validation->getUid(),
+            '/api/validations/' . $validation->getUid(),
             [],
             [],
             ['CONTENT_TYPE' => 'application/json'],
