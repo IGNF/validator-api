@@ -28,3 +28,4 @@ then
 	wait $child_pid
 
 echo "$BASH_SOURCE - ended"
+fi
