@@ -115,6 +115,11 @@ class Validation
     private $results;
 
     /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $deleteData;
+
+    /**
      * Constructor.
      */
     public function __construct()
@@ -228,6 +233,18 @@ class Validation
     public function setResults($results)
     {
         $this->results = $results;
+
+        return $this;
+    }
+
+    public function getDeleteData()
+    {
+        return $this->deleteData;
+    }
+
+    public function setDeleteData($deleteData)
+    {
+        $this->deleteData = $deleteData;
 
         return $this;
     }

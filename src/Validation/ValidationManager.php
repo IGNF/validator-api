@@ -242,13 +242,13 @@ class ValidationManager
         ]);
 
         $validationDirectory = $this->storage->getDirectory($validation);
-        $uploadFile = $this->storage->getUploadDirectory($validation).$validation->getDatasetName().'.zip';
+        $uploadFile = $this->storage->getUploadDirectory($validation) . $validation->getDatasetName() . '.zip';
 
         if (!is_dir($validationDirectory)) {
             mkdir($validationDirectory);
         }
 
-        $zipPath = $validationDirectory.'/'.$validation->getDatasetName().'.zip';
+        $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
 
         file_put_contents(
             $zipPath,
@@ -272,7 +272,7 @@ class ValidationManager
             'datasetName' => $validation->getDatasetName(),
         ]);
         $validationDirectory = $this->storage->getDirectory($validation);
-        $zipPath = $validationDirectory.'/'.$validation->getDatasetName().'.zip';
+        $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
         $errors = $this->zipArchiveValidator->validate($zipPath);
         if (count($errors) > 0) {
             throw new ZipArchiveValidationException($errors);
@@ -291,11 +291,11 @@ class ValidationManager
             'datasetName' => $validation->getDatasetName(),
         ]);
         $validationDirectory = $this->storage->getDirectory($validation);
-        $zipFilename = $validationDirectory.'/'.$validation->getDatasetName().'.zip';
+        $zipFilename = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
         $zip = new \ZipArchive();
 
         if (true === $zip->open($zipFilename)) {
-            $zip->extractTo($validationDirectory.'/'.$validation->getDatasetName());
+            $zip->extractTo($validationDirectory . '/' . $validation->getDatasetName());
             $zip->close();
         } else {
             throw new \Exception('Zip decompression failed');
@@ -316,11 +316,11 @@ class ValidationManager
         $fs = new Filesystem();
 
         $validationDirectory = $this->storage->getDirectory($validation);
-        $normDataParentDir = $validationDirectory.'/validation/';
+        $normDataParentDir = $validationDirectory . '/validation/';
         $datasetName = $validation->getDatasetName();
 
         // checking if normalized data is present
-        if (!$fs->exists($normDataParentDir.$datasetName)) {
+        if (!$fs->exists($normDataParentDir . $datasetName)) {
             return;
         }
 
@@ -345,12 +345,12 @@ class ValidationManager
             'datasetName' => $validation->getDatasetName(),
         ]);
         $validationDirectory = $this->storage->getDirectory($validation);
-        $normDataPath = $validationDirectory.'/validation/'.$validation->getDatasetName().'.zip';
+        $normDataPath = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
         $outputDirectory = $this->storage->getOutputDirectory($validation);
         if (!$this->storage->getStorage()->directoryExists($outputDirectory)) {
             $this->storage->getStorage()->createDirectory($outputDirectory);
         }
-        $outputPath = $outputDirectory.$validation->getDatasetName().'.zip';
+        $outputPath = $outputDirectory . $validation->getDatasetName() . '.zip';
         if ($this->storage->getStorage()->fileExists($outputPath)) {
             $this->storage->getStorage()->delete($outputPath);
         }
@@ -363,8 +363,8 @@ class ValidationManager
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
-        $logPath = $validationDirectory.'/validator-debug.log';
-        $outputPath = $outputDirectory.'/validator-debug.log';
+        $logPath = $validationDirectory . '/validator-debug.log';
+        $outputPath = $outputDirectory . '/validator-debug.log';
 
         $stream = fopen($logPath, 'r+');
         $this->storage->getStorage()->writeStream($outputPath, $stream);
@@ -391,6 +391,10 @@ class ValidationManager
                 'datasetName' => $validation->getDatasetName(),
             ]);
             $fs->remove($validationDirectory);
+        }
+
+        if ($validation->getDeleteData()) {
+            $this->archive($validation);
         }
     }
 
