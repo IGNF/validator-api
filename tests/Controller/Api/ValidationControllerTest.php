@@ -275,11 +275,11 @@ class ValidationControllerTest extends WebTestCase
         );
 
         $data = $this->valArgsService->validate(json_encode($data));
+        unset($data['deleteData']);
 
         $response = $this->client->getResponse();
         $json = \json_decode($response->getContent(), true);
         $arguments = $json['arguments'];
-        unset($arguments['deleteData']);
 
         $this->assertStatusCode(200, $this->client);
         $this->assertSame($data, $arguments);
