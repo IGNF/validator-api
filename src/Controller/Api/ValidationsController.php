@@ -9,7 +9,6 @@ use App\Repository\ValidationRepository;
 use App\Service\MimeTypeGuesserService;
 use App\Service\ValidatorArgumentsService;
 use App\Storage\ValidationsStorage;
-use JMS\Serializer\Serializer;
 use JMS\Serializer\SerializerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,9 +30,8 @@ class ValidationsController extends AbstractController
         private ValidationsStorage $storage,
         private ValidatorArgumentsService $valArgsService,
         private MimeTypeGuesserService $mimeTypeGuesserService,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
     ) {
-
     }
 
     /**
@@ -45,7 +43,7 @@ class ValidationsController extends AbstractController
      */
     public function disabledRoutes()
     {
-        return new JsonResponse(['error' => "This route is not allowed"], Response::HTTP_METHOD_NOT_ALLOWED);
+        return new JsonResponse(['error' => 'This route is not allowed'], Response::HTTP_METHOD_NOT_ALLOWED);
     }
 
     /**
@@ -79,12 +77,12 @@ class ValidationsController extends AbstractController
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
 
-        if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
-            throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
+        if (Validation::STATUS_ARCHIVED == $validation->getStatus()) {
+            throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);
         }
 
         $outputDirectory = $this->storage->getOutputDirectory($validation);
-        $filepath = $outputDirectory . '/validator-debug.log';
+        $filepath = $outputDirectory.'/validator-debug.log';
 
         $content = $this->storage->getStorage()->read($filepath);
 
@@ -93,7 +91,6 @@ class ValidationsController extends AbstractController
             Response::HTTP_CREATED
         );
     }
-
 
     /**
      * @Route(
@@ -113,8 +110,8 @@ class ValidationsController extends AbstractController
             $csvWriter->write($validation);
         });
         $response->headers->set('Content-Type', 'application/force-download');
-        $filename = $uid . '-results.csv';
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $filename = $uid.'-results.csv';
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
 
         return $response;
     }
@@ -134,20 +131,20 @@ class ValidationsController extends AbstractController
          */
         $file = $files->get('dataset');
         if (!$file) {
-            throw new ApiException("Argument [dataset] is missing", Response::HTTP_BAD_REQUEST);
+            throw new ApiException('Argument [dataset] is missing', Response::HTTP_BAD_REQUEST);
         }
 
-        $this->logger->info('handle new upload...',[
+        $this->logger->info('handle new upload...', [
             'path_name' => $file->getPathName(),
-            'client_original_name' => $file->getClientOriginalName()
+            'client_original_name' => $file->getClientOriginalName(),
         ]);
 
         /*
          * Ensure that input file is a ZIP file.
          */
         $mimeType = $this->mimeTypeGuesserService->guessMimeType($file->getPathName());
-        if ($mimeType !== 'application/zip') {
-            throw new ApiException("Dataset must be in a compressed [.zip] file", Response::HTTP_BAD_REQUEST);
+        if ('application/zip' !== $mimeType) {
+            throw new ApiException('Dataset must be in a compressed [.zip] file', Response::HTTP_BAD_REQUEST);
         }
 
         /*
@@ -163,7 +160,7 @@ class ValidationsController extends AbstractController
         if (!$this->storage->getStorage()->directoryExists($uploadDirectory)) {
             $this->storage->getStorage()->createDirectory($uploadDirectory);
         }
-        $fileLocation = $uploadDirectory . $validation->getDatasetName() . '.zip';
+        $fileLocation = $uploadDirectory.$validation->getDatasetName().'.zip';
         if ($this->storage->getStorage()->fileExists($fileLocation)) {
             $this->storage->getStorage()->delete($fileLocation);
         }
@@ -171,7 +168,7 @@ class ValidationsController extends AbstractController
         $this->storage->getStorage()->writeStream($fileLocation, $stream);
         fclose($stream);
 
-        $fs = new Filesystem;
+        $fs = new Filesystem();
         if ($fs->exists($file->getRealPath())) {
             $this->logger->debug('Validation[{uid}] : rm -rf {path}...', [
                 'uid' => $validation->getUid(),
@@ -203,20 +200,26 @@ class ValidationsController extends AbstractController
         $data = $request->getContent();
 
         if (!json_decode($data, true)) {
-            throw new ApiException("Request body must be a valid JSON string", Response::HTTP_BAD_REQUEST);
+            throw new ApiException('Request body must be a valid JSON string', Response::HTTP_BAD_REQUEST);
         }
 
         $validation = $this->repository->findOneByUid($uid);
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
-
         }
 
-        if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
-            throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
+        if (Validation::STATUS_ARCHIVED == $validation->getStatus()) {
+            throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);
         }
         // TODO : review (json_decode in this method and inside of validate)
         $arguments = $this->valArgsService->validate($data);
+
+        // checks if we need to keep data
+        $deleteData = $arguments['deleteData'];
+        if ($deleteData) {
+            $validation->setDateCreation((new \DateTime())->modify('-5 days'));
+        }
+        unset($arguments['deleteData']);
 
         $validation->reset();
         $validation->setArguments($arguments);
@@ -282,12 +285,12 @@ class ValidationsController extends AbstractController
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
 
-        if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
-            throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
+        if (Validation::STATUS_ARCHIVED == $validation->getStatus()) {
+            throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);
         }
 
-        if ($validation->getStatus() == Validation::STATUS_ERROR) {
-            throw new ApiException("Validation failed, no normalized data", Response::HTTP_FORBIDDEN);
+        if (Validation::STATUS_ERROR == $validation->getStatus()) {
+            throw new ApiException('Validation failed, no normalized data', Response::HTTP_FORBIDDEN);
         }
 
         if (in_array($validation->getStatus(), [Validation::STATUS_PENDING, Validation::STATUS_PROCESSING, Validation::STATUS_WAITING_ARGS])) {
@@ -295,8 +298,9 @@ class ValidationsController extends AbstractController
         }
 
         $outputDirectory = $this->storage->getOutputDirectory($validation);
-        $zipFilepath = $outputDirectory . $validation->getDatasetName() . '.zip';
-        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-normalized.zip");
+        $zipFilepath = $outputDirectory.$validation->getDatasetName().'.zip';
+
+        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName().'-normalized.zip');
     }
 
     /**
@@ -313,39 +317,40 @@ class ValidationsController extends AbstractController
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
 
-        if ($validation->getStatus() == Validation::STATUS_ARCHIVED) {
-            throw new ApiException("Validation has been archived", Response::HTTP_FORBIDDEN);
+        if (Validation::STATUS_ARCHIVED == $validation->getStatus()) {
+            throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);
         }
 
         $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
-        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . "-source.zip");
+        $zipFilepath = $uploadDirectory.$validation->getDatasetName().'.zip';
+
+        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName().'-source.zip');
     }
 
     /**
-     * Returns binary response of the specified file
+     * Returns binary response of the specified file.
      *
-     * @param string $dirpath
      * @param string $filename
+     *
      * @return StreamedResponse
      */
     private function getDownloadResponse($filepath, $filename)
     {
         if (!$this->storage->getStorage()->has($filepath)) {
-            throw new ApiException("Requested files not found for this validation", Response::HTTP_FORBIDDEN);
+            throw new ApiException('Requested files not found for this validation', Response::HTTP_FORBIDDEN);
         }
 
         $stream = $this->storage->getStorage()->readStream($filepath);
 
         return new StreamedResponse(function () use ($stream) {
             fpassthru($stream);
-            exit();
+            exit;
         }, 200, [
             'Content-Transfer-Encoding',
             'binary',
             'Content-Type' => 'application/zip',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
-            'Content-Length' => fstat($stream)['size']
+            'Content-Length' => fstat($stream)['size'],
         ]);
     }
 }

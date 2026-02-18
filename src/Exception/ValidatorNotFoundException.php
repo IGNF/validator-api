@@ -2,10 +2,8 @@
 
 namespace App\Exception;
 
-use RuntimeException;
-
-class ValidatorNotFoundException extends RuntimeException {
-
+class ValidatorNotFoundException extends \RuntimeException
+{
     public function __construct($validatorPath)
     {
         parent::__construct(sprintf(
@@ -13,5 +11,4 @@ class ValidatorNotFoundException extends RuntimeException {
             $validatorPath
         ));
     }
-
 }

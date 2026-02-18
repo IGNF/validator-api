@@ -5,13 +5,12 @@ namespace App\Exception;
 use Exception;
 
 /**
- * Exception class for errors raised by ZipArchiveValidator
+ * Exception class for errors raised by ZipArchiveValidator.
  */
-class ZipArchiveValidationException extends Exception
+class ZipArchiveValidationException extends \Exception
 {
-
     /**
-     * Array of errors in the same format as validator-cli.jar
+     * Array of errors in the same format as validator-cli.jar.
      *
      * @var array
      */
@@ -20,7 +19,7 @@ class ZipArchiveValidationException extends Exception
     public function __construct($errors = [])
     {
         $this->errors = $errors;
-        $this->message = "Zip archive pre-validation failed";
+        $this->message = 'Zip archive pre-validation failed';
         parent::__construct();
     }
 

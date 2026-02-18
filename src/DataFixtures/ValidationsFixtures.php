@@ -7,39 +7,37 @@ use App\Service\ValidatorArgumentsService;
 use App\Storage\ValidationsStorage;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 
 class ValidationsFixtures extends Fixture
 {
-    const FILENAME_SUP_PM3 = "130010853_PM3_60_20180516.zip";
-    const FILENAME_INVALID_REGEX = "130010853_PM3_60_20180516-invalid-regex.zip";
+    public const FILENAME_SUP_PM3 = '130010853_PM3_60_20180516.zip';
+    public const FILENAME_INVALID_REGEX = '130010853_PM3_60_20180516-invalid-regex.zip';
 
     /**
-     * A validation where args are provided
+     * A validation where args are provided.
      */
-    const VALIDATION_WITH_ARGS = 'validation_with_args';
+    public const VALIDATION_WITH_ARGS = 'validation_with_args';
     /**
-     * A validation with no args
+     * A validation with no args.
      */
-    const VALIDATION_NO_ARGS = 'validation_no_args';
+    public const VALIDATION_NO_ARGS = 'validation_no_args';
     /**
      * A validation that has already been archived
-     * (no file, archived)
+     * (no file, archived).
      */
-    const VALIDATION_ARCHIVED = 'validation_archived';
+    public const VALIDATION_ARCHIVED = 'validation_archived';
 
     /**
      * a validation with bad args
-     * (the model url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed)
+     * (the model url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed).
      */
-    const VALIDATION_WITH_BAD_ARGS = 'validation_with_bad_args';
+    public const VALIDATION_WITH_BAD_ARGS = 'validation_with_bad_args';
 
     /**
-     * A validation whose zip archive is empty
+     * A validation whose zip archive is empty.
      */
-    const VALIDATION_INVALID_REGEX = 'validation_invalid_regex';
-
+    public const VALIDATION_INVALID_REGEX = 'validation_invalid_regex';
 
     /**
      * @var ValidatorArgumentsService
@@ -53,24 +51,24 @@ class ValidationsFixtures extends Fixture
 
     public function __construct(
         ValidatorArgumentsService $valArgsService,
-        ValidationsStorage $validationsStorage
+        ValidationsStorage $validationsStorage,
     ) {
         $this->valArgsService = $valArgsService;
         $this->validationsStorage = $validationsStorage;
     }
 
     /**
-     * Add sample archive to the storage
+     * Add sample archive to the storage.
      *
-     * @param Validation $validation
      * @param string $filename
+     *
      * @return void
      */
     private function addSampleArchive(Validation $validation, $filename)
     {
-        $originalPath = __DIR__ . '/../../tests/data/' . $filename;
+        $originalPath = __DIR__.'/../../tests/data/'.$filename;
         if (!file_exists($originalPath)) {
-            throw new RuntimeException('Sample file not found : ' . $originalPath);
+            throw new \RuntimeException('Sample file not found : '.$originalPath);
         }
 
         $validationDirectory = $this->validationsStorage->getDirectory($validation);
@@ -78,7 +76,7 @@ class ValidationsFixtures extends Fixture
         $validation->setDatasetName(str_replace('.zip', '', $filename));
         $fs->copy(
             $originalPath,
-            $validationDirectory . "/" . $filename
+            $validationDirectory.'/'.$filename
         );
     }
 

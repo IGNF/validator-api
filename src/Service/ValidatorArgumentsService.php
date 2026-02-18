@@ -17,10 +17,12 @@ class ValidatorArgumentsService
     }
 
     /**
-     * Validates the arguments posted by the user
+     * Validates the arguments posted by the user.
      *
      * @param array $args
+     *
      * @return array
+     *
      * @throws ApiException
      */
     public function validate($args)
@@ -28,7 +30,7 @@ class ValidatorArgumentsService
         $args = json_decode($args);
 
         $validator = new Validator();
-        $validator->validate($args, (object) ['$ref' => 'file://' . $this->projectDir . '/docs/specs/schema/validator-arguments.json'], Constraint::CHECK_MODE_APPLY_DEFAULTS);
+        $validator->validate($args, (object) ['$ref' => 'file://'.$this->projectDir.'/docs/specs/schema/validator-arguments.json'], Constraint::CHECK_MODE_APPLY_DEFAULTS);
 
         if ($validator->isValid()) {
             return get_object_vars($args);
@@ -45,8 +47,7 @@ class ValidatorArgumentsService
                 array_push($details, $errorDetails);
             }
 
-            throw new ApiException("Invalid arguments, check details", Response::HTTP_BAD_REQUEST, $details);
+            throw new ApiException('Invalid arguments, check details', Response::HTTP_BAD_REQUEST, $details);
         }
     }
-
 }

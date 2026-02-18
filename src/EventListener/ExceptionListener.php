@@ -10,7 +10,7 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
- * Class for custom exception handling
+ * Class for custom exception handling.
  */
 class ExceptionListener
 {
@@ -22,9 +22,7 @@ class ExceptionListener
     }
 
     /**
-     * Handles the exception caught by the listener
-     *
-     * @param ExceptionEvent $event
+     * Handles the exception caught by the listener.
      */
     public function onKernelException(ExceptionEvent $event)
     {
@@ -33,9 +31,8 @@ class ExceptionListener
     }
 
     /**
-     * Returns the error response data corresponding to the exception caught by the listener
+     * Returns the error response data corresponding to the exception caught by the listener.
      *
-     * @param \Throwable $throwable
      * @return JsonResponse
      */
     private function getErrorResponse(\Throwable $throwable)
@@ -43,7 +40,7 @@ class ExceptionListener
         $responseData = [
             'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
             'status' => Response::$statusTexts[Response::HTTP_INTERNAL_SERVER_ERROR],
-            'message' => "An internal error has occurred",
+            'message' => 'An internal error has occurred',
             'details' => [],
         ];
 
@@ -52,8 +49,7 @@ class ExceptionListener
             $responseData['code'] = $code;
             $responseData['status'] = Response::$statusTexts[$code];
             $responseData['message'] = $throwable->getMessage();
-
-        } else if ($throwable instanceof ApiException) {
+        } elseif ($throwable instanceof ApiException) {
             $code = $throwable->getCode();
             $responseData['code'] = $code;
             $responseData['status'] = Response::$statusTexts[$code];
@@ -61,7 +57,7 @@ class ExceptionListener
             $responseData['details'] = $throwable->getDetails();
         }
 
-        $this->logger->error("Exception[{exception}]: {message}", ['exception' => get_class($throwable), 'message' => $throwable->getMessage()]);
+        $this->logger->error('Exception[{exception}]: {message}', ['exception' => get_class($throwable), 'message' => $throwable->getMessage()]);
 
         return new JsonResponse($responseData, $responseData['code']);
     }

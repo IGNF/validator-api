@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Storage ;
+namespace App\Storage;
 
 use App\Entity\Validation;
 use League\Flysystem\FilesystemOperator;
 
 /**
- * Manage validation files
+ * Manage validation files.
  */
-class ValidationsStorage {
-
+class ValidationsStorage
+{
     /**
      * Root directory for validations.
      *
@@ -18,7 +18,7 @@ class ValidationsStorage {
     private $path;
 
     /**
-     * Flysystem storage
+     * Flysystem storage.
      *
      * @var FilesystemOperator
      */
@@ -30,7 +30,7 @@ class ValidationsStorage {
     {
         $this->path = $validationsDir;
         // Assign storage based on env
-        if (getenv("STORAGE_TYPE") === "S3"){
+        if ('S3' === getenv('STORAGE_TYPE')) {
             $this->storageSystem = $dataStorage;
         } else {
             $this->storageSystem = $defaultStorage;
@@ -40,41 +40,40 @@ class ValidationsStorage {
     /**
      * @return string
      */
-    public function getPath(){
+    public function getPath()
+    {
         return $this->path;
     }
 
     /**
      * @return FilesystemOperator
      */
-    public function getStorage(){
+    public function getStorage()
+    {
         return $this->storageSystem;
     }
 
     /**
-     * @param Validation $validation
      * @return string
      */
-    public function getDirectory(Validation $validation){
+    public function getDirectory(Validation $validation)
+    {
         return $this->path.'/'.$validation->getUid();
     }
 
     /**
-     * @param Validation $validation
      * @return string
      */
-    public function getUploadDirectory(Validation $validation){
-        return $validation->getUid() . "/upload/";
+    public function getUploadDirectory(Validation $validation)
+    {
+        return $validation->getUid().'/upload/';
     }
 
     /**
-     * @param Validation $validation
      * @return string
      */
-    public function getOutputDirectory(Validation $validation){
-        return $validation->getUid() . "/output/";
+    public function getOutputDirectory(Validation $validation)
+    {
+        return $validation->getUid().'/output/';
     }
-
-
 }
-

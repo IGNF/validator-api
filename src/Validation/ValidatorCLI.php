@@ -46,11 +46,11 @@ class ValidatorCLI
         $validatorPath,
         $validatorJavaOpts,
         $gmlasConfigPath,
-        LoggerInterface $logger
+        LoggerInterface $logger,
     ) {
         $this->storage = $storage;
         $this->validatorPath = $validatorPath;
-        if ( ! file_exists($this->validatorPath) ){
+        if (!file_exists($this->validatorPath)) {
             throw new ValidatorNotFoundException($this->validatorPath);
         }
         $this->validatorJavaOpts = $validatorJavaOpts;
@@ -76,15 +76,15 @@ class ValidatorCLI
          * specify validation schema
          * TODO : compute DB_URL=jdbc:postgresql:${PGDATABASE}, DB_USER et DB_PASSWORD according to doctrine?
          */
-        $env['DB_SCHEMA'] = "validation" . $validation->getUid();
+        $env['DB_SCHEMA'] = 'validation'.$validation->getUid();
 
         $sourceDataDir = $validationDirectory.'/'.$validation->getDatasetName();
         $cmd = ['java'];
-        $cmd = \array_merge($cmd, explode(' ',$this->validatorJavaOpts));
-        $cmd = \array_merge($cmd,[
+        $cmd = \array_merge($cmd, explode(' ', $this->validatorJavaOpts));
+        $cmd = \array_merge($cmd, [
             '-jar', $this->validatorPath,
             'document_validator',
-            '--input', $sourceDataDir
+            '--input', $sourceDataDir,
         ]);
         $args = $this->reconstructArgs($validation);
         $cmd = \array_merge($cmd, $args);
