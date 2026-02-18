@@ -3,17 +3,15 @@
 namespace App\Validation;
 
 use Psr\Log\LoggerInterface;
-use ZipArchive;
 
 /**
- * Component class for the validation of the names of the files in a zip archive
+ * Component class for the validation of the names of the files in a zip archive.
  */
 class ZipArchiveValidator
 {
-
-    const REGEXP_VALID_FILENAME = "/^[A-Za-z0-9-_.\/]+$/";
-    const ERROR_BAD_ARCHIVE = "BAD_ARCHIVE";
-    const ERROR_BAD_ARCHIVE_FILENAME = "BAD_ARCHIVE_FILENAME";
+    public const REGEXP_VALID_FILENAME = "/^[A-Za-z0-9-_.\/]+$/";
+    public const ERROR_BAD_ARCHIVE = 'BAD_ARCHIVE';
+    public const ERROR_BAD_ARCHIVE_FILENAME = 'BAD_ARCHIVE_FILENAME';
 
     private $logger;
 
@@ -23,9 +21,10 @@ class ZipArchiveValidator
     }
 
     /**
-     * Validates a ZIP returning a set of errors in the same format as the validator
+     * Validates a ZIP returning a set of errors in the same format as the validator.
      *
      * @param string $zipPath
+     *
      * @return array
      */
     public function validate($zipPath)
@@ -53,9 +52,10 @@ class ZipArchiveValidator
     }
 
     /**
-     * Returns the list of names of the files in the archive
+     * Returns the list of names of the files in the archive.
      *
      * @param string $zipPath
+     *
      * @return array
      */
     private function listFiles($zipPath)
@@ -65,10 +65,10 @@ class ZipArchiveValidator
             throw new \Exception(sprintf("The zip archive file %s doesn't exist", $zipName));
         }
 
-        $zipArchive = new ZipArchive();
-        if ($zipArchive->open($zipPath) !== true) {
-            $this->logger->error(sprintf("[ZipArchiveValidator] Impossible to open archive %s", $zipPath));
-            throw new \Exception(sprintf("Impossible to open archive %s", $zipName));
+        $zipArchive = new \ZipArchive();
+        if (true !== $zipArchive->open($zipPath)) {
+            $this->logger->error(sprintf('[ZipArchiveValidator] Impossible to open archive %s', $zipPath));
+            throw new \Exception(sprintf('Impossible to open archive %s', $zipName));
         }
 
         $files = [];
@@ -81,20 +81,21 @@ class ZipArchiveValidator
 
         if (empty($files)) {
             $this->logger->error(sprintf('[ZipArchiveValidator] Archive %s is empty', $zipPath));
-            throw new \Exception(sprintf("Archive %s is empty", $zipName));
+            throw new \Exception(sprintf('Archive %s is empty', $zipName));
         }
 
         return $files;
     }
 
     /**
-     * Validates the filename of the provided filepath
+     * Validates the filename of the provided filepath.
      *
      * Validation criteria:
      *  - must be UTF-8
      *  - must match the regular expression self::REGEXP_VALID_FILENAME
      *
      * @param string $filepath
+     *
      * @return array|null
      */
     private function validateFilename($filepath)
@@ -102,7 +103,7 @@ class ZipArchiveValidator
         $filename = pathinfo($filepath, PATHINFO_BASENAME);
         $error = false;
         $message = sprintf(
-            "filename %s is valid",
+            'filename %s is valid',
             $filename
         );
 
@@ -123,7 +124,7 @@ class ZipArchiveValidator
             );
         }
 
-        $this->logger->debug(sprintf("[ZipArchiveValidator] %s", $message));
+        $this->logger->debug(sprintf('[ZipArchiveValidator] %s', $message));
 
         return $error ? [
             'file' => $filepath,
@@ -131,5 +132,4 @@ class ZipArchiveValidator
             'message' => $message,
         ] : null;
     }
-
 }

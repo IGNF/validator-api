@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\Validation;
-use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,7 +20,7 @@ class ValidationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Update next "pending" validation to "processing" and returns it
+     * Update next "pending" validation to "processing" and returns it.
      *
      * @return Validation|null
      */
@@ -40,8 +39,7 @@ class ValidationRepository extends ServiceEntityRepository
             ->orderBy('v.dateCreation', 'ASC')
             ->setMaxResults(1)
             ->getQuery()
-            ->getOneOrNullResult()
-        ;
+            ->getOneOrNullResult();
 
         if (!is_null($result)) {
             $result->setStatus(Validation::STATUS_PROCESSING);
@@ -51,16 +49,16 @@ class ValidationRepository extends ServiceEntityRepository
         }
 
         $conn->commit();
+
         return $result;
     }
 
     /**
      * Finds all archivable validations older than expiryDate.
      *
-     * @param DateTime $expiryDate
      * @return array<Validation>
      */
-    public function findAllToBeArchived(DateTime $expiryDate)
+    public function findAllToBeArchived(\DateTime $expiryDate)
     {
         return $this->createQueryBuilder('v')
             ->where('v.dateCreation < :expiryDate')
@@ -75,15 +73,15 @@ class ValidationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Drop schema corresponding to input validation
+     * Drop schema corresponding to input validation.
      *
-     * @param Validation $validation
-     * @return boolean
+     * @return bool
      */
     public function dropSchema(Validation $validation)
     {
         $sql = sprintf('DROP SCHEMA IF EXISTS "validation%s" CASCADE', $validation->getUid());
         $reponse = $this->getEntityManager()->getConnection()->executeQuery($sql);
-        return $reponse->rowCount() != 0;
+
+        return 0 != $reponse->rowCount();
     }
 }

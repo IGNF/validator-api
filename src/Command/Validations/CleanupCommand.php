@@ -20,9 +20,9 @@ class CleanupCommand extends Command
     protected static $defaultName = 'ign-validator:validations:cleanup';
 
     /**
-     * Time interval of 30 days
+     * Time interval of 5 days.
      */
-    const DEFAULT_EXPIRY_CONDITION = 'P1M';
+    public const DEFAULT_EXPIRY_CONDITION = 'P5D';
 
     /**
      * @var EntityManagerInterface
@@ -42,7 +42,7 @@ class CleanupCommand extends Command
     public function __construct(
         EntityManagerInterface $em,
         ValidationManager $validationManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
     ) {
         parent::__construct();
         $this->em = $em;
@@ -53,19 +53,16 @@ class CleanupCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Deletes all validation files that are older than max-age (default 1 month)')
+            ->setDescription('Deletes all validation files that are older than max-age (default 5 days)')
             ->addOption(
                 'max-age',
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Max duration to keep validation files (P1M : 1 month, PT30M : 30 minutes,...)',
+                'Max duration to keep validation files (P1M : 1 month, P5D : 5 jours, PT30M : 30 minutes,...)',
                 self::DEFAULT_EXPIRY_CONDITION
             );
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $maxAge = $input->getOption('max-age');
@@ -73,18 +70,19 @@ class CleanupCommand extends Command
         $dateExpire = $today->sub(new \DateInterval($maxAge));
 
         $this->logger->info('archive validations older than {$maxAge}...', [
-            '$maxAge' => $maxAge
+            '$maxAge' => $maxAge,
         ]);
         $validations = $this->getValidationRepository()->findAllToBeArchived($dateExpire);
         $count = 0;
         foreach ($validations as $validation) {
             $this->validationManager->archive($validation);
-            $count++;
+            ++$count;
         }
         $this->logger->info('archive validations older than {maxTime} : completed, {count} validation(s) processed.', [
             'maxTime' => $maxAge,
-            'count' => $count
+            'count' => $count,
         ]);
+
         return 0;
     }
 

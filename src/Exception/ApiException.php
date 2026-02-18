@@ -2,14 +2,12 @@
 
 namespace App\Exception;
 
-use Exception;
-
-class ApiException extends Exception
+class ApiException extends \Exception
 {
     protected $details;
     protected $previous;
 
-    public function __construct($message, $code, $details = [], Exception $previous = null)
+    public function __construct($message, $code, $details = [], ?\Exception $previous = null)
     {
         $this->message = $message;
         $this->details = $details;

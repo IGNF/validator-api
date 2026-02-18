@@ -7,9 +7,11 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=ValidationRepository::class)
+ *
  * @ORM\Table(
  *      name="validation",
  *      indexes = {
+ *
  *          @ORM\Index(name="validation_uid_idx", columns={"uid"})
  *      }
  * )
@@ -18,101 +20,102 @@ class Validation
 {
     /**
      * User has uploaded a dataset but is yet to post the arguments
-     * User has 30 days to provide the arguments, otherwise the dataset will be deleted
+     * User has 30 days to provide the arguments, otherwise the dataset will be deleted.
      */
-    const STATUS_WAITING_ARGS = 'waiting_for_args';
+    public const STATUS_WAITING_ARGS = 'waiting_for_args';
 
     /**
-     * The validation request by user has been recorded (both dataset and arguments received) but is yet to be carried out
+     * The validation request by user has been recorded (both dataset and arguments received) but is yet to be carried out.
      */
-    const STATUS_PENDING = 'pending';
+    public const STATUS_PENDING = 'pending';
 
     /**
-     * Validation is being carried out right now
+     * Validation is being carried out right now.
      */
-    const STATUS_PROCESSING = 'processing';
+    public const STATUS_PROCESSING = 'processing';
 
     /**
-     * Validation is done and the results are available
+     * Validation is done and the results are available.
      */
-    const STATUS_FINISHED = 'finished';
+    public const STATUS_FINISHED = 'finished';
 
     /**
-     * A runtime error has occured
+     * A runtime error has occured.
      */
-    const STATUS_ERROR = 'error';
+    public const STATUS_ERROR = 'error';
 
     /**
-     * Validation created 30 days ago and its files have been deleted automatically to save space on the server
+     * Validation created 30 days ago and its files have been deleted automatically to save space on the server.
      */
-    const STATUS_ARCHIVED = 'archived';
+    public const STATUS_ARCHIVED = 'archived';
 
     /**
-     * Unique identifier
+     * Unique identifier.
      *
      * @ORM\Id
+     *
      * @ORM\Column(type="string", length=24, unique=true)
      */
     private $uid;
 
     /**
-     * Name of the dataset, derived from the name of the compressed file (zip) containing the dataset
+     * Name of the dataset, derived from the name of the compressed file (zip) containing the dataset.
      *
      * @ORM\Column(type="string", length=100)
      */
     private $datasetName;
 
     /**
-     * CLI Arguments for the Java executable program
+     * CLI Arguments for the Java executable program.
      *
      * @ORM\Column(type="json", nullable=true)
      */
     private $arguments;
 
     /**
-     * Date of creation
+     * Date of creation.
      *
      * @ORM\Column(type="datetime", nullable=false)
      */
     private $dateCreation;
 
     /**
-     * Status
+     * Status.
      *
      * @ORM\Column(type="string", length=16, nullable=false, options={"default":"waiting_for_args"}, columnDefinition="character varying(16) CHECK (status IN ('waiting_for_args','pending','processing','finished','archived','error'))")
      */
     private $status;
 
     /**
-     * Message
+     * Message.
      *
      * @ORM\Column(type="text", nullable=true)
      */
     private $message;
 
     /**
-     * Start date
+     * Start date.
      *
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $dateStart;
 
     /**
-     * Finish date
+     * Finish date.
      *
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $dateFinish;
 
     /**
-     * Results in json format
+     * Results in json format.
      *
      * @ORM\Column(type="json", nullable=true)
      */
     private $results;
 
     /**
-     * Constructor
+     * Constructor.
      */
     public function __construct()
     {
@@ -230,7 +233,7 @@ class Validation
     }
 
     /**
-     * Reset all attributes because user has requested a validation with updated parameters
+     * Reset all attributes because user has requested a validation with updated parameters.
      *
      * @return Validation
      */
@@ -246,17 +249,18 @@ class Validation
     }
 
     /**
-     * Generate UID
+     * Generate UID.
      *
-     * @param integer $length
+     * @param int $length
+     *
      * @return string
      */
     private function generateUid($length = 24)
     {
-        $randomUid = "";
+        $randomUid = '';
 
-        for ($i = 0; $i < $length; $i++) {
-            if (random_int(1, 2) == 1) {
+        for ($i = 0; $i < $length; ++$i) {
+            if (1 == random_int(1, 2)) {
                 // a digit between 0 and 9
                 $randomUid .= chr(random_int(48, 57));
             } else {
@@ -264,6 +268,7 @@ class Validation
                 $randomUid .= chr(random_int(97, 122));
             }
         }
+
         return $randomUid;
     }
 }

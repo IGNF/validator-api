@@ -18,7 +18,7 @@ class DocumentationController extends AbstractController
 
     public function __construct($projectDir)
     {
-        $this->specsDir = $projectDir . '/docs/specs';
+        $this->specsDir = $projectDir.'/docs/specs';
     }
 
     /**
@@ -38,7 +38,8 @@ class DocumentationController extends AbstractController
      */
     public function swagger()
     {
-        $swaggerPath = $this->specsDir . '/validator-api.yml';
+        $swaggerPath = $this->specsDir.'/validator-api.yml';
+
         return new BinaryFileResponse($swaggerPath);
     }
 
@@ -50,7 +51,7 @@ class DocumentationController extends AbstractController
     public function schema($schemaName)
     {
         $fs = new Filesystem();
-        $schemaPath = $this->specsDir . '/schema/' . $schemaName . '.json';
+        $schemaPath = $this->specsDir.'/schema/'.$schemaName.'.json';
 
         if ($fs->exists($schemaPath)) {
             return new BinaryFileResponse($schemaPath);

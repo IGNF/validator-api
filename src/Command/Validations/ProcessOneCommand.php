@@ -28,7 +28,7 @@ class ProcessOneCommand extends Command implements SignalableCommandInterface
 
     public function __construct(
         ValidationManager $validationManager,
-        LoggerInterface $logger
+        LoggerInterface $logger,
     ) {
         parent::__construct();
         $this->validationManager = $validationManager;
@@ -42,31 +42,28 @@ class ProcessOneCommand extends Command implements SignalableCommandInterface
         ;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->validationManager->processOne();
+
         return 0;
     }
 
     public function getSubscribedSignals(): array
     {
-        return [\SIGINT,\SIGTERM];
+        return [\SIGINT, \SIGTERM];
     }
 
     public function handleSignal(int $signal): void
     {
-        $this->logger->warning("[ProcessOneCommand] received stop signal while processing validation!",[
-            'signal' => $signal
+        $this->logger->warning('[ProcessOneCommand] received stop signal while processing validation!', [
+            'signal' => $signal,
         ]);
         $this->validationManager->cancelProcessing();
         $exitCode = 128 + $signal;
-        $this->logger->info("terminate process with exitCode={exitCode}",[
-            'exitCode' => $exitCode
+        $this->logger->info('terminate process with exitCode={exitCode}', [
+            'exitCode' => $exitCode,
         ]);
         exit($exitCode);
     }
 }
-

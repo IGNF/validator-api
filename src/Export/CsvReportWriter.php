@@ -3,7 +3,6 @@
 namespace App\Export;
 
 use App\Entity\Validation;
-use SplFileObject;
 
 /**
  * Converts results from a Validation from JSON to CSV.
@@ -35,7 +34,7 @@ class CsvReportWriter
 
     public function write(Validation $validation, $path = 'php://output')
     {
-        $out = new SplFileObject($path, 'w');
+        $out = new \SplFileObject($path, 'w');
         $out->fputcsv($this->getHeader());
 
         foreach ($validation->getResults() as $result) {
@@ -64,9 +63,9 @@ class CsvReportWriter
         foreach (self::MAPPING as $csvName => $jsonName) {
             $value = @$result[$jsonName];
             // feat_bbox
-            if ( is_array($value) ){
-                $row[] = implode(',',$value);
-            }else{
+            if (is_array($value)) {
+                $row[] = implode(',', $value);
+            } else {
                 $row[] = $value;
             }
         }

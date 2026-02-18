@@ -14,20 +14,20 @@ use Symfony\Component\Process\Process;
 class MimeTypeGuesserService
 {
     /**
-     * Checks and returns the file mime type with the linux command "file" if successful
+     * Checks and returns the file mime type with the linux command "file" if successful.
      *
      * @param string $filepath
-     * @return string
+     *
      * @throws ProcessFailedException
      * @throws FileNotFoundException
      */
     public function guessMimeType($filepath): string
     {
-        if ( ! file_exists($filepath) ){
-            throw new FileNotFoundException(sprintf("file '%s' not found'",$filepath));
+        if (!file_exists($filepath)) {
+            throw new FileNotFoundException(sprintf("file '%s' not found'", $filepath));
         }
 
-        $process = new Process(["file", "-b", "--mime-type", "-E", $filepath]);
+        $process = new Process(['file', '-b', '--mime-type', '-E', $filepath]);
         $process->setTimeout(100);
         $process->setIdleTimeout(100);
         $process->run();
@@ -36,6 +36,6 @@ class MimeTypeGuesserService
             throw new ProcessFailedException($process);
         }
 
-        return preg_replace("/\r|\n/", "", $process->getOutput());
+        return preg_replace("/\r|\n/", '', $process->getOutput());
     }
 }
