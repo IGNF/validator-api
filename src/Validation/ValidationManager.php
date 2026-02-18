@@ -111,7 +111,7 @@ class ValidationManager
             'status' => Validation::STATUS_ARCHIVED,
         ]);
         $validation->setStatus(Validation::STATUS_ARCHIVED);
-        $this->em->persist($validation);
+        $this->em->persist(object: $validation);
         $this->em->flush();
     }
 
@@ -211,7 +211,9 @@ class ValidationManager
              */
             $this->cleanUp($validation);
 
-            $validation->setStatus(Validation::STATUS_FINISHED);
+            if ($validation->getStatus() != Validation::STATUS_ARCHIVED) {
+                $validation->setStatus(Validation::STATUS_FINISHED);
+            }
             $this->logger->info('Validation[{uid}]: validation carried out successfully', ['uid' => $validation->getUid()]);
         } catch (ZipArchiveValidationException $ex) {
             $validation->setStatus(Validation::STATUS_ERROR);
