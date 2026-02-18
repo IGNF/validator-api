@@ -111,7 +111,7 @@ class ValidationManager
             'status' => Validation::STATUS_ARCHIVED,
         ]);
         $validation->setStatus(Validation::STATUS_ARCHIVED);
-        $this->em->persist(object: $validation);
+        $this->em->persist($validation);
         $this->em->flush();
     }
 
