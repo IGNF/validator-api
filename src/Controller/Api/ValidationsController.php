@@ -31,8 +31,7 @@ class ValidationsController extends AbstractController
         private ValidatorArgumentsService $valArgsService,
         private MimeTypeGuesserService $mimeTypeGuesserService,
         private LoggerInterface $logger,
-    ) {
-    }
+    ) {}
 
     /**
      * @Route(
@@ -82,7 +81,7 @@ class ValidationsController extends AbstractController
         }
 
         $outputDirectory = $this->storage->getOutputDirectory($validation);
-        $filepath = $outputDirectory.'/validator-debug.log';
+        $filepath = $outputDirectory . '/validator-debug.log';
 
         $content = $this->storage->getStorage()->read($filepath);
 
@@ -110,8 +109,8 @@ class ValidationsController extends AbstractController
             $csvWriter->write($validation);
         });
         $response->headers->set('Content-Type', 'application/force-download');
-        $filename = $uid.'-results.csv';
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
+        $filename = $uid . '-results.csv';
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
 
         return $response;
     }
@@ -160,7 +159,7 @@ class ValidationsController extends AbstractController
         if (!$this->storage->getStorage()->directoryExists($uploadDirectory)) {
             $this->storage->getStorage()->createDirectory($uploadDirectory);
         }
-        $fileLocation = $uploadDirectory.$validation->getDatasetName().'.zip';
+        $fileLocation = $uploadDirectory . $validation->getDatasetName() . '.zip';
         if ($this->storage->getStorage()->fileExists($fileLocation)) {
             $this->storage->getStorage()->delete($fileLocation);
         }
@@ -215,10 +214,7 @@ class ValidationsController extends AbstractController
         $arguments = $this->valArgsService->validate($data);
 
         // checks if we need to keep data
-        $deleteData = $arguments['deleteData'];
-        if ($deleteData) {
-            $validation->setDateCreation((new \DateTime())->modify('-5 days'));
-        }
+        $validation->setDeleteData($arguments['deleteData']);
         unset($arguments['deleteData']);
 
         $validation->reset();
@@ -298,9 +294,9 @@ class ValidationsController extends AbstractController
         }
 
         $outputDirectory = $this->storage->getOutputDirectory($validation);
-        $zipFilepath = $outputDirectory.$validation->getDatasetName().'.zip';
+        $zipFilepath = $outputDirectory . $validation->getDatasetName() . '.zip';
 
-        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName().'-normalized.zip');
+        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . '-normalized.zip');
     }
 
     /**
@@ -322,9 +318,9 @@ class ValidationsController extends AbstractController
         }
 
         $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        $zipFilepath = $uploadDirectory.$validation->getDatasetName().'.zip';
+        $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
 
-        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName().'-source.zip');
+        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . '-source.zip');
     }
 
     /**
