@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: DejaVu Sans, Arial, sans-serif;
+            font-size: 13px;
+            color: #1a1a2e;
+            margin: 40px;
+        }
+
+        .banner {
+            padding: 16px 24px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 32px;
+            border-left: 6px solid;
+        }
+
+        .banner.has-errors {
+            background-color: #fde8e8;
+            border-color: #e53e3e;
+            color: #c53030;
+        }
+
+        .banner.no-errors {
+            background-color: #e6f4ea;
+            border-color: #38a169;
+            color: #276749;
+        }
+
+        h2.group-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 28px 0 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid currentColor;
+        }
+
+        h2.level-error   { color: #e53e3e; border-color: #e53e3e; }
+        h2.level-warning { color: #d97706; border-color: #d97706; }
+        h2.level-info    { color: #3182ce; border-color: #3182ce; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        thead th {
+            background-color: #2d3748;
+            color: #ffffff;
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr:nth-child(even) { background-color: #f7fafc; }
+        tbody tr:nth-child(odd)  { background-color: #ffffff; }
+
+        tbody td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-error   { background: #fed7d7; color: #c53030; }
+        .badge-warning { background: #fefcbf; color: #b7791f; }
+        .badge-info    { background: #bee3f8; color: #2b6cb0; }
+
+        .code { font-family: monospace; font-size: 12px; color: #553c9a; }
+    </style>
+</head>
+<body>
+
+    {# ── Top banner ── #}
+    {% if hasErrors %}
+        <div class="banner has-errors">
+            Document Invalide
+        </div>
+    {% else %}
+        <div class="banner no-errors">
+            Document Valide
+        </div>
+    {% endif %}
+
+    {# ── One table per level ── #}
+    {% for level, rows in groupedEntries %}
+        <h2 class="group-title level-{{ level|lower }}">{{ level|upper }}</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 18%">Code</th>
+                    <th style="width: 14%">Level</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in rows %}
+                <tr>
+                    <td class="code">{{ entry.code }}</td>
+                    <td>
+                        <span class="badge badge-{{ entry.level|lower }}">{{ entry.level }}</span>
+                    </td>
+                    <td>{{ entry.message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+
+</body>
+</html>
