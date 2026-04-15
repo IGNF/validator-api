@@ -19,7 +19,7 @@ class PdfReportWriter
      */
     public function generate(Validation $validation): string
     {
-        $entries = json_decode($validation->getResults());
+        $entries = $validation->getResults();
 
         $hasErrors = (bool) array_filter(
             $entries,
