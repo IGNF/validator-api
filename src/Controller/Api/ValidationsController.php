@@ -326,8 +326,8 @@ class ValidationsController extends AbstractController
 
     /**
      * @Route(
-     *      "/{uid}/files/pdf",
-     *      name="validator_api_download_pdf",
+     *      "/{uid}/results.pdf",
+     *      name="validator_api_get_validation_pdf",
      *      methods={"GET"}
      * )
      */
@@ -342,7 +342,7 @@ class ValidationsController extends AbstractController
 
         return new Response($pdf, Response::HTTP_OK, [
             'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="report.pdf"',
+            'Content-Disposition' => 'inline; filename="' . $validation->getDatasetName() . '.pdf"',
         ]);
     }
 
