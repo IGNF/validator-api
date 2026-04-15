@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Entity\Validation;
 use App\Exception\ApiException;
 use App\Export\CsvReportWriter;
+use App\Export\PdfReportWriter;
 use App\Repository\ValidationRepository;
 use App\Service\MimeTypeGuesserService;
 use App\Service\ValidatorArgumentsService;
@@ -321,6 +322,28 @@ class ValidationsController extends AbstractController
         $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
 
         return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . '-source.zip');
+    }
+
+    /**
+     * @Route(
+     *      "/{uid}/results.pdf",
+     *      name="validator_api_get_validation_pdf",
+     *      methods={"GET"}
+     * )
+     */
+    public function generatePdf($uid, PdfReportWriter $writer,
+    ): Response {
+        $validation = $this->repository->findOneByUid($uid);
+        if (!$validation) {
+            throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
+        }
+
+        $pdf = $writer->generate($validation);
+
+        return new Response($pdf, Response::HTTP_OK, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $validation->getDatasetName() . '.pdf"',
+        ]);
     }
 
     /**

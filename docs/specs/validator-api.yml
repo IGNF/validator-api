@@ -6,7 +6,7 @@ info:
   contact:
     name: IGNF/validator
     url: "https://github.com/IGNF/validator/issues"
-  version: "0.6.1"
+  version: "0.6.2"
   title: "API Validator"
   license:
     name: "AGPL-3.0-or-later"
@@ -166,6 +166,40 @@ paths:
       operationId: get_validation_csv
       summary: "Télécharger le résultat au format CSV"
       description: "Télécharger le résultat au format CSV"
+      parameters:
+        - description: "Identifiant unique de la validation"
+          in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+          example: g7258vq1t639uagbv8rg7b97
+      responses:
+        200:
+          description: Récupération réussie
+          content:
+            text/csv: {}
+        400:
+          description: "Paramètre uid manquant"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: "Aucune demande de validation ne correspond à l'uid"
+          content:
+
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/validations/{uid}/results.pdf:
+    get:
+      tags:
+        - validation
+      operationId: get_validation_pdf
+      summary: "Télécharger le résultat au format pdf"
+      description: "Télécharger le résultat au format pdf"
       parameters:
         - description: "Identifiant unique de la validation"
           in: path
