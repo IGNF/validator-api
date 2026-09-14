@@ -33,6 +33,8 @@ class PdfReportWriter
             $grouped[$entry['level']][] = $entry;
         }
 
+        uksort($grouped, static fn(string $a, string $b): int => array_search(strtolower($a), $order) <=> array_search(strtolower($b), $order));
+
         $html = $this->twig->render('pdfModel.html.twig', [
             'groupedEntries' => $grouped,
             'hasErrors'      => $hasErrors,

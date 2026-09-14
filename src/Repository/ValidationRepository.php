@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Validation;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use SortDirection;
@@ -45,7 +46,7 @@ class ValidationRepository extends ServiceEntityRepository
 
         if (!is_null($result)) {
             $result->setStatus(Validation::STATUS_PROCESSING);
-            $result->setDateStart(new \DateTime('now'));
+            $result->setDateStart(new DateTime('now'));
             $em->flush();
             $em->refresh($result);
         }
@@ -60,7 +61,7 @@ class ValidationRepository extends ServiceEntityRepository
      *
      * @return array<Validation>
      */
-    public function findAllToBeArchived(\DateTime $expiryDate)
+    public function findAllToBeArchived(DateTime $expiryDate)
     {
         return $this->createQueryBuilder('v')
             ->where('v.dateCreation < :expiryDate')

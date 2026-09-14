@@ -35,8 +35,12 @@ class ProcessOneCommand extends Command implements SignalableCommandInterface
         $this->logger = $logger;
     }
 
+    /**
+     * @SuppressWarnings("PHPMD.UnusedFormalParameter")
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $output->writeln('Processing next pending validation...');
         $this->validationManager->processOne();
 
         return 0;
@@ -47,6 +51,9 @@ class ProcessOneCommand extends Command implements SignalableCommandInterface
         return [\SIGINT, \SIGTERM];
     }
 
+    /**
+     * @SuppressWarnings("PHPMD.UnusedFormalParameter")
+     */
     public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
     {
         $this->logger->warning('[ProcessOneCommand] received stop signal while processing validation!', [
@@ -57,6 +64,7 @@ class ProcessOneCommand extends Command implements SignalableCommandInterface
         $this->logger->info('terminate process with exitCode={exitCode}', [
             'exitCode' => $exitCode,
         ]);
-        exit($exitCode);
+
+        return $exitCode;
     }
 }

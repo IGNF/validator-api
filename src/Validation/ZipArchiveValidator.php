@@ -2,7 +2,9 @@
 
 namespace App\Validation;
 
+use Exception;
 use Psr\Log\LoggerInterface;
+use ZipArchive;
 
 /**
  * Component class for the validation of the names of the files in a zip archive.
@@ -34,7 +36,7 @@ class ZipArchiveValidator
 
         try {
             $files = $this->listFiles($zipPath);
-        } catch (\Exception $ex) {
+        } catch (Exception $ex) {
             $errors[] = [
                 'file' => pathinfo($zipPath, PATHINFO_BASENAME),
                 'message' => $ex->getMessage(),
@@ -43,7 +45,8 @@ class ZipArchiveValidator
         }
 
         foreach ($files as $filepath) {
-            if ($filenameErrors = $this->validateFilename($filepath)) {
+            $filenameErrors = $this->validateFilename($filepath);
+            if ($filenameErrors) {
                 $errors[] = $filenameErrors;
             }
         }
@@ -62,13 +65,13 @@ class ZipArchiveValidator
     {
         $zipName = pathinfo($zipPath, PATHINFO_BASENAME);
         if (!file_exists($zipPath)) {
-            throw new \Exception(sprintf("The zip archive file %s doesn't exist", $zipName));
+            throw new Exception(sprintf("The zip archive file %s doesn't exist", $zipName));
         }
 
-        $zipArchive = new \ZipArchive();
+        $zipArchive = new ZipArchive();
         if (true !== $zipArchive->open($zipPath)) {
             $this->logger->error(sprintf('[ZipArchiveValidator] Impossible to open archive %s', $zipPath));
-            throw new \Exception(sprintf('Impossible to open archive %s', $zipName));
+            throw new Exception(sprintf('Impossible to open archive %s', $zipName));
         }
 
         $files = [];
@@ -81,7 +84,7 @@ class ZipArchiveValidator
 
         if (empty($files)) {
             $this->logger->error(sprintf('[ZipArchiveValidator] Archive %s is empty', $zipPath));
-            throw new \Exception(sprintf('Archive %s is empty', $zipName));
+            throw new Exception(sprintf('Archive %s is empty', $zipName));
         }
 
         return $files;

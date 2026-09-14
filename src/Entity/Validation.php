@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ValidationRepository;
+use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ValidationRepository::class)]
@@ -111,7 +112,7 @@ class Validation
      */
     public function __construct()
     {
-        $this->setDateCreation(new \DateTime('now'));
+        $this->setDateCreation(new DateTime('now'));
         $this->setStatus($this::STATUS_WAITING_ARGS);
         $this->setUid($this->generateUid());
     }

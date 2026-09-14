@@ -69,9 +69,12 @@ class ValidatorCLI
     {
         $validationDirectory = $this->storage->getDirectory($validation);
 
-        /* prepare validator-cli.jar command */
-        $env = $_ENV;
-        $env['GMLAS_CONFIG'] = $this->gmlasConfigPath;
+        /*
+         * prepare validator-cli.jar command
+         * note that Process merges this with the current process' environment,
+         * so there is no need to copy $_ENV here.
+         */
+        $env = ['GMLAS_CONFIG' => $this->gmlasConfigPath];
         /*
          * specify validation schema
          * TODO : compute DB_URL=jdbc:postgresql:${PGDATABASE}, DB_USER et DB_PASSWORD according to doctrine?

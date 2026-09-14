@@ -5,6 +5,8 @@ namespace App\Command\Validations;
 use App\Entity\Validation;
 use App\Repository\ValidationRepository;
 use App\Validation\ValidationManager;
+use DateInterval;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -65,8 +67,8 @@ class CleanupCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $maxAge = $input->getOption('max-age');
-        $today = new \DateTime('now');
-        $dateExpire = $today->sub(new \DateInterval($maxAge));
+        $today = new DateTime('now');
+        $dateExpire = $today->sub(new DateInterval($maxAge));
 
         $this->logger->info('archive validations older than {$maxAge}...', [
             '$maxAge' => $maxAge,
@@ -81,6 +83,7 @@ class CleanupCommand extends Command
             'maxTime' => $maxAge,
             'count' => $count,
         ]);
+        $output->writeln(sprintf('%d validation(s) archived.', $count));
 
         return 0;
     }

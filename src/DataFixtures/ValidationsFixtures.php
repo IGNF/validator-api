@@ -7,6 +7,7 @@ use App\Service\ValidatorArgumentsService;
 use App\Storage\ValidationsStorage;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use RuntimeException;
 
 class ValidationsFixtures extends Fixture
 {
@@ -67,7 +68,7 @@ class ValidationsFixtures extends Fixture
     {
         $originalPath = __DIR__.'/../../tests/data/'.$filename;
         if (!file_exists($originalPath)) {
-            throw new \RuntimeException('Sample file not found : '.$originalPath);
+            throw new RuntimeException('Sample file not found : '.$originalPath);
         }
 
         $validation->setDatasetName(str_replace('.zip', '', $filename));
