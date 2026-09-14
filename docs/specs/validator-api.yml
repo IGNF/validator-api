@@ -338,6 +338,10 @@ components:
         results:
           type: string
           example: null
+        document_info:
+          description: "Métadonnées du document extraites par le validateur. Uniquement disponible lorsque la validation a été exécutée avec l'argument \"normalize\" activé"
+          type: object
+          example: null
 
     Error:
       type: object

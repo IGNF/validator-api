@@ -116,6 +116,14 @@ class ValidatorCLI
         $results = \json_decode($results, true);
 
         $validation->setResults($results);
+
+        /*
+         * read document info, only produced when the "normalize" argument is enabled
+         */
+        $documentInfoPath = $validationDirectory.'/validation/document-info.json';
+        if (file_exists($documentInfoPath)) {
+            $validation->setDocumentInfo(\json_decode(\file_get_contents($documentInfoPath), true));
+        }
     }
 
     /**

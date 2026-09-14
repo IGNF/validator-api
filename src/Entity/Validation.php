@@ -96,6 +96,13 @@ class Validation
     #[ORM\Column(type: 'json', nullable: true)]
     private $results;
 
+    /**
+     * Document info (metadata extracted from the dataset by the validator), in json format.
+     * Only available when the validation was run with the "normalize" argument enabled.
+     */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private $documentInfo;
+
     #[ORM\Column(type: 'boolean', nullable: true)]
     private $deleteData;
 
@@ -217,6 +224,18 @@ class Validation
         return $this;
     }
 
+    public function getDocumentInfo()
+    {
+        return $this->documentInfo;
+    }
+
+    public function setDocumentInfo($documentInfo)
+    {
+        $this->documentInfo = $documentInfo;
+
+        return $this;
+    }
+
     public function getDeleteData()
     {
         return $this->deleteData;
@@ -241,6 +260,7 @@ class Validation
         $this->setDateStart(null);
         $this->setDateFinish(null);
         $this->setResults(null);
+        $this->setDocumentInfo(null);
 
         return $this;
     }
