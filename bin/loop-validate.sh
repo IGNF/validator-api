@@ -23,7 +23,7 @@ echo "$BASH_SOURCE - started with PID=$$"
 
 while [ $RUNNING -eq 1 ]
 do
-	php "${SCRIPT_DIR}/bin/console" ign-validator:validations:process-one -vvv &
+	php "${SCRIPT_DIR}/console" ign-validator:validations:process-one -vvv &
 	child_pid=$!
 	wait $child_pid
 
