@@ -350,4 +350,4 @@ components:
           description: message précis de l'erreur rencontrée
 
     ValArgs:
-       $ref: "./schema/validator-arguments.json"
+      $ref: "./schema/validator-arguments.json#/"

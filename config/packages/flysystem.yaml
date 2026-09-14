@@ -14,11 +14,9 @@ services:
 flysystem:
     storages:
         default.storage:
-            adapter: 'local'
-            options:
+            local:
                 directory: '%kernel.project_dir%/var/data'
         data.storage:
-            adapter: 'asyncaws'
-            options:
+            asyncaws:
                 client: 's3_client'
                 bucket: '%env(S3_BUCKET)%'

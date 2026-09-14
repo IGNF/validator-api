@@ -5,17 +5,9 @@ namespace App\Entity;
 use App\Repository\ValidationRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=ValidationRepository::class)
- *
- * @ORM\Table(
- *      name="validation",
- *      indexes = {
- *
- *          @ORM\Index(name="validation_uid_idx", columns={"uid"})
- *      }
- * )
- */
+#[ORM\Entity(repositoryClass: ValidationRepository::class)]
+#[ORM\Table(name: 'validation')]
+#[ORM\Index(name: 'validation_uid_idx', columns: ['uid'])]
 class Validation
 {
     /**
@@ -51,72 +43,60 @@ class Validation
 
     /**
      * Unique identifier.
-     *
-     * @ORM\Id
-     *
-     * @ORM\Column(type="string", length=24, unique=true)
      */
+    #[ORM\Id]
+    #[ORM\Column(type: 'string', length: 24, unique: true)]
     private $uid;
 
     /**
      * Name of the dataset, derived from the name of the compressed file (zip) containing the dataset.
-     *
-     * @ORM\Column(type="string", length=100)
      */
+    #[ORM\Column(type: 'string', length: 100)]
     private $datasetName;
 
     /**
      * CLI Arguments for the Java executable program.
-     *
-     * @ORM\Column(type="json", nullable=true)
      */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $arguments;
 
     /**
      * Date of creation.
-     *
-     * @ORM\Column(type="datetime", nullable=false)
      */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private $dateCreation;
 
     /**
      * Status.
-     *
-     * @ORM\Column(type="string", length=16, nullable=false, options={"default":"waiting_for_args"}, columnDefinition="character varying(16) CHECK (status IN ('waiting_for_args','pending','processing','finished','archived','error'))")
      */
+    #[ORM\Column(type: 'string', length: 16, nullable: false, options: ['default' => 'waiting_for_args'], columnDefinition: "character varying(16) CHECK (status IN ('waiting_for_args','pending','processing','finished','archived','error'))")]
     private $status;
 
     /**
      * Message.
-     *
-     * @ORM\Column(type="text", nullable=true)
      */
+    #[ORM\Column(type: 'text', nullable: true)]
     private $message;
 
     /**
      * Start date.
-     *
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $dateStart;
 
     /**
      * Finish date.
-     *
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $dateFinish;
 
     /**
      * Results in json format.
-     *
-     * @ORM\Column(type="json", nullable=true)
      */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $results;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $deleteData;
 
     /**

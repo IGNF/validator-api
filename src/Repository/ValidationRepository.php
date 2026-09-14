@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Validation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @method Validation|null find($id, $lockMode = null, $lockVersion = null)
@@ -28,6 +29,7 @@ class ValidationRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
+        $conn->setNestTransactionsWithSavepoints(true);
 
         $conn->beginTransaction();
         $conn->executeQuery('LOCK TABLE validation IN ACCESS EXCLUSIVE MODE;');
@@ -35,8 +37,8 @@ class ValidationRepository extends ServiceEntityRepository
         /** @var Validation|null $result */
         $result = $this->createQueryBuilder('v')
             ->where('v.status = :status')
-            ->setParameters(['status' => Validation::STATUS_PENDING])
-            ->orderBy('v.dateCreation', 'ASC')
+            ->setParameter('status', Validation::STATUS_PENDING)
+            ->orderBy('v.dateCreation', SortDirection::Ascending)
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
@@ -44,7 +46,7 @@ class ValidationRepository extends ServiceEntityRepository
         if (!is_null($result)) {
             $result->setStatus(Validation::STATUS_PROCESSING);
             $result->setDateStart(new \DateTime('now'));
-            $em->flush($result);
+            $em->flush();
             $em->refresh($result);
         }
 
@@ -63,10 +65,8 @@ class ValidationRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('v')
             ->where('v.dateCreation < :expiryDate')
             ->andWhere('v.status != :ignoredStatus')
-            ->setParameters([
-                'expiryDate' => $expiryDate,
-                'ignoredStatus' => Validation::STATUS_ARCHIVED,
-            ])
+            ->setParameter('expiryDate', $expiryDate)
+            ->setParameter('ignoredStatus', Validation::STATUS_ARCHIVED)
             ->getQuery()
             ->getResult()
         ;

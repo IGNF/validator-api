@@ -247,7 +247,7 @@ class ValidationManager
         $uploadFile = $this->storage->getUploadDirectory($validation) . $validation->getDatasetName() . '.zip';
 
         if (!is_dir($validationDirectory)) {
-            mkdir($validationDirectory);
+            mkdir($validationDirectory, recursive: true);
         }
 
         $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';

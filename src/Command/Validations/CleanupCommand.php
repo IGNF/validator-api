@@ -7,6 +7,7 @@ use App\Repository\ValidationRepository;
 use App\Validation\ValidationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -15,10 +16,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Helper command to archive old validations removing files.
  */
+#[AsCommand(name: 'ign-validator:validations:cleanup', description: 'Deletes all validation files that are older than max-age (default 5 days)')]
 class CleanupCommand extends Command
 {
-    protected static $defaultName = 'ign-validator:validations:cleanup';
-
     /**
      * Time interval of 5 days.
      */
@@ -50,10 +50,9 @@ class CleanupCommand extends Command
         $this->logger = $logger;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
-            ->setDescription('Deletes all validation files that are older than max-age (default 5 days)')
             ->addOption(
                 'max-age',
                 null,

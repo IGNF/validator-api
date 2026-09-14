@@ -35,6 +35,7 @@ class CsvReportWriter
     public function write(Validation $validation, $path = 'php://output')
     {
         $out = new \SplFileObject($path, 'w');
+        $out->setCsvControl(escape: '\\');
         $out->fputcsv($this->getHeader());
 
         foreach ($validation->getResults() as $result) {

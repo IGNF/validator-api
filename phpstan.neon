@@ -6,9 +6,7 @@ parameters:
   level: 2
   paths:
     - src
-  excludes_analyse:
-    - src/Tests/bootstrap.php
-  bootstrapFiles:
-    - vendor/bin/.phpunit/phpunit/vendor/autoload.php
+  excludePaths:
+    - src/Tests/bootstrap.php (?)
   ignoreErrors:
     - '#Call to an undefined method [a-zA-Z0-9\\_]+::findOneBy[A-Z][a-zA-Z]*\(\)#'
