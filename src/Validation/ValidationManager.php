@@ -157,12 +157,12 @@ class ValidationManager
             $this->workspace->prepareUpload($validation);
 
             /*
-             * pre-validating the names of the files in the zip archive
+             * pre-validating the zip archive (sizes, paths, names and extensions of the files)
              */
             $this->validateZip($validation);
 
             /*
-             * unzip dataset
+             * unzip dataset (checking the content of the files)
              */
             $this->workspace->unzip($validation);
 
@@ -207,7 +207,7 @@ class ValidationManager
     }
 
     /**
-     * Pre-validates the names of files in the zip.
+     * Pre-validates the zip archive (zip bomb, unsafe entries, names and extensions of the files).
      *
      * @param Validation $validation
      *

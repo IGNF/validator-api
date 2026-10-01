@@ -3,13 +3,12 @@
 namespace App\Validation;
 
 use App\Entity\Validation;
+use App\Exception\ZipArchiveValidationException;
 use App\Storage\ValidationsStorage;
-use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
-use ZipArchive;
 
 /**
  * Manages the local working directory of a validation and its persisted
@@ -22,6 +21,7 @@ class ValidationWorkspace
     public function __construct(
         private ValidationsStorage $storage,
         private LoggerInterface $logger,
+        private ZipArchiveExtractor $zipArchiveExtractor,
     ) {}
 
     /**
@@ -56,7 +56,9 @@ class ValidationWorkspace
     }
 
     /**
-     * Extracts the local zip archive.
+     * Extracts the local zip archive, checking the content of the files.
+     *
+     * @throws ZipArchiveValidationException if a file is not allowed
      */
     public function unzip(Validation $validation): void
     {
@@ -65,14 +67,11 @@ class ValidationWorkspace
             'datasetName' => $validation->getDatasetName(),
         ]);
         $validationDirectory = $this->storage->getDirectory($validation);
-        $zip = new ZipArchive();
 
-        if (true === $zip->open($this->getLocalZipPath($validation))) {
-            $zip->extractTo($validationDirectory . '/' . $validation->getDatasetName());
-            $zip->close();
-        } else {
-            throw new Exception('Zip decompression failed');
-        }
+        $this->zipArchiveExtractor->extract(
+            $this->getLocalZipPath($validation),
+            $validationDirectory . '/' . $validation->getDatasetName()
+        );
     }
 
     /**

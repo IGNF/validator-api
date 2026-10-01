@@ -46,6 +46,31 @@ abstract class WebTestCase extends BaseWebTestCase
     }
 
     /**
+     * Create a zip archive in a temp directory.
+     *
+     * @param array<string,string> $files content by entry name (names ending with "/" are directories)
+     *
+     * @return string path to the zip archive
+     */
+    protected function createZip(array $files, string $zipName = 'test.zip'): string
+    {
+        $zipPath = $this->createTempDirectory('zip-').'/'.$zipName;
+
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($zipPath, \ZipArchive::CREATE));
+        foreach ($files as $name => $content) {
+            if (str_ends_with($name, '/')) {
+                $zip->addEmptyDir($name);
+            } else {
+                $zip->addFromString($name, $content);
+            }
+        }
+        $this->assertTrue($zip->close());
+
+        return $zipPath;
+    }
+
+    /**
      * Create a temp directory.
      *
      * @param string $prefix
