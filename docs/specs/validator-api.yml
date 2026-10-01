@@ -250,7 +250,7 @@ paths:
               schema:
                 format: binary
         403:
-          description: Aucun contenu téléchargeable trouvé parce que la validation a été archivée (plus de 30 jours sont passés depuis la création)
+          description: Téléchargement désactivé sur cette instance (DATA_DOWNLOAD_ENABLED), ou aucun contenu téléchargeable trouvé parce que la validation a été archivée (plus de 30 jours sont passés depuis la création)
           content:
             application/json:
               schema:
@@ -284,7 +284,7 @@ paths:
               schema:
                 format: binary
         403:
-          description: Aucun contenu téléchargeable trouvé parce que soit la validation n'a pas encore été exécutée, elle a été archivée (plus de 30 jours dépassés depuis la création), ou bien elle a terminé en une erreur
+          description: Téléchargement désactivé sur cette instance (DATA_DOWNLOAD_ENABLED), ou aucun contenu téléchargeable trouvé parce que soit la validation n'a pas encore été exécutée, elle a été archivée (plus de 30 jours dépassés depuis la création), ou bien elle a terminé en une erreur
           content:
             application/json:
               schema:

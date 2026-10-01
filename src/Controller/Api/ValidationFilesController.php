@@ -19,6 +19,7 @@ class ValidationFilesController extends AbstractController
     public function __construct(
         private ValidationRepository $repository,
         private ValidationsStorage $storage,
+        private bool $dataDownloadEnabled,
     ) {}
 
     #[Route('/{uid}/logs', name: 'validator_api_read_logs', methods: ['GET'])]
@@ -81,6 +82,8 @@ class ValidationFilesController extends AbstractController
     #[Route('/{uid}/files/normalized', name: 'validator_api_download_normalized_data', methods: ['GET'])]
     public function downloadNormalizedData($uid)
     {
+        $this->denyIfDataDownloadDisabled();
+
         $validation = $this->repository->findOneByUid($uid);
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
@@ -107,6 +110,8 @@ class ValidationFilesController extends AbstractController
     #[Route('/{uid}/files/source', name: 'validator_api_download_source_data', methods: ['GET'])]
     public function downloadSourceData($uid)
     {
+        $this->denyIfDataDownloadDisabled();
+
         $validation = $this->repository->findOneByUid($uid);
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
@@ -120,6 +125,17 @@ class ValidationFilesController extends AbstractController
         $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
 
         return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . '-source.zip');
+    }
+
+    /**
+     * Rejects source/normalized data downloads unless DATA_DOWNLOAD_ENABLED is set.
+     * Checked before the uid lookup so that disabled endpoints do not reveal which uids exist.
+     */
+    private function denyIfDataDownloadDisabled(): void
+    {
+        if (!$this->dataDownloadEnabled) {
+            throw new ApiException('Data download is disabled', Response::HTTP_FORBIDDEN);
+        }
     }
 
     /**

@@ -69,6 +69,8 @@ curl --request GET \
   --url ${base_url}/api/validations/k392kn8syily29qjj18959hs/files/source
 ```
 
+> Par mesure de sécurité, ces deux téléchargements sont désactivés par défaut et répondent `403 Data download is disabled`. Pour les autoriser sur une instance, définir la variable d'environnement `DATA_DOWNLOAD_ENABLED=1`.
+
 
 ## Supprimer une validation
 

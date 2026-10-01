@@ -8,6 +8,7 @@ services:
       $validatorPath: "%ignf_validator.path%"
       $validatorJavaOpts: "%env(resolve:VALIDATOR_JAVA_OPTS)%"
       $gmlasConfigPath: "%env(resolve:GMLAS_CONFIG)%"
+      $dataDownloadEnabled: "%env(bool:DATA_DOWNLOAD_ENABLED)%"
 
   App\:
     resource: "../src/"
