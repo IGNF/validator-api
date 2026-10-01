@@ -8,16 +8,29 @@ use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Yaml\Dumper;
+use Symfony\Component\Yaml\Parser;
+use Symfony\Component\Yaml\Yaml;
 
 class DocumentationController extends AbstractController
 {
+    /**
+     * Paths hidden from the specification when DATA_DOWNLOAD_ENABLED is off.
+     */
+    private const DATA_DOWNLOAD_PATHS = [
+        '/api/validations/{uid}/files/source',
+        '/api/validations/{uid}/files/normalized',
+    ];
+
     /**
      * @var string
      */
     private $specsDir;
 
-    public function __construct($projectDir)
-    {
+    public function __construct(
+        $projectDir,
+        private bool $dataDownloadEnabled,
+    ) {
         $this->specsDir = $projectDir.'/docs/specs';
     }
 
@@ -38,7 +51,20 @@ class DocumentationController extends AbstractController
     {
         $swaggerPath = $this->specsDir.'/validator-api.yml';
 
-        return new BinaryFileResponse($swaggerPath);
+        if ($this->dataDownloadEnabled) {
+            return new BinaryFileResponse($swaggerPath);
+        }
+
+        $specs = (new Parser())->parseFile($swaggerPath);
+        foreach (self::DATA_DOWNLOAD_PATHS as $path) {
+            unset($specs['paths'][$path]);
+        }
+
+        return new Response(
+            (new Dumper(2))->dump($specs, 20, 0, Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK | Yaml::DUMP_EMPTY_ARRAY_AS_SEQUENCE),
+            Response::HTTP_OK,
+            ['Content-Type' => 'text/plain']
+        );
     }
 
     /**

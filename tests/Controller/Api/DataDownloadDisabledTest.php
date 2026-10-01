@@ -7,6 +7,7 @@ use App\Tests\WebTestCase;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Tests that source and normalized data cannot be downloaded when DATA_DOWNLOAD_ENABLED is off.
@@ -67,5 +68,24 @@ class DataDownloadDisabledTest extends WebTestCase
         $this->client->request('GET', '/api/validations/uid-validation-doesnt-exist/files/'.$files);
 
         $this->assertStatusCode(403, $this->client);
+    }
+
+    /**
+     * Download endpoints are hidden from the OpenAPI specification.
+     */
+    public function testSwaggerHidesDownloadPaths()
+    {
+        $this->client->request('GET', '/api/validator-api.yml');
+
+        $this->assertResponseIsSuccessful();
+        $specs = Yaml::parse($this->client->getResponse()->getContent());
+        $this->assertArrayHasKey('/api/validations/{uid}/results.csv', $specs['paths']);
+        $this->assertArrayNotHasKey('/api/validations/{uid}/files/source', $specs['paths']);
+        $this->assertArrayNotHasKey('/api/validations/{uid}/files/normalized', $specs['paths']);
+
+        // the rest of the specification is unchanged
+        $expected = Yaml::parseFile(static::getContainer()->getParameter('kernel.project_dir').'/docs/specs/validator-api.yml');
+        unset($expected['paths']['/api/validations/{uid}/files/source'], $expected['paths']['/api/validations/{uid}/files/normalized']);
+        $this->assertEquals($expected, $specs);
     }
 }
