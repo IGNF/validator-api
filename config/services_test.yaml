@@ -9,6 +9,7 @@ services:
       $validatorJavaOpts: "%env(resolve:VALIDATOR_JAVA_OPTS)%"
       $gmlasConfigPath: "%env(resolve:GMLAS_CONFIG)%"
       $dataDownloadEnabled: "%env(bool:DATA_DOWNLOAD_ENABLED)%"
+      $modelAllowedHosts: "%env(VALIDATOR_MODEL_ALLOWED_HOSTS)%"
 
   App\:
     resource: "../src/"

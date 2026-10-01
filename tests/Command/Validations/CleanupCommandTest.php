@@ -78,4 +78,26 @@ class CleanupCommandTest extends WebTestCase
             $this->assertFalse(file_exists($validationDirectory));
         }
     }
+
+    /**
+     * Validations being processed by a worker are not archived.
+     */
+    public function testCleanupIgnoresProcessing()
+    {
+        $validation = $this->em->getRepository(Validation::class)->findOneBy(['status' => Validation::STATUS_PENDING]);
+        $validation->setStatus(Validation::STATUS_PROCESSING);
+        $this->em->flush();
+        $uid = $validation->getUid();
+
+        static::ensureKernelShutdown();
+        sleep(2);
+
+        $application = new Application(static::createKernel());
+        $commandTester = new CommandTester($application->find('ign-validator:validations:cleanup'));
+        $this->assertEquals(0, $commandTester->execute(['--max-age' => 'PT1S']));
+
+        $this->em->clear();
+        $validation = $this->em->getRepository(Validation::class)->findOneByUid($uid);
+        $this->assertEquals(Validation::STATUS_PROCESSING, $validation->getStatus());
+    }
 }

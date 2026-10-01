@@ -37,7 +37,8 @@ class HealthController extends AbstractController
         } catch (\Exception $e) {
             $this->logger->error((string) $e);
 
-            return new JsonResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            // the raw message may contain the database host, port and user
+            return new JsonResponse('fail to get postgis version', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 

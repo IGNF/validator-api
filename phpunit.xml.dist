@@ -12,12 +12,6 @@
       <file>src/Controller/DefaultController.php</file>
     </exclude>
   </source>
-  <coverage>
-    <report>
-      <clover outputFile="var/data/output/coverage.xml"/>
-      <html outputDirectory="var/data/output/coverage/"/>
-    </report>
-  </coverage>
   <logging>
     <junit outputFile="var/data/output/junit.xml"/>
   </logging>

@@ -20,6 +20,7 @@ services:
       $validatorJavaOpts: "%env(resolve:VALIDATOR_JAVA_OPTS)%"
       $gmlasConfigPath: "%env(resolve:GMLAS_CONFIG)%"
       $dataDownloadEnabled: "%env(bool:DATA_DOWNLOAD_ENABLED)%"
+      $modelAllowedHosts: "%env(VALIDATOR_MODEL_ALLOWED_HOSTS)%"
 
   # makes classes in src/ available to be used as services
   # this creates a service per class whose id is the fully-qualified class name

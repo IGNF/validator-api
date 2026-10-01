@@ -4,12 +4,14 @@ PHP_MD_RULES=./phpmd.xml
 test: vendor
 	# see SYMFONY_DEPRECATIONS_HELPER in phpunit.xml.dist
 	rm -rf var/log/test.deprecations.log
-	APP_ENV=test XDEBUG_MODE=coverage vendor/bin/phpunit
+	# test database (validator_api_test, see config/packages/test/doctrine.yaml)
+	APP_ENV=test php bin/console doctrine:database:create --if-not-exists
+	APP_ENV=test XDEBUG_MODE=coverage vendor/bin/phpunit \
+		--coverage-clover var/data/output/coverage.xml \
+		--coverage-html var/data/output/coverage/
 
 .PHONY: check-rules
 check-rules:
-	@echo "-- Checking coding rules using phpmd (see @SuppressWarning to bypass control)"
-	vendor/bin/phpmd src text $(PHP_MD_RULES)
 	@echo "-- Checking coding rules using phpstan"
 	vendor/bin/phpstan analyse -c phpstan.neon --error-format=raw
 

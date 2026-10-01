@@ -8,8 +8,10 @@ use App\Service\ValidatorArgumentsService;
 use App\Tests\WebTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
  * Tests for ValidatorController class.
@@ -203,6 +205,54 @@ class ValidationControllerTest extends WebTestCase
         $this->assertEquals('Dataset must be in a compressed [.zip] file', $json['message']);
     }
 
+    public static function invalidDatasetNameProvider(): array
+    {
+        return [
+            'parent directory' => ['...zip'],
+            'current directory' => ['..zip'],
+            'empty name' => ['.zip'],
+            'leading dash' => ['-r.zip'],
+            'space' => ['my dataset.zip'],
+            'accent' => ['données.zip'],
+            'too long' => [str_repeat('a', 101).'.zip'],
+        ];
+    }
+
+    /**
+     * Uploading a zip whose name is not safe to be used in file paths.
+     */
+    #[DataProvider('invalidDatasetNameProvider')]
+    public function testUploadDatasetInvalidName(string $clientName)
+    {
+        $sample = $this->createFakeUpload(ValidationsFixtures::FILENAME_SUP_PM3);
+        $dataset = new UploadedFile($sample->getPathname(), $clientName, 'application/zip', null, true);
+
+        $this->client->request('POST', '/api/validations/', [], ['dataset' => $dataset]);
+
+        $json = \json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertStatusCode(400, $this->client);
+        $this->assertStringStartsWith('Dataset filename is not valid', $json['message']);
+        $this->assertEquals(0, $this->em->getRepository(Validation::class)->count([
+            'status' => Validation::STATUS_WAITING_ARGS,
+            'datasetName' => preg_replace('/\.zip$/', '', $clientName),
+        ]));
+    }
+
+    /**
+     * The .zip extension is removed whatever its case.
+     */
+    public function testUploadDatasetUpperCaseExtension()
+    {
+        $sample = $this->createFakeUpload(ValidationsFixtures::FILENAME_SUP_PM3);
+        $dataset = new UploadedFile($sample->getPathname(), 'PLU_2026.v2.ZIP', 'application/zip', null, true);
+
+        $this->client->request('POST', '/api/validations/', [], ['dataset' => $dataset]);
+
+        $json = \json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertStatusCode(201, $this->client);
+        $this->assertEquals('PLU_2026.v2', $json['dataset_name']);
+    }
+
     /**
      * Uploading no file at all.
      */
@@ -250,6 +300,52 @@ class ValidationControllerTest extends WebTestCase
         $json = \json_decode($response->getContent(), true);
 
         $this->assertStatusCode(404, $this->client);
+    }
+
+    /**
+     * Deleting a validation removes its persisted files.
+     */
+    public function testDeleteValidationRemovesFiles()
+    {
+        $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS);
+        $storage = $this->getValidationsStorage();
+        $uploadDirectory = $storage->getUploadDirectory($validation);
+        $this->assertTrue($storage->getStorage()->directoryExists($uploadDirectory));
+
+        $this->client->request('DELETE', '/api/validations/'.$validation->getUid());
+
+        $this->assertStatusCode(204, $this->client);
+        $this->assertFalse($storage->getStorage()->directoryExists($uploadDirectory));
+    }
+
+    /**
+     * A validation being processed by a worker can't be updated or deleted.
+     */
+    public function testUpdateOrDeleteValidationBeingProcessed()
+    {
+        $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS);
+        $validation = $this->em->getRepository(Validation::class)->findOneByUid($validation->getUid());
+        $validation->setStatus(Validation::STATUS_PROCESSING);
+        $this->em->flush();
+
+        $this->client->request(
+            'PATCH',
+            '/api/validations/'.$validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode(['srs' => 'EPSG:2154', 'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json'])
+        );
+        $this->assertStatusCode(409, $this->client);
+        $json = \json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertEquals('Validation is being processed, retry later', $json['message']);
+
+        $this->client->request('DELETE', '/api/validations/'.$validation->getUid());
+        $this->assertStatusCode(409, $this->client);
+
+        $this->em->clear();
+        $validation = $this->em->getRepository(Validation::class)->findOneByUid($validation->getUid());
+        $this->assertEquals(Validation::STATUS_PROCESSING, $validation->getStatus());
     }
 
     /**
@@ -509,6 +605,67 @@ class ValidationControllerTest extends WebTestCase
 
         $this->assertStatusCode(400, $this->client);
         $this->assertEquals('Invalid arguments, check details', $json['message']);
+    }
+
+    public static function forbiddenModelUrlProvider(): array
+    {
+        return [
+            'http' => ['http://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json'],
+            'local file' => ['file:///etc/passwd'],
+            'cloud metadata' => ['https://169.254.169.254/latest/meta-data/'],
+            'internal host' => ['https://localhost/model.json'],
+            'userinfo trick' => ['https://ignf.github.io@evil.example/model.json'],
+            'backslash trick' => ['https://evil.example\\@ignf.github.io/model.json'],
+            'port' => ['https://ignf.github.io:8443/model.json'],
+            'suffix trick' => ['https://evilignf.github.io/model.json'],
+            'allowed host as subdomain' => ['https://ignf.github.io.evil.example/model.json'],
+        ];
+    }
+
+    /**
+     * The model url must be https on an allowed host (SSRF protection).
+     */
+    #[DataProvider('forbiddenModelUrlProvider')]
+    public function testUpdateArgumentsForbiddenModelUrl(string $model)
+    {
+        $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_NO_ARGS);
+
+        $this->client->request(
+            'PATCH',
+            '/api/validations/'.$validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode(['srs' => 'EPSG:2154', 'model' => $model])
+        );
+
+        $json = \json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertStatusCode(400, $this->client);
+        $this->assertEquals('Invalid arguments, check details', $json['message']);
+        $this->assertEquals('model', $json['details'][0]['name']);
+    }
+
+    /**
+     * Subdomains of the allowed hosts are allowed.
+     */
+    public function testUpdateArgumentsAllowedModelUrl()
+    {
+        $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_NO_ARGS);
+
+        foreach ([
+            'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json',
+            'https://IGNF.github.io/validator/validator-plugin-cnig/src/test/resources/config/cnig_SUP_PM3_2016.json',
+        ] as $model) {
+            $this->client->request(
+                'PATCH',
+                '/api/validations/'.$validation->getUid(),
+                [],
+                [],
+                ['CONTENT_TYPE' => 'application/json'],
+                json_encode(['srs' => 'EPSG:2154', 'model' => $model])
+            );
+            $this->assertStatusCode(200, $this->client);
+        }
     }
 
     /**

@@ -43,6 +43,11 @@ class Validation
     public const STATUS_ARCHIVED = 'archived';
 
     /**
+     * Allowed dataset names (used in file paths and command arguments, see column length).
+     */
+    public const REGEXP_DATASET_NAME = '/^[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/';
+
+    /**
      * Unique identifier.
      */
     #[ORM\Id]
@@ -134,11 +139,26 @@ class Validation
         return $this->datasetName;
     }
 
+    /**
+     * @throws \InvalidArgumentException if the name is not safe to be used in file paths
+     */
     public function setDatasetName(string $datasetName): self
     {
+        if (!self::isValidDatasetName($datasetName)) {
+            throw new \InvalidArgumentException(sprintf("Invalid dataset name '%s'", $datasetName));
+        }
         $this->datasetName = $datasetName;
 
         return $this;
+    }
+
+    /**
+     * True if the dataset name is safe to be used in file paths and command arguments
+     * (no "/", no "." or ".." and no leading "-").
+     */
+    public static function isValidDatasetName(?string $datasetName): bool
+    {
+        return null !== $datasetName && 1 === preg_match(self::REGEXP_DATASET_NAME, $datasetName);
     }
 
     public function getArguments()

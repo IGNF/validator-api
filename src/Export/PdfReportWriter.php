@@ -23,14 +23,15 @@ class PdfReportWriter
 
         $hasErrors = (bool) array_filter(
             $entries,
-            static fn(array $e): bool => strtolower($e['level']) === 'error'
+            static fn(array $e): bool => 'error' === strtolower($e['level'] ?? 'error')
         );
 
         $order  = ['error', 'warning', 'info'];
         $grouped = [];
 
         foreach ($entries as $entry) {
-            $grouped[$entry['level']][] = $entry;
+            // zip pre-validation errors (file, code, message) have no level
+            $grouped[$entry['level'] ?? 'ERROR'][] = $entry;
         }
 
         uksort($grouped, static fn(string $a, string $b): int => array_search(strtolower($a), $order) <=> array_search(strtolower($b), $order));

@@ -9,6 +9,7 @@ use App\Export\PdfReportWriter;
 use App\Repository\ValidationRepository;
 use App\Storage\ValidationsStorage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -34,15 +35,16 @@ class ValidationFilesController extends AbstractController
             throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);
         }
 
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        $filepath = $outputDirectory . '/validator-debug.log';
+        $filepath = $this->storage->getOutputDirectory($validation) . 'validator-debug.log';
+        if (!$this->storage->getStorage()->fileExists($filepath)) {
+            throw new ApiException('No logs found for this validation', Response::HTTP_NOT_FOUND);
+        }
 
-        $content = $this->storage->getStorage()->read($filepath);
-
-        return new Response(
-            $content,
-            Response::HTTP_CREATED
-        );
+        // text/plain + nosniff : the log may contain values from the dataset (no HTML rendering)
+        return new Response($this->storage->getStorage()->read($filepath), Response::HTTP_OK, [
+            'Content-Type' => 'text/plain; charset=utf-8',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     #[Route('/{uid}/results.csv', name: 'validator_api_get_validation_csv', methods: ['GET'])]
@@ -52,13 +54,16 @@ class ValidationFilesController extends AbstractController
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+        $this->denyIfNoResults($validation);
 
         $response = new StreamedResponse(function () use ($validation, $csvWriter) {
             $csvWriter->write($validation);
         });
-        $response->headers->set('Content-Type', 'application/force-download');
-        $filename = $uid . '-results.csv';
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
+        $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(
+            HeaderUtils::DISPOSITION_ATTACHMENT,
+            $validation->getUid() . '-results.csv'
+        ));
 
         return $response;
     }
@@ -70,12 +75,13 @@ class ValidationFilesController extends AbstractController
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+        $this->denyIfNoResults($validation);
 
         $pdf = $writer->generate($validation);
 
         return new Response($pdf, Response::HTTP_OK, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $validation->getDatasetName() . '.pdf"',
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => $this->makeDisposition(HeaderUtils::DISPOSITION_INLINE, $validation->getDatasetName() . '.pdf'),
         ]);
     }
 
@@ -139,6 +145,29 @@ class ValidationFilesController extends AbstractController
     }
 
     /**
+     * Rejects report generation for validations without results (not executed yet or failed without report).
+     */
+    private function denyIfNoResults(Validation $validation): void
+    {
+        if (in_array($validation->getStatus(), [Validation::STATUS_PENDING, Validation::STATUS_PROCESSING, Validation::STATUS_WAITING_ARGS])) {
+            throw new ApiException("Validation hasn't been executed yet", Response::HTTP_FORBIDDEN);
+        }
+        if (null === $validation->getResults()) {
+            throw new ApiException('No results found for this validation', Response::HTTP_NOT_FOUND);
+        }
+    }
+
+    /**
+     * Content-Disposition header with an escaped filename (with an ASCII fallback).
+     */
+    private function makeDisposition(string $disposition, string $filename): string
+    {
+        $fallback = preg_replace('/[^A-Za-z0-9_.-]/', '_', $filename);
+
+        return HeaderUtils::makeDisposition($disposition, $filename, $fallback);
+    }
+
+    /**
      * Returns binary response of the specified file.
      *
      * @param string $filename
@@ -148,7 +177,7 @@ class ValidationFilesController extends AbstractController
     private function getDownloadResponse($filepath, $filename)
     {
         if (!$this->storage->getStorage()->has($filepath)) {
-            throw new ApiException('Requested files not found for this validation', Response::HTTP_FORBIDDEN);
+            throw new ApiException('Requested files not found for this validation', Response::HTTP_NOT_FOUND);
         }
 
         $stream = $this->storage->getStorage()->readStream($filepath);
@@ -156,12 +185,10 @@ class ValidationFilesController extends AbstractController
         return new StreamedResponse(function () use ($stream) {
             fpassthru($stream);
             fclose($stream);
-        }, 200, [
-            'Content-Transfer-Encoding',
-            'binary',
+        }, Response::HTTP_OK, [
             'Content-Type' => 'application/zip',
-            'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
-            'Content-Length' => fstat($stream)['size'],
+            'Content-Disposition' => $this->makeDisposition(HeaderUtils::DISPOSITION_ATTACHMENT, $filename),
+            'Content-Length' => $this->storage->getStorage()->fileSize($filepath),
         ]);
     }
 }

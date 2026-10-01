@@ -2,6 +2,7 @@
 
 namespace App\Validation;
 
+use App\Exception\ValidationProcessException;
 use App\Exception\ZipArchiveValidationException;
 use Exception;
 use Psr\Log\LoggerInterface;
@@ -32,13 +33,13 @@ class ZipArchiveExtractor
      * Extracts the archive zipPath in targetPath.
      *
      * @throws ZipArchiveValidationException if a file is not allowed (targetPath is then removed)
-     * @throws Exception                     if the archive can't be read
+     * @throws ValidationProcessException     if the archive can't be read or extracted
      */
     public function extract(string $zipPath, string $targetPath): void
     {
         $zip = new ZipArchive();
         if (true !== $zip->open($zipPath)) {
-            throw new Exception('Zip decompression failed');
+            throw new ValidationProcessException('Zip decompression failed');
         }
 
         $errors = [];
@@ -51,7 +52,7 @@ class ZipArchiveExtractor
                 }
                 // should have been rejected by ZipArchiveValidator
                 if (!$this->zipArchiveValidator->isSafePath($name)) {
-                    throw new Exception(sprintf("Zip decompression failed (path is not allowed '%s')", $name));
+                    throw new ValidationProcessException(sprintf("Zip decompression failed (path is not allowed '%s')", $name));
                 }
 
                 $path = $targetPath . '/' . $name;
@@ -94,14 +95,14 @@ class ZipArchiveExtractor
 
         $input = $zip->getStreamIndex($index);
         if (false === $input) {
-            throw new Exception(sprintf("Zip decompression failed (can't read '%s')", $stat['name']));
+            throw new ValidationProcessException(sprintf("Zip decompression failed (can't read '%s')", $stat['name']));
         }
 
         $this->createDirectory(dirname($path));
         $output = fopen($path, 'wb');
         if (false === $output) {
             fclose($input);
-            throw new Exception(sprintf("Zip decompression failed (can't write '%s')", $stat['name']));
+            throw new ValidationProcessException(sprintf("Zip decompression failed (can't write '%s')", $stat['name']));
         }
 
         $error = null;
@@ -155,7 +156,7 @@ class ZipArchiveExtractor
     private function createDirectory(string $path): void
     {
         if (!is_dir($path) && !mkdir($path, 0o775, true) && !is_dir($path)) {
-            throw new Exception(sprintf("Zip decompression failed (can't create directory '%s')", $path));
+            throw new ValidationProcessException("Zip decompression failed (can't create directory)");
         }
     }
 }

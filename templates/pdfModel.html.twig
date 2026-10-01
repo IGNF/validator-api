@@ -115,7 +115,7 @@
                 <tr>
                     <td class="code">{{ entry.code }}</td>
                     <td>
-                        <span class="badge badge-{{ entry.level|lower }}">{{ entry.level }}</span>
+                        <span class="badge badge-{{ level|lower }}">{{ entry.level|default(level) }}</span>
                     </td>
                     <td>{{ entry.message }}</td>
                 </tr>

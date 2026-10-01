@@ -75,17 +75,33 @@ class CleanupCommand extends Command
         ]);
         $validations = $this->getValidationRepository()->findAllToBeArchived($dateExpire);
         $count = 0;
+        $failures = 0;
         foreach ($validations as $validation) {
-            $this->validationManager->archive($validation);
-            ++$count;
+            // an error on a validation (ex : storage) must not prevent the others from being archived
+            try {
+                $this->validationManager->archive($validation);
+                ++$count;
+            } catch (\Throwable $th) {
+                ++$failures;
+                $this->logger->error('Validation[{uid}] : fail to archive', [
+                    'uid' => $validation->getUid(),
+                    'exception' => $th,
+                ]);
+            }
         }
         $this->logger->info('archive validations older than {maxTime} : completed, {count} validation(s) processed.', [
             'maxTime' => $maxAge,
             'count' => $count,
+            'failures' => $failures,
         ]);
         $output->writeln(sprintf('%d validation(s) archived.', $count));
+        if ($failures > 0) {
+            $output->writeln(sprintf('<error>%d validation(s) could not be archived.</error>', $failures));
 
-        return 0;
+            return Command::FAILURE;
+        }
+
+        return Command::SUCCESS;
     }
 
     /**

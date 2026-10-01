@@ -34,8 +34,6 @@ class ExceptionListener
      * Returns the error response data corresponding to the exception caught by the listener.
      *
      * @return JsonResponse
-     *
-     * @SuppressWarnings("PHPMD.UndefinedVariable")
      */
     private function getErrorResponse(\Throwable $throwable)
     {

@@ -3,6 +3,7 @@
 namespace App\Validation;
 
 use App\Entity\Validation;
+use App\Exception\ValidationProcessException;
 use App\Exception\ZipArchiveValidationException;
 use App\Storage\ValidationsStorage;
 use Psr\Log\LoggerInterface;
@@ -37,6 +38,11 @@ class ValidationWorkspace
      */
     public function prepareUpload(Validation $validation): void
     {
+        // defense in depth : datasets uploaded before the name check was added
+        if (!Validation::isValidDatasetName($validation->getDatasetName())) {
+            throw new ValidationProcessException(sprintf("Invalid dataset name '%s'", $validation->getDatasetName()));
+        }
+
         $this->logger->info('Validation[{uid}] : get from storage...', [
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
@@ -105,41 +111,67 @@ class ValidationWorkspace
     }
 
     /**
-     * Saves the normalized data and validator debug log from the local
-     * working directory to persistent storage.
+     * Saves the normalized data (if any, i.e. "normalize" argument enabled)
+     * from the local working directory to persistent storage.
      */
-    public function saveToStorage(Validation $validation): void
+    public function saveNormalizedData(Validation $validation): void
     {
-        // Saves normalized data to storage
+        $normDataPath = $this->storage->getDirectory($validation) . '/validation/' . $validation->getDatasetName() . '.zip';
+        if (!file_exists($normDataPath)) {
+            $this->logger->info('Validation[{uid}] : no normalized data to save', [
+                'uid' => $validation->getUid(),
+            ]);
+
+            return;
+        }
+
         $this->logger->info('Validation[{uid}] : saving normalized data...', [
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $normDataPath = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if (!$this->storage->getStorage()->directoryExists($outputDirectory)) {
-            $this->storage->getStorage()->createDirectory($outputDirectory);
-        }
-        $outputPath = $outputDirectory . $validation->getDatasetName() . '.zip';
-        if ($this->storage->getStorage()->fileExists($outputPath)) {
-            $this->storage->getStorage()->delete($outputPath);
-        }
-        $stream = fopen($normDataPath, 'r+');
-        $this->storage->getStorage()->writeStream($outputPath, $stream);
-        fclose($stream);
+        $this->writeToOutputDirectory($validation, $normDataPath, $validation->getDatasetName() . '.zip');
+    }
 
-        // Saves validator logs to storage
+    /**
+     * Saves the validator debug log (if any) from the local working directory to persistent storage,
+     * so that it is available for failed validations too.
+     */
+    public function saveLog(Validation $validation): void
+    {
+        $logPath = $this->storage->getDirectory($validation) . '/validator-debug.log';
+        if (!file_exists($logPath)) {
+            return;
+        }
+
         $this->logger->info('Validation[{uid}] : saving logs...', [
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
-        $logPath = $validationDirectory . '/validator-debug.log';
-        $outputPath = $outputDirectory . '/validator-debug.log';
+        $this->writeToOutputDirectory($validation, $logPath, 'validator-debug.log');
+    }
 
-        $stream = fopen($logPath, 'r+');
-        $this->storage->getStorage()->writeStream($outputPath, $stream);
-        fclose($stream);
+    /**
+     * Copies a local file to the output directory of the validation in persistent storage.
+     */
+    private function writeToOutputDirectory(Validation $validation, string $localPath, string $filename): void
+    {
+        $outputDirectory = $this->storage->getOutputDirectory($validation);
+        if (!$this->storage->getStorage()->directoryExists($outputDirectory)) {
+            $this->storage->getStorage()->createDirectory($outputDirectory);
+        }
+        $outputPath = $outputDirectory . $filename;
+        if ($this->storage->getStorage()->fileExists($outputPath)) {
+            $this->storage->getStorage()->delete($outputPath);
+        }
+
+        $stream = fopen($localPath, 'r');
+        try {
+            $this->storage->getStorage()->writeStream($outputPath, $stream);
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
     }
 
     /**

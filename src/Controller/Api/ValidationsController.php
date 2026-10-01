@@ -8,6 +8,7 @@ use App\Repository\ValidationRepository;
 use App\Service\MimeTypeGuesserService;
 use App\Service\ValidatorArgumentsService;
 use App\Storage\ValidationsStorage;
+use App\Validation\ValidationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\ArrayTransformerInterface;
 use Psr\Log\LoggerInterface;
@@ -28,6 +29,7 @@ class ValidationsController extends AbstractController
         private MimeTypeGuesserService $mimeTypeGuesser,
         private LoggerInterface $logger,
         private EntityManagerInterface $entityManager,
+        private ValidationManager $validationManager,
     ) {}
 
     #[Route('/', name: 'validator_api_disabled_routes', methods: ['GET', 'DELETE', 'PATCH', 'PUT'])]
@@ -73,11 +75,20 @@ class ValidationsController extends AbstractController
         }
 
         /*
+         * Ensure that the dataset name (used in file paths) is safe.
+         */
+        $datasetName = preg_replace('/\.zip$/i', '', basename($file->getClientOriginalName()));
+        if (!Validation::isValidDatasetName($datasetName)) {
+            throw new ApiException(sprintf(
+                'Dataset filename is not valid (name without .zip must match %s)',
+                Validation::REGEXP_DATASET_NAME
+            ), Response::HTTP_BAD_REQUEST);
+        }
+
+        /*
          * create validation and same validation
          */
         $validation = new Validation();
-        // TODO : check getClientOriginalName
-        $datasetName = str_replace('.zip', '', $file->getClientOriginalName());
         $validation->setDatasetName($datasetName);
 
         // Save file to storage
@@ -128,6 +139,7 @@ class ValidationsController extends AbstractController
         if (Validation::STATUS_ARCHIVED == $validation->getStatus()) {
             throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);
         }
+        $this->denyIfProcessing($validation);
         // TODO : review (json_decode in this method and inside of validate)
         $arguments = $this->valArgsService->validate($data);
 
@@ -156,24 +168,22 @@ class ValidationsController extends AbstractController
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
 
-        $this->logger->info('Validation[{uid}] : removing all saved data...', [
-            'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
-        ]);
+        $this->denyIfProcessing($validation);
 
-        $this->entityManager->remove($validation);
-        $this->entityManager->flush();
-
-        // Delete from storage
-        $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        if ($this->storage->getStorage()->directoryExists($uploadDirectory)) {
-            $this->storage->getStorage()->deleteDirectory($uploadDirectory);
-        }
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if ($this->storage->getStorage()->directoryExists($outputDirectory)) {
-            $this->storage->getStorage()->deleteDirectory($outputDirectory);
-        }
+        $this->validationManager->delete($validation);
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * A validation can't be modified or deleted while a worker is processing it.
+     *
+     * @throws ApiException
+     */
+    private function denyIfProcessing(Validation $validation): void
+    {
+        if (Validation::STATUS_PROCESSING === $validation->getStatus()) {
+            throw new ApiException('Validation is being processed, retry later', Response::HTTP_CONFLICT);
+        }
     }
 }

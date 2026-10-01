@@ -33,31 +33,38 @@ class ValidationRepository extends ServiceEntityRepository
         $conn->setNestTransactionsWithSavepoints(true);
 
         $conn->beginTransaction();
-        $conn->executeQuery('LOCK TABLE validation IN ACCESS EXCLUSIVE MODE;');
+        try {
+            $conn->executeQuery('LOCK TABLE validation IN ACCESS EXCLUSIVE MODE;');
 
-        /** @var Validation|null $result */
-        $result = $this->createQueryBuilder('v')
-            ->where('v.status = :status')
-            ->setParameter('status', Validation::STATUS_PENDING)
-            ->orderBy('v.dateCreation', SortDirection::Ascending)
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
+            /** @var Validation|null $result */
+            $result = $this->createQueryBuilder('v')
+                ->where('v.status = :status')
+                ->setParameter('status', Validation::STATUS_PENDING)
+                ->orderBy('v.dateCreation', SortDirection::Ascending)
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
 
-        if (!is_null($result)) {
-            $result->setStatus(Validation::STATUS_PROCESSING);
-            $result->setDateStart(new DateTime('now'));
-            $em->flush();
-            $em->refresh($result);
+            if (!is_null($result)) {
+                $result->setStatus(Validation::STATUS_PROCESSING);
+                $result->setDateStart(new DateTime('now'));
+                $em->flush();
+                $em->refresh($result);
+            }
+
+            $conn->commit();
+        } catch (\Throwable $th) {
+            // release the table lock
+            $conn->rollBack();
+            throw $th;
         }
-
-        $conn->commit();
 
         return $result;
     }
 
     /**
-     * Finds all archivable validations older than expiryDate.
+     * Finds all archivable validations older than expiryDate
+     * (validations being processed by a worker are ignored).
      *
      * @return array<Validation>
      */
@@ -65,9 +72,9 @@ class ValidationRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('v')
             ->where('v.dateCreation < :expiryDate')
-            ->andWhere('v.status != :ignoredStatus')
+            ->andWhere('v.status NOT IN (:ignoredStatus)')
             ->setParameter('expiryDate', $expiryDate)
-            ->setParameter('ignoredStatus', Validation::STATUS_ARCHIVED)
+            ->setParameter('ignoredStatus', [Validation::STATUS_ARCHIVED, Validation::STATUS_PROCESSING])
             ->getQuery()
             ->getResult()
         ;

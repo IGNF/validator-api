@@ -9,7 +9,8 @@
     "model": {
       "type": "string",
       "format": "uri",
-      "description": "L'url vers le modèle de données",
+      "pattern": "^https://[A-Za-z0-9.-]+/[^\\s\\\\@]*$",
+      "description": "L'url (https) vers le modèle de données, sur un hôte autorisé (VALIDATOR_MODEL_ALLOWED_HOSTS)",
       "example": "https://www.geoportail-urbanisme.gouv.fr/standard/cnig_PLU_2017.json"
     },
     "srs": {
