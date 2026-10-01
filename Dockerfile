@@ -5,7 +5,6 @@ ARG COMPOSER_IMAGE_VERSION=2.10
 # packages versions
 ARG OPENJDK_VERSION=17
 ARG PHP_VERSION=8.5
-ARG VALIDATOR_VERSION=4.5.6
 # composer no dev
 ARG COMPOSER_NO_DEV=1
 
@@ -36,7 +35,6 @@ FROM ${REGISTRY}/library/ubuntu:${UBUNTU_IMAGE_VERSION}
 # Redeclare build args for this stage
 ARG PHP_VERSION
 ARG OPENJDK_VERSION
-ARG VALIDATOR_VERSION
 
 # Metadata labels
 LABEL description="validator-api - APIsation of Validator, a tool that allows to validate and normalize datasets according to a file mapping and a FeatureCatalog." \
@@ -75,7 +73,7 @@ RUN apt-get update -qq \
   && mkdir -p /usr/share/man/man1 \
   && apt-get install --no-install-recommends -y \
     # System utilities
-    unzip zip wget file \
+    unzip zip file \
     # Database client
     postgresql-client \
     # Apache2
@@ -84,14 +82,14 @@ RUN apt-get update -qq \
     php${PHP_VERSION} \
     php${PHP_VERSION}-intl \
     php${PHP_VERSION}-mbstring \
-    php${PHP_VERSION}-opcache \
+    # (no php-opcache package: OPcache is built into PHP since 8.5)
     php${PHP_VERSION}-xml \
     php${PHP_VERSION}-pdo \
     php${PHP_VERSION}-pgsql \
     php${PHP_VERSION}-zip \
     php${PHP_VERSION}-curl \
     # java & ogr2ogr, required by validator-cli.jar
-    openjdk-${OPENJDK_VERSION}-jdk-headless gdal-bin \
+    openjdk-${OPENJDK_VERSION}-jre-headless gdal-bin \
   && java -version \
   && ogrinfo --version \
   && apt-get upgrade -y --no-install-recommends \
@@ -127,10 +125,24 @@ RUN chmod +x /usr/local/bin/apache2-foreground \
 
 #----------------------------------------------------------------------
 # Setup /opt/ign-validator/validator-cli.jar
+# (version and sha256 are defined in bin/install-validator.sh)
 #----------------------------------------------------------------------
-RUN mkdir -p /opt/ign-validator \
-  && wget --quiet -O ${VALIDATOR_PATH} https://github.com/IGNF/validator/releases/download/v${VALIDATOR_VERSION}/validator-cli.jar \
-  && echo "validator-cli.jar version : $(java -jar ${VALIDATOR_PATH} version)"
+COPY bin/install-validator.sh /tmp/install-validator.sh
+RUN apt-get update -qq \
+  && apt-get install --no-install-recommends -y curl \
+  && mkdir -p /opt/ign-validator \
+  && sh /tmp/install-validator.sh ${VALIDATOR_PATH} \
+  && echo "validator-cli.jar version : $(java -jar ${VALIDATOR_PATH} version)" \
+  && rm -rf /tmp/install-validator.sh /tmp/hsperfdata_root \
+  && apt-get purge -y curl \
+  && apt-get autoremove -y \
+  # Echec du build si curl reste present dans l'image
+  && ! [ -e /usr/bin/curl ] \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* \
+  # Remove unused Canonical Pebble bundled in the Ubuntu base image
+  # (vulnerable Go stdlib, not used: container runs via bin/application.sh)
+  && rm -rf /usr/bin/pebble /var/lib/pebble
 
 #----------------------------------------------------------------------
 # Application setup

@@ -91,7 +91,7 @@
     },
     "post-install-cmd": [
       "@auto-scripts",
-      "curl -Lo bin/validator-cli.jar https://github.com/IGNF/validator/releases/download/v4.5.6/validator-cli.jar"
+      "sh bin/install-validator.sh"
     ],
     "post-update-cmd": [
       "@auto-scripts"
