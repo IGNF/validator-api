@@ -3,14 +3,20 @@
 namespace App\Export;
 
 use App\Entity\Validation;
-use Knp\Snappy\Pdf;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Twig\Environment;
 
+/**
+ * Generates the PDF report of a validation (HTML rendered by twig, converted by dompdf).
+ */
 class PdfReportWriter
 {
     public function __construct(
-        private readonly Pdf         $snappy,
         private readonly Environment $twig,
+        #[Autowire('%kernel.cache_dir%/dompdf')]
+        private readonly string $cacheDir,
     ) {}
 
     /**
@@ -41,13 +47,30 @@ class PdfReportWriter
             'hasErrors'      => $hasErrors,
         ]);
 
-        return $this->snappy->getOutputFromHtml($html, [
-            'encoding'             => 'UTF-8',
-            'enable-local-file-access' => true,
-            'margin-top'           => '10mm',
-            'margin-bottom'        => '10mm',
-            'margin-left'          => '12mm',
-            'margin-right'         => '12mm',
-        ]);
+        $dompdf = new Dompdf($this->createOptions());
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4');
+        $dompdf->render();
+
+        return (string) $dompdf->output();
+    }
+
+    /**
+     * The report only contains inline CSS : no remote resource, no local file, no script.
+     */
+    private function createOptions(): Options
+    {
+        if (!is_dir($this->cacheDir)) {
+            mkdir($this->cacheDir, 0o775, true);
+        }
+
+        return (new Options())
+            ->setIsRemoteEnabled(false)
+            ->setIsPhpEnabled(false)
+            ->setIsJavascriptEnabled(false)
+            ->setChroot([$this->cacheDir])
+            ->setTempDir($this->cacheDir)
+            ->setFontCache($this->cacheDir)
+            ->setDefaultFont('DejaVu Sans');
     }
 }

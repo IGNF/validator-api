@@ -114,6 +114,50 @@ class ValidationFilesControllerTest extends WebTestCase
         );
     }
 
+    public function testPdfNotExecuted()
+    {
+        $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS);
+
+        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/results.pdf');
+
+        $this->assertStatusCode(403, $this->client);
+    }
+
+    public function testPdf()
+    {
+        $validation = $this->updateValidation(ValidationsFixtures::VALIDATION_WITH_ARGS, Validation::STATUS_FINISHED, [
+            ['level' => 'ERROR', 'code' => 'FILE_EMPTY', 'message' => 'fichier vide <b>é</b>', 'file' => 'a.csv'],
+            ['level' => 'WARNING', 'code' => 'ATTRIBUTE_UNEXPECTED', 'message' => 'attribut inattendu'],
+            ['level' => 'INFO', 'code' => 'TABLE_LOADED', 'message' => 'table chargée'],
+        ]);
+
+        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/results.pdf');
+
+        $this->assertStatusCode(200, $this->client);
+        $response = $this->client->getResponse();
+        $this->assertEquals('application/pdf', $response->headers->get('Content-Type'));
+        $this->assertEquals(
+            'inline; filename='.$validation->getDatasetName().'.pdf',
+            $response->headers->get('Content-Disposition')
+        );
+        $this->assertStringStartsWith('%PDF-', $response->getContent());
+    }
+
+    /**
+     * Zip pre-validation errors (file, code, message) have no level.
+     */
+    public function testPdfZipErrors()
+    {
+        $validation = $this->updateValidation(ValidationsFixtures::VALIDATION_WITH_ARGS, Validation::STATUS_ERROR, [
+            ['file' => 'data/run.exe', 'code' => 'FILE_EXTENSION_NOT_ALLOWED', 'message' => "file extension is not allowed ('run.exe')"],
+        ]);
+
+        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/results.pdf');
+
+        $this->assertStatusCode(200, $this->client);
+        $this->assertStringStartsWith('%PDF-', $this->client->getResponse()->getContent());
+    }
+
     private function updateValidation(string $fixture, string $status, ?array $results): Validation
     {
         $uid = $this->getValidationFixture($fixture)->getUid();

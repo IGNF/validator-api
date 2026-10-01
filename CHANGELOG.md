@@ -38,6 +38,7 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - `/logs` est servi en `text/plain` avec `X-Content-Type-Options: nosniff`, pour éviter que le navigateur interprète du HTML issu des données.
 - Téléchargement des données sources et normalisées désactivable (`DATA_DOWNLOAD_ENABLED`, désactivé par défaut). Le contrôle a lieu avant la recherche de la validation, pour ne pas révéler l'existence d'un uid.
 - validator-cli.jar est téléchargé par `bin/install-validator.sh`, avec vérification de l'empreinte sha256. Ce script est la seule source de la version, partagée entre composer et le Dockerfile.
+- Le PDF est désormais généré par dompdf, sans ressources distantes, accès aux fichiers locaux ni JavaScript. Il remplace wkhtmltopdf, qui n'est plus maintenu et a des CVE connues, dont une SSRF.
 - Image Docker : `curl` et `wget` ne sont plus présents dans l'image finale, et Pebble (embarqué dans l'image Ubuntu, inutilisé et vulnérable) est supprimé.
 
 ### Ajouté
@@ -68,6 +69,7 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 
 ### Corrigé
 
+- `results.pdf` renvoyait toujours une erreur 500 : le binaire `wkhtmltopdf` utilisé par knp-snappy n'était installé ni dans l'image ni dans la CI. Le rapport est désormais généré par dompdf (PHP pur).
 - Une validation avec `normalize: false` finissait toujours en `error` : la sauvegarde attendait des données normalisées.
 - En cas d'échec d'une validation :
   - le log `validator-debug.log` est désormais sauvegardé, donc `/logs` est disponible ;
@@ -109,7 +111,8 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
   - `composer/package-versions-deprecated` (abandonné) ;
   - `league/flysystem-aws-s3-v3` et `aws/aws-sdk-php` (seul l'adaptateur async-aws est utilisé) ;
   - `symfony/validator` ;
-  - `symfony/requirements-checker`.
+  - `symfony/requirements-checker` ;
+  - `knplabs/knp-snappy-bundle` (wkhtmltopdf), remplacé par `dompdf/dompdf`.
 - Les polyfills PHP 5.6 à 7.1 et `paragonie/random_compat` sont remplacés par les polyfills PHP 7.2 à 8.5, fournis par PHP 8.5.
 - Option composer `secure-http: false`.
 - Fichiers de configuration en double avec les blocs `when@` (`web_profiler` de dev et test, `routes/dev/`), ainsi que `prod/deprecations.yaml`, entièrement commenté.
