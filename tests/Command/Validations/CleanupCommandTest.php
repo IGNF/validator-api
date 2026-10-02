@@ -78,4 +78,49 @@ class CleanupCommandTest extends WebTestCase
             $this->assertFalse(file_exists($validationDirectory));
         }
     }
+
+    /**
+     * Validations being processed by a worker are not archived.
+     */
+    public function testCleanupIgnoresProcessing()
+    {
+        $validation = $this->em->getRepository(Validation::class)->findOneBy(['status' => Validation::STATUS_PENDING]);
+        $validation->setStatus(Validation::STATUS_PROCESSING);
+        $this->em->flush();
+        $uid = $validation->getUid();
+
+        static::ensureKernelShutdown();
+        sleep(2);
+
+        $application = new Application(static::createKernel());
+        $commandTester = new CommandTester($application->find('ign-validator:validations:cleanup'));
+        $this->assertEquals(0, $commandTester->execute(['--max-age' => 'PT1S']));
+
+        $this->em->clear();
+        $validation = $this->em->getRepository(Validation::class)->findOneByUid($uid);
+        $this->assertEquals(Validation::STATUS_PROCESSING, $validation->getStatus());
+    }
+
+    /**
+     * Validations still processing after processing-timeout (worker killed...) are marked as failed.
+     */
+    public function testCleanupMarksInterruptedValidations()
+    {
+        $validation = $this->em->getRepository(Validation::class)->findOneBy(['status' => Validation::STATUS_PENDING]);
+        $validation->setStatus(Validation::STATUS_PROCESSING);
+        $validation->setDateStart(new \DateTime('-2 hours'));
+        $this->em->flush();
+        $uid = $validation->getUid();
+
+        static::ensureKernelShutdown();
+        $application = new Application(static::createKernel());
+        $commandTester = new CommandTester($application->find('ign-validator:validations:cleanup'));
+        $this->assertEquals(0, $commandTester->execute(['--processing-timeout' => 'PT1H']));
+        $this->assertStringContainsString('1 interrupted validation(s) marked as failed.', $commandTester->getDisplay());
+
+        $this->em->clear();
+        $validation = $this->em->getRepository(Validation::class)->findOneByUid($uid);
+        $this->assertEquals(Validation::STATUS_ERROR, $validation->getStatus());
+        $this->assertEquals('Validation failed (processing interrupted)', $validation->getMessage());
+    }
 }

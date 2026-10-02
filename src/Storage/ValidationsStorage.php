@@ -24,13 +24,18 @@ class ValidationsStorage
      */
     private $storageSystem;
 
-    public function __construct($validationsDir,
+    /**
+     * @param string $storageType "S3" (data.storage) or "local" (default.storage), see STORAGE_TYPE
+     */
+    public function __construct(
+        $validationsDir,
         FilesystemOperator $dataStorage,
-        FilesystemOperator $defaultStorage)
-    {
+        FilesystemOperator $defaultStorage,
+        string $storageType = 'local'
+    ) {
         $this->path = $validationsDir;
-        // Assign storage based on env
-        if ('S3' === getenv('STORAGE_TYPE')) {
+        // note that getenv() doesn't see the variables defined in .env files
+        if ('S3' === $storageType) {
             $this->storageSystem = $dataStorage;
         } else {
             $this->storageSystem = $defaultStorage;

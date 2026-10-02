@@ -1,30 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd" backupGlobals="false" colors="true" bootstrap="tests/bootstrap.php">
-  <coverage processUncoveredFiles="true">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" backupGlobals="false" colors="true" bootstrap="tests/bootstrap.php">
+  <source>
     <include>
       <directory suffix=".php">src</directory>
     </include>
     <exclude>
       <directory suffix=".php">src/DataFixtures</directory>
       <file>src/Kernel.php</file>
-      <file>src/.preload.php</file>
       <file>src/Controller/DefaultController.php</file>
     </exclude>
-    <report>
-      <clover outputFile="var/data/output/coverage.xml"/>
-      <html outputDirectory="var/data/output/coverage/"/>
-    </report>
-  </coverage>
+  </source>
   <logging>
     <junit outputFile="var/data/output/junit.xml"/>
   </logging>
+  <extensions>
+    <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyExtension"/>
+  </extensions>
   <php>
     <ini name="display_errors" value="true"/>
     <ini name="error_reporting" value="-1"/>
     <server name="SHELL_VERBOSITY" value="-1"/>
-    <server name="SYMFONY_PHPUNIT_REMOVE" value=""/>
-    <server name="SYMFONY_PHPUNIT_VERSION" value="7.5"/>
     <server name="KERNEL_CLASS" value="App\Kernel"/>
     <!-- ###+ symfony/framework-bundle ### -->
     <env name="SYMFONY_DEPRECATIONS_HELPER" value="logFile=var/log/test.deprecations.log"/>
@@ -33,6 +29,10 @@
     <!-- env name="TRUSTED_PROXIES" value="127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16" -->
     <!-- env name="TRUSTED_HOSTS" value="'^(localhost|example\.com)$'" -->
     <!-- ###- symfony/framework-bundle ### -->
+    <!-- download endpoints enabled so that their tests cover them (see DataDownloadDisabledTest for the default behavior) -->
+    <env name="DATA_DOWNLOAD_ENABLED" value="1"/>
+    <!-- high enough for the test suite (see RateLimitTest) -->
+    <env name="VALIDATION_RATE_LIMIT" value="1000"/>
     <!-- ###+ doctrine/doctrine-bundle ### -->
     <!-- Format described at https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/configuration.html#connecting-using-a-url -->
     <!-- IMPORTANT: You MUST configure your server version, either here or in config/packages/doctrine.yaml -->
@@ -50,7 +50,4 @@
       <directory>tests</directory>
     </testsuite>
   </testsuites>
-  <listeners>
-    <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
-  </listeners>
 </phpunit>

@@ -7,7 +7,7 @@ use App\Service\ValidatorArgumentsService;
 use App\Storage\ValidationsStorage;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\Filesystem\Filesystem;
+use RuntimeException;
 
 class ValidationsFixtures extends Fixture
 {
@@ -68,22 +68,19 @@ class ValidationsFixtures extends Fixture
     {
         $originalPath = __DIR__.'/../../tests/data/'.$filename;
         if (!file_exists($originalPath)) {
-            throw new \RuntimeException('Sample file not found : '.$originalPath);
+            throw new RuntimeException('Sample file not found : '.$originalPath);
         }
 
-        $validationDirectory = $this->validationsStorage->getDirectory($validation);
-        $fs = new Filesystem();
         $validation->setDatasetName(str_replace('.zip', '', $filename));
-        $fs->copy(
-            $originalPath,
-            $validationDirectory.'/'.$filename
-        );
+
+        $uploadDirectory = $this->validationsStorage->getUploadDirectory($validation);
+        $stream = fopen($originalPath, 'r');
+        $this->validationsStorage->getStorage()->writeStream($uploadDirectory.$filename, $stream);
+        fclose($stream);
     }
 
     public function load(ObjectManager $em): void
     {
-        $fs = new Filesystem();
-
         /*
          * validation_no_args - a validation with no args
          */

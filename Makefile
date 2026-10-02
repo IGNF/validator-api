@@ -1,32 +1,26 @@
-PHP_CS_RULES=@Symfony
-PHP_MD_RULES=./phpmd.xml
-
-test: vendor bin/validator-cli.jar
+test: vendor
 	# see SYMFONY_DEPRECATIONS_HELPER in phpunit.xml.dist
 	rm -rf var/log/test.deprecations.log
-	APP_ENV=test XDEBUG_MODE=coverage vendor/bin/phpunit
-
-bin/validator-cli.jar:
-	bash download-validator.sh
+	# test database (validator_api_test, see when@test in config/packages/doctrine.yaml)
+	APP_ENV=test php bin/console doctrine:database:create --if-not-exists
+	APP_ENV=test XDEBUG_MODE=coverage vendor/bin/phpunit \
+		--coverage-clover var/data/output/coverage.xml \
+		--coverage-html var/data/output/coverage/
 
 .PHONY: check-rules
-check-rules: vendor
-	@echo "-- Checking coding rules using phpmd (see @SuppressWarning to bypass control)"
-	vendor/bin/phpmd src text $(PHP_MD_RULES)
+check-rules:
 	@echo "-- Checking coding rules using phpstan"
 	vendor/bin/phpstan analyse -c phpstan.neon --error-format=raw
 
 .PHONY: fix-style
-fix-style: vendor
+fix-style:
 	@echo "-- Fixing coding style using php-cs-fixer..."
-	vendor/bin/php-cs-fixer fix src --rules $(PHP_CS_RULES) --using-cache=no
-	vendor/bin/php-cs-fixer fix tests --rules $(PHP_CS_RULES) --using-cache=no
+	vendor/bin/php-cs-fixer fix
 
 .PHONY: check-style
-check-style: vendor
+check-style:
 	@echo "-- Checking coding style using php-cs-fixer (run 'make fix-style' if it fails)"
-	vendor/bin/php-cs-fixer fix src --rules $(PHP_CS_RULES) -v --dry-run --diff --using-cache=no
-	vendor/bin/php-cs-fixer fix tests --rules $(PHP_CS_RULES) -v --dry-run --diff --using-cache=no
+	vendor/bin/php-cs-fixer fix -v --dry-run --diff
 
 .PHONY: vendor
 vendor:
@@ -34,14 +28,10 @@ vendor:
 
 .PHONY: clean
 clean:
+	# note : composer.lock, symfony.lock and package-lock.json are versioned (not removed)
 	rm -rf vendor
 	rm -rf var
-	rm -rf output
-	rm -f *.log
-	rm -f *.lock
-	rm -f package-lock.json
-	rm -f .php_cs.cache
-	rm -rf output
 	rm -rf node_modules
-	rm -rf .scannerwork
-	rm -rf sonar-scanner
+	rm -rf public/build public/vendor public/css public/font public/img
+	rm -f *.log
+	rm -f .php-cs-fixer.cache .phpunit.result.cache

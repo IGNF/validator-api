@@ -4,3 +4,10 @@ var
 /node_modules/
 
 /.env.*
+
+# front assets are built in the Dockerfile
+/public/build/
+/public/vendor/
+/public/css/
+/public/font/
+/public/img/

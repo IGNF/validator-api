@@ -4,6 +4,7 @@ namespace App\Command\Validations;
 
 use App\Validation\ValidationManager;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\SignalableCommandInterface;
 use Symfony\Component\Console\Input\InputInterface;
@@ -12,10 +13,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Helper command to process pending validations.
  */
+#[AsCommand(name: 'ign-validator:validations:process-one', description: 'Launches a document validation')]
 class ProcessOneCommand extends Command implements SignalableCommandInterface
 {
-    protected static $defaultName = 'ign-validator:validations:process-one';
-
     /**
      * @var ValidationManager
      */
@@ -32,18 +32,12 @@ class ProcessOneCommand extends Command implements SignalableCommandInterface
     ) {
         parent::__construct();
         $this->validationManager = $validationManager;
-    }
-
-    protected function configure()
-    {
-        // TODO add --uid option to ease command testing
-        $this
-            ->setDescription('Launches a document validation')
-        ;
+        $this->logger = $logger;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $output->writeln('Processing next pending validation...');
         $this->validationManager->processOne();
 
         return 0;
@@ -54,7 +48,7 @@ class ProcessOneCommand extends Command implements SignalableCommandInterface
         return [\SIGINT, \SIGTERM];
     }
 
-    public function handleSignal(int $signal): void
+    public function handleSignal(int $signal, int|false $previousExitCode = 0): int|false
     {
         $this->logger->warning('[ProcessOneCommand] received stop signal while processing validation!', [
             'signal' => $signal,
@@ -64,6 +58,7 @@ class ProcessOneCommand extends Command implements SignalableCommandInterface
         $this->logger->info('terminate process with exitCode={exitCode}', [
             'exitCode' => $exitCode,
         ]);
-        exit($exitCode);
+
+        return $exitCode;
     }
 }

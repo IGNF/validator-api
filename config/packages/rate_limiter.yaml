@@ -1,0 +1,8 @@
+framework:
+    rate_limiter:
+        # creation (POST) and update (PATCH) of validations, per client IP
+        # (behind a reverse proxy, see TRUSTED_PROXIES to get the client IP)
+        validation:
+            policy: sliding_window
+            limit: '%env(int:VALIDATION_RATE_LIMIT)%'
+            interval: '1 hour'

@@ -6,9 +6,7 @@ use App\DataFixtures\ValidationsFixtures;
 use App\Tests\WebTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -93,70 +91,24 @@ class ValidationSourceDataDownloadTest extends WebTestCase
     }
 
     /**
-     * Trying to download source data after execution of validations command.
+     * Download of the uploaded archive (written to the storage by the fixtures).
      */
     public function testDownload()
     {
-        $this->markTestSkipped('TODO : fix test');
-
-        // running validations command twice because there are two validations pending
-        static::ensureKernelShutdown();
-        $kernel = static::createKernel();
-        $application = new Application($kernel);
-        $command = $application->find('ign-validator:validations:process-one');
-        $commandTester = new CommandTester($command);
-        $statusCode = $commandTester->execute([]);
-        $this->assertEquals(0, $statusCode);
-
-        $command = $application->find('ign-validator:validations:process-one');
-        $commandTester = new CommandTester($command);
-        $statusCode = $commandTester->execute([]);
-        $this->assertEquals(0, $statusCode);
-
-        // this one has failed
-        $validation2 = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_BAD_ARGS);
-
-        $this->client->request(
-            'GET',
-            '/api/validations/'.$validation2->getUid().'/files/source',
-        );
-
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
-
-        $this->assertStatusCode(200, $this->client);
-
-        $file = $response->getFile();
-        // TODO
-        // expected: filename suffix should be -source.zip
-        // actual: -source is not present in the suffix
-        // var_dump($file);
-        $headers = $response->headers->all();
-
-        $this->assertEquals('application/zip', $headers['content-type'][0]);
-        $this->assertEquals($validation2->getDatasetName().'.zip', $file->getFilename());
-        $this->assertEquals('zip', $file->getExtension());
-
-        // this one has succeeded
         $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS);
 
-        $this->client->request(
-            'GET',
-            '/api/validations/'.$validation->getUid().'/files/source',
-        );
+        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/files/source');
 
-        $response = $this->client->getResponse();
         $this->assertStatusCode(200, $this->client);
-
-        $file = $response->getFile();
-        // TODO
-        // expected: filename suffix should be -source.zip
-        // actual: -source is not present in the suffix
-        // var_dump($file);
-        $headers = $response->headers->all();
-
-        $this->assertEquals('application/zip', $headers['content-type'][0]);
-        $this->assertEquals($validation->getDatasetName().'.zip', $file->getFilename());
-        $this->assertEquals('zip', $file->getExtension());
+        $response = $this->client->getResponse();
+        $this->assertEquals('application/zip', $response->headers->get('Content-Type'));
+        $this->assertEquals(
+            'attachment; filename='.$validation->getDatasetName().'-source.zip',
+            $response->headers->get('Content-Disposition')
+        );
+        $this->assertStringEqualsFile(
+            $this->getTestDataDir().'/'.ValidationsFixtures::FILENAME_SUP_PM3,
+            $this->client->getInternalResponse()->getContent()
+        );
     }
 }

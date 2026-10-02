@@ -18,16 +18,12 @@ validator-debug.log
 /nbproject/
 
 /tests/TempData/*
-/*.lock
-/package-lock.json
 
 /.idea
 /.vscode
 
 validator-cli.jar
 
-.scannerwork
-sonar-scanner
 node_modules
 
 /output/
@@ -45,3 +41,10 @@ node_modules
 /phpunit.xml
 .phpunit.result.cache
 ###< phpunit/phpunit ###
+
+# front assets built by webpack (npm ci && npm run build), see webpack.config.js
+/public/build/
+/public/vendor/
+/public/css/
+/public/font/
+/public/img/

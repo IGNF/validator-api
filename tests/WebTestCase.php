@@ -15,6 +15,16 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 abstract class WebTestCase extends BaseWebTestCase
 {
     /**
+     * Removes the files written to the storage (see flysystem.yaml, when@test).
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        (new Filesystem())->remove(dirname(__DIR__).'/var/data-test');
+    }
+
+    /**
      * @var AbstractExecutor
      */
     protected $fixtures;
@@ -32,9 +42,9 @@ abstract class WebTestCase extends BaseWebTestCase
     {
         if ($this->fixtures->getReferenceRepository()->hasReference($name, Validation::class)) {
             return $this->fixtures->getReferenceRepository()->getReference($name, Validation::class);
-        } else {
-            throw new \Exception("No reference found for $name");
         }
+        throw new \Exception("No reference found for $name");
+
     }
 
     /**
@@ -43,6 +53,31 @@ abstract class WebTestCase extends BaseWebTestCase
     protected function getValidationsStorage()
     {
         return $this->getContainer()->get(ValidationsStorage::class);
+    }
+
+    /**
+     * Create a zip archive in a temp directory.
+     *
+     * @param array<string,string> $files content by entry name (names ending with "/" are directories)
+     *
+     * @return string path to the zip archive
+     */
+    protected function createZip(array $files, string $zipName = 'test.zip'): string
+    {
+        $zipPath = $this->createTempDirectory('zip-').'/'.$zipName;
+
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($zipPath, \ZipArchive::CREATE));
+        foreach ($files as $name => $content) {
+            if (str_ends_with($name, '/')) {
+                $zip->addEmptyDir($name);
+            } else {
+                $zip->addFromString($name, $content);
+            }
+        }
+        $this->assertTrue($zip->close());
+
+        return $zipPath;
     }
 
     /**

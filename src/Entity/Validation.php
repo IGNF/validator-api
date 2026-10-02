@@ -3,24 +3,17 @@
 namespace App\Entity;
 
 use App\Repository\ValidationRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass=ValidationRepository::class)
- *
- * @ORM\Table(
- *      name="validation",
- *      indexes = {
- *
- *          @ORM\Index(name="validation_uid_idx", columns={"uid"})
- *      }
- * )
- */
+#[ORM\Entity(repositoryClass: ValidationRepository::class)]
+#[ORM\Table(name: 'validation')]
+#[ORM\Index(name: 'validation_uid_idx', columns: ['uid'])]
 class Validation
 {
     /**
      * User has uploaded a dataset but is yet to post the arguments
-     * User has 30 days to provide the arguments, otherwise the dataset will be deleted.
+     * (the dataset is archived after max-age, see CleanupCommand).
      */
     public const STATUS_WAITING_ARGS = 'waiting_for_args';
 
@@ -45,79 +38,83 @@ class Validation
     public const STATUS_ERROR = 'error';
 
     /**
-     * Validation created 30 days ago and its files have been deleted automatically to save space on the server.
+     * Files of the validation have been deleted (after max-age, see CleanupCommand, or delete-data argument),
+     * the results are kept.
      */
     public const STATUS_ARCHIVED = 'archived';
 
     /**
-     * Unique identifier.
-     *
-     * @ORM\Id
-     *
-     * @ORM\Column(type="string", length=24, unique=true)
+     * Allowed dataset names (used in file paths and command arguments, see column length).
      */
-    private $uid;
+    public const REGEXP_DATASET_NAME = '/^[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$/';
+
+    /**
+     * Unique identifier.
+     */
+    #[ORM\Id]
+    #[ORM\Column(type: Types::STRING, length: 24, unique: true)]
+    private string $uid;
 
     /**
      * Name of the dataset, derived from the name of the compressed file (zip) containing the dataset.
-     *
-     * @ORM\Column(type="string", length=100)
      */
-    private $datasetName;
+    #[ORM\Column(type: Types::STRING, length: 100)]
+    private ?string $datasetName = null;
 
     /**
      * CLI Arguments for the Java executable program.
-     *
-     * @ORM\Column(type="json", nullable=true)
      */
-    private $arguments;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $arguments = null;
 
     /**
      * Date of creation.
-     *
-     * @ORM\Column(type="datetime", nullable=false)
      */
-    private $dateCreation;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private \DateTimeInterface $dateCreation;
 
     /**
-     * Status.
-     *
-     * @ORM\Column(type="string", length=16, nullable=false, options={"default":"waiting_for_args"}, columnDefinition="character varying(16) CHECK (status IN ('waiting_for_args','pending','processing','finished','archived','error'))")
+     * Status (one of the STATUS_* constants, see also the CHECK constraint in the migrations).
      */
-    private $status;
+    #[ORM\Column(type: Types::STRING, length: 16, options: ['default' => self::STATUS_WAITING_ARGS])]
+    private string $status;
 
     /**
-     * Message.
-     *
-     * @ORM\Column(type="text", nullable=true)
+     * Message (error message for STATUS_ERROR).
      */
-    private $message;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $message = null;
 
     /**
      * Start date.
-     *
-     * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateStart;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $dateStart = null;
 
     /**
      * Finish date.
-     *
-     * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateFinish;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $dateFinish = null;
 
     /**
-     * Results in json format.
-     *
-     * @ORM\Column(type="json", nullable=true)
+     * Results in json format (validator-cli.jar report or zip pre-validation errors).
      */
-    private $results;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $results = null;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
+     * Document info (metadata extracted from the dataset by the validator), in json format.
+     * Only available when the validation was run with the "normalize" argument enabled.
      */
-    private $deleteData;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $documentInfo = null;
+
+    /**
+     * Delete the files as soon as the validation is done ("delete-data" argument).
+     */
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $deleteData = false;
 
     /**
      * Constructor.
@@ -125,11 +122,11 @@ class Validation
     public function __construct()
     {
         $this->setDateCreation(new \DateTime('now'));
-        $this->setStatus($this::STATUS_WAITING_ARGS);
+        $this->setStatus(self::STATUS_WAITING_ARGS);
         $this->setUid($this->generateUid());
     }
 
-    public function getUid(): ?string
+    public function getUid(): string
     {
         return $this->uid;
     }
@@ -146,26 +143,41 @@ class Validation
         return $this->datasetName;
     }
 
+    /**
+     * @throws \InvalidArgumentException if the name is not safe to be used in file paths
+     */
     public function setDatasetName(string $datasetName): self
     {
+        if (!self::isValidDatasetName($datasetName)) {
+            throw new \InvalidArgumentException(sprintf("Invalid dataset name '%s'", $datasetName));
+        }
         $this->datasetName = $datasetName;
 
         return $this;
     }
 
-    public function getArguments()
+    /**
+     * True if the dataset name is safe to be used in file paths and command arguments
+     * (no "/", no "." or ".." and no leading "-").
+     */
+    public static function isValidDatasetName(?string $datasetName): bool
+    {
+        return null !== $datasetName && 1 === preg_match(self::REGEXP_DATASET_NAME, $datasetName);
+    }
+
+    public function getArguments(): ?array
     {
         return $this->arguments;
     }
 
-    public function setArguments($arguments): self
+    public function setArguments(?array $arguments): self
     {
         $this->arguments = $arguments;
 
         return $this;
     }
 
-    public function getDateCreation(): ?\DateTimeInterface
+    public function getDateCreation(): \DateTimeInterface
     {
         return $this->dateCreation;
     }
@@ -177,7 +189,7 @@ class Validation
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
@@ -225,24 +237,36 @@ class Validation
         return $this;
     }
 
-    public function getResults()
+    public function getResults(): ?array
     {
         return $this->results;
     }
 
-    public function setResults($results)
+    public function setResults(?array $results): self
     {
         $this->results = $results;
 
         return $this;
     }
 
-    public function getDeleteData()
+    public function getDocumentInfo(): ?array
+    {
+        return $this->documentInfo;
+    }
+
+    public function setDocumentInfo(?array $documentInfo): self
+    {
+        $this->documentInfo = $documentInfo;
+
+        return $this;
+    }
+
+    public function getDeleteData(): bool
     {
         return $this->deleteData;
     }
 
-    public function setDeleteData($deleteData)
+    public function setDeleteData(bool $deleteData): self
     {
         $this->deleteData = $deleteData;
 
@@ -251,28 +275,23 @@ class Validation
 
     /**
      * Reset all attributes because user has requested a validation with updated parameters.
-     *
-     * @return Validation
      */
-    public function reset()
+    public function reset(): self
     {
-        $this->setStatus($this::STATUS_PENDING);
+        $this->setStatus(self::STATUS_PENDING);
         $this->setMessage(null);
         $this->setDateStart(null);
         $this->setDateFinish(null);
         $this->setResults(null);
+        $this->setDocumentInfo(null);
 
         return $this;
     }
 
     /**
-     * Generate UID.
-     *
-     * @param int $length
-     *
-     * @return string
+     * Generate UID (lower case letters and digits).
      */
-    private function generateUid($length = 24)
+    private function generateUid(int $length = 24): string
     {
         $randomUid = '';
 

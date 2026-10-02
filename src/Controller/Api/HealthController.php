@@ -8,24 +8,21 @@ use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * @Route("/health")
- */
+#[Route('/health')]
 class HealthController extends AbstractController
 {
     public function __construct(
         private LoggerInterface $logger,
-        private ValidationsStorage $storage)
-    {
+        private ValidationsStorage $storage
+    ) {
     }
 
     /**
      * Checks for Database connection.
-     *
-     * @Route("/db", name="health_db")
      */
+    #[Route('/db', name: 'health_db', methods: ['GET'])]
     public function healthDB(EntityManagerInterface $entityManager)
     {
         $sql = 'SELECT postgis_version() as postgis_version';
@@ -40,15 +37,15 @@ class HealthController extends AbstractController
         } catch (\Exception $e) {
             $this->logger->error((string) $e);
 
-            return new JsonResponse($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            // the raw message may contain the database host, port and user
+            return new JsonResponse('fail to get postgis version', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * Checks for S3 connection.
-     *
-     * @Route("/s3", name="health_s3")
      */
+    #[Route('/s3', name: 'health_s3', methods: ['GET'])]
     public function healthS3()
     {
         $this->logger->info('list files from S3 bucket...');

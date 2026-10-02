@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {# the title is used by browsers as default name of the PDF file #}
+    <title>Rapport de validation - {{ validation.datasetName }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 12mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Open Sans", "DejaVu Sans", Arial, sans-serif;
+            font-size: 13px;
+            color: #1a1a2e;
+            margin: 32px auto;
+            max-width: 1100px;
+            padding: 0 16px;
+            /* keep colors when printing */
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .toolbar button {
+            font: inherit;
+            padding: 8px 16px;
+            border: 1px solid #2d3748;
+            border-radius: 4px;
+            background: #2d3748;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin: 0 0 12px;
+        }
+
+        .properties {
+            margin-bottom: 24px;
+            border-collapse: collapse;
+        }
+
+        .properties th {
+            text-align: left;
+            padding: 2px 16px 2px 0;
+            color: #4a5568;
+            font-weight: normal;
+            white-space: nowrap;
+            vertical-align: top;
+        }
+
+        .properties td {
+            padding: 2px 0;
+            overflow-wrap: anywhere;
+        }
+
+        .banner {
+            padding: 16px 24px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 32px;
+            border-left: 6px solid;
+        }
+
+        .banner.has-errors {
+            background-color: #fde8e8;
+            border-color: #e53e3e;
+            color: #c53030;
+        }
+
+        .banner.no-errors {
+            background-color: #e6f4ea;
+            border-color: #38a169;
+            color: #276749;
+        }
+
+        h2.group-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 28px 0 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid currentColor;
+            break-after: avoid;
+        }
+
+        h2.level-error   { color: #e53e3e; border-color: #e53e3e; }
+        h2.level-warning { color: #d97706; border-color: #d97706; }
+        h2.level-info    { color: #3182ce; border-color: #3182ce; }
+
+        table.entries {
+            width: 100%;
+            table-layout: fixed;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        /* repeated on each printed page */
+        table.entries thead {
+            display: table-header-group;
+        }
+
+        table.entries thead th {
+            background-color: #2d3748;
+            color: #ffffff;
+            text-align: left;
+            padding: 8px 12px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        table.entries tbody tr {
+            break-inside: avoid;
+        }
+
+        table.entries tbody tr:nth-child(even) { background-color: #f7fafc; }
+        table.entries tbody tr:nth-child(odd)  { background-color: #ffffff; }
+
+        table.entries tbody td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+            /* long words without space (paths, identifiers...) must not overflow the page */
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-error   { background: #fed7d7; color: #c53030; }
+        .badge-warning { background: #fefcbf; color: #b7791f; }
+        .badge-info    { background: #bee3f8; color: #2b6cb0; }
+
+        .code { font-family: monospace; font-size: 12px; color: #553c9a; }
+        .file { color: #4a5568; font-size: 12px; }
+
+        @media print {
+            body {
+                margin: 0;
+                max-width: none;
+                padding: 0;
+                font-size: 11px;
+            }
+
+            .toolbar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toolbar">
+        <button type="button" id="print-button">Imprimer / Enregistrer en PDF</button>
+    </div>
+
+    <h1>Rapport de validation</h1>
+
+    <table class="properties">
+        <tr>
+            <th>Jeu de données</th>
+            <td>{{ validation.datasetName }}</td>
+        </tr>
+        {% if validation.arguments.model is defined %}
+            <tr>
+                <th>Modèle</th>
+                <td>{{ validation.arguments.model }}</td>
+            </tr>
+        {% endif %}
+        {% if validation.dateFinish %}
+            <tr>
+                <th>Date</th>
+                <td>{{ validation.dateFinish|date('d/m/Y H:i') }}</td>
+            </tr>
+        {% endif %}
+        <tr>
+            <th>Identifiant</th>
+            <td>{{ validation.uid }}</td>
+        </tr>
+    </table>
+
+    {# ── Top banner ── #}
+    {% if hasErrors %}
+        <div class="banner has-errors">
+            Document Invalide
+        </div>
+    {% else %}
+        <div class="banner no-errors">
+            Document Valide
+        </div>
+    {% endif %}
+
+    {# ── One table per level ── #}
+    {% for level, rows in groupedEntries %}
+        <h2 class="group-title level-{{ level|lower }}">{{ level|upper }}</h2>
+
+        <table class="entries">
+            <thead>
+                <tr>
+                    <th style="width: 30%">Code</th>
+                    <th style="width: 12%">Level</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in rows %}
+                <tr>
+                    <td class="code">{{ entry.code }}</td>
+                    <td>
+                        <span class="badge badge-{{ level|lower }}">{{ entry.level|default(level) }}</span>
+                    </td>
+                    <td>
+                        {{ entry.message }}
+                        {% if entry.file is defined and entry.file %}
+                            <div class="file">{{ entry.file }}</div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+
+    <script src="{{ asset('js/report.js') }}"></script>
+</body>
+</html>

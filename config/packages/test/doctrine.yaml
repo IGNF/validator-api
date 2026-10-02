@@ -1,4 +1,0 @@
-doctrine:
-    dbal:
-        # "TEST_TOKEN" is typically set by ParaTest
-        dbname: 'validator_api_test%env(default::TEST_TOKEN)%'

@@ -1,0 +1,12 @@
+# Local development overrides (loaded automatically by "docker compose")
+services:
+  api:
+    environment:
+      - APP_ENV=dev
+  worker:
+    environment:
+      - APP_ENV=dev
+  database:
+    ports:
+      # exposed on localhost only
+      - "127.0.0.1:5432:5432"

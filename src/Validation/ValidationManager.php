@@ -3,14 +3,14 @@
 namespace App\Validation;
 
 use App\Entity\Validation;
+use App\Exception\ValidationProcessException;
 use App\Exception\ZipArchiveValidationException;
 use App\Repository\ValidationRepository;
-use App\Storage\ValidationsStorage;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Filesystem\Filesystem;
+use RuntimeException;
 use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
 
 class ValidationManager
 {
@@ -20,9 +20,9 @@ class ValidationManager
     private $em;
 
     /**
-     * @var ValidationsStorage
+     * @var ValidationWorkspace
      */
-    private $storage;
+    private $workspace;
 
     /**
      * @var ValidatorCLI
@@ -47,20 +47,20 @@ class ValidationManager
     /**
      * Current validation (in order to handle SIGTERM).
      *
-     * @var Validation
+     * @var Validation|null
      */
     private $currentValidation;
 
     public function __construct(
         EntityManagerInterface $em,
-        ValidationsStorage $storage,
+        ValidationWorkspace $workspace,
         ValidatorCLI $validatorCli,
         ZipArchiveValidator $zipArchiveValidator,
         LoggerInterface $logger,
         ValidationRepository $validationRepository,
     ) {
         $this->em = $em;
-        $this->storage = $storage;
+        $this->workspace = $workspace;
         $this->validatorCli = $validatorCli;
         $this->zipArchiveValidator = $zipArchiveValidator;
         $this->logger = $logger;
@@ -77,35 +77,7 @@ class ValidationManager
         $this->logger->info('Validation[{uid}] : archive removing all files...', [
             'uid' => $validation->getUid(),
         ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $fs = new Filesystem();
-        if ($fs->exists($validationDirectory)) {
-            $this->logger->debug('Validation[{uid}] : remove validation directory ...', [
-                'uid' => $validation->getUid(),
-                'validationDirectory' => $validationDirectory,
-            ]);
-            $fs->remove($validationDirectory);
-        }
-
-        // Delete from storage
-        $this->logger->info('Validation[{uid}] : remove upload files', [
-            'uid' => $validation->getUid(),
-        ]);
-        $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        if ($this->storage->getStorage()->directoryExists($uploadDirectory)) {
-            $this->storage->getStorage()->deleteDirectory($uploadDirectory);
-        }
-        $this->logger->info('Validation[{uid}] : remove output files', [
-            'uid' => $validation->getUid(),
-        ]);
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if ($this->storage->getStorage()->directoryExists($outputDirectory)) {
-            $this->storage->getStorage()->deleteDirectory($outputDirectory);
-        }
-        $this->logger->info('Validation[{uid}] : drop validation schema', [
-            'uid' => $validation->getUid(),
-        ]);
-        $this->validationRepository->dropSchema($validation);
+        $this->removeFiles($validation);
         $this->logger->info('Validation[{uid}] : archive removing all files : completed', [
             'uid' => $validation->getUid(),
             'status' => Validation::STATUS_ARCHIVED,
@@ -116,13 +88,47 @@ class ValidationManager
     }
 
     /**
+     * Marks as failed a validation that is still "processing" while no worker handles it anymore
+     * (worker killed, out of memory...). It is not restarted as the dataset may be the cause.
+     */
+    public function markInterrupted(Validation $validation): void
+    {
+        $this->logger->warning('Validation[{uid}] : processing interrupted, changing state to error', [
+            'uid' => $validation->getUid(),
+            'dateStart' => $validation->getDateStart(),
+        ]);
+        $this->workspace->removeLocalDirectory($validation);
+        $validation->setStatus(Validation::STATUS_ERROR);
+        $validation->setMessage('Validation failed (processing interrupted)');
+        $validation->setDateFinish(new DateTime('now'));
+        $this->em->persist($validation);
+        $this->em->flush();
+    }
+
+    /**
+     * Delete a given validation removing all its files and its database schema.
+     *
+     * Files are removed first so that a storage error doesn't leave orphan files.
+     */
+    public function delete(Validation $validation): void
+    {
+        $this->logger->info('Validation[{uid}] : removing all saved data...', [
+            'uid' => $validation->getUid(),
+            'datasetName' => $validation->getDatasetName(),
+        ]);
+        $this->removeFiles($validation);
+        $this->em->remove($validation);
+        $this->em->flush();
+    }
+
+    /**
      * Process next pending validation.
      *
      * @return void
      */
     public function processOne()
     {
-        $validation = $this->getValidationRepository()->popNextPending();
+        $validation = $this->validationRepository->popNextPending();
         if (is_null($validation)) {
             $this->logger->debug('processOne : no validation pending, quitting');
 
@@ -148,6 +154,19 @@ class ValidationManager
         $this->logger->warning('Validation[{uid}]: SIGTERM received, changing state to pending', [
             'uid' => $this->currentValidation->getUid(),
         ]);
+        /*
+         * the console application exits after the signal handler (finally blocks are not executed) :
+         * stop validator-cli.jar and remove the local directory so that the validation can be restarted cleanly
+         */
+        try {
+            $this->validatorCli->stop();
+            $this->workspace->removeLocalDirectory($this->currentValidation);
+        } catch (\Throwable $th) {
+            $this->logger->error('Validation[{uid}]: fail to stop processing', [
+                'uid' => $this->currentValidation->getUid(),
+                'exception' => $th,
+            ]);
+        }
         $this->currentValidation->setStatus(Validation::STATUS_PENDING);
         $this->em->persist($this->currentValidation);
         $this->em->flush();
@@ -172,24 +191,24 @@ class ValidationManager
                 $validation->getStatus()
             );
             $this->logger->error($message, ['uid' => $validation->getUid()]);
-            throw new \RuntimeException($message);
+            throw new RuntimeException($message);
         }
 
         try {
             /*
              * get files from storage
              */
-            $this->getZip($validation);
+            $this->workspace->prepareUpload($validation);
 
             /*
-             * pre-validating the names of the files in the zip archive
+             * pre-validating the zip archive (sizes, paths, names and extensions of the files)
              */
             $this->validateZip($validation);
 
             /*
-             * unzip dataset
+             * unzip dataset (checking the content of the files)
              */
-            $this->unzip($validation);
+            $this->workspace->unzip($validation);
 
             /*
              * run validator-cli.jar command
@@ -197,23 +216,12 @@ class ValidationManager
             $this->validatorCli->process($validation);
 
             /*
-             * zip normalized results
+             * zip normalized results and save them to storage
              */
-            $this->zipNormData($validation);
+            $this->workspace->zipNormalizedData($validation);
+            $this->workspace->saveNormalizedData($validation);
 
-            /*
-             * Save validation data to storage
-             */
-            $this->saveToStorage($validation);
-
-            /*
-             * cleanup data
-             */
-            $this->cleanUp($validation);
-
-            if ($validation->getStatus() != Validation::STATUS_ARCHIVED) {
-                $validation->setStatus(Validation::STATUS_FINISHED);
-            }
+            $validation->setStatus(Validation::STATUS_FINISHED);
             $this->logger->info('Validation[{uid}]: validation carried out successfully', ['uid' => $validation->getUid()]);
         } catch (ZipArchiveValidationException $ex) {
             $validation->setStatus(Validation::STATUS_ERROR);
@@ -222,44 +230,40 @@ class ValidationManager
             $this->logger->error('Validation[{uid}]: {message}: {errors}', ['uid' => $validation->getUid(), 'message' => $ex->getMessage(), 'errors' => $ex->getErrors()]);
         } catch (\Throwable $th) {
             $validation->setStatus(Validation::STATUS_ERROR);
-            $validation->setMessage($th->getMessage());
-            $this->logger->error('Validation[{uid}]: {message}', ['uid' => $validation->getUid(), 'message' => $th->getMessage()]);
+            $validation->setMessage($this->getPublicMessage($th));
+            $this->logger->error('Validation[{uid}]: {message}', ['uid' => $validation->getUid(), 'message' => $th->getMessage(), 'exception' => $th]);
+        } finally {
+            /*
+             * save logs and cleanup data, whatever the result of the validation
+             */
+            $this->cleanUp($validation);
         }
 
-        $validation->setDateFinish(new \DateTime('now'));
+        $validation->setDateFinish(new DateTime('now'));
         $this->em->persist($validation);
         $this->em->flush();
     }
 
     /**
-     * Get Zip file from storage to validate.
+     * Returns the message stored in the validation (publicly readable) for an error.
      *
-     * @return void
+     * Raw messages may contain internal information (command lines, paths, java output...),
+     * they are only kept for errors designed to be returned to the user.
      */
-    private function getZip(Validation $validation)
+    private function getPublicMessage(\Throwable $throwable): string
     {
-        $this->logger->info('Validation[{uid}] : get from storage...', [
-            'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
-        ]);
-
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $uploadFile = $this->storage->getUploadDirectory($validation) . $validation->getDatasetName() . '.zip';
-
-        if (!is_dir($validationDirectory)) {
-            mkdir($validationDirectory);
+        if ($throwable instanceof ValidationProcessException) {
+            return $throwable->getMessage();
+        }
+        if ($throwable instanceof ProcessFailedException) {
+            return sprintf('Validation failed (exit code %s)', $throwable->getProcess()->getExitCode());
         }
 
-        $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
-
-        file_put_contents(
-            $zipPath,
-            $this->storage->getStorage()->read($uploadFile)
-        );
+        return 'Validation failed (internal error)';
     }
 
     /**
-     * Pre-validates the names of files in the zip.
+     * Pre-validates the zip archive (zip bomb, unsafe entries, names and extensions of the files).
      *
      * @param Validation $validation
      *
@@ -273,108 +277,17 @@ class ValidationManager
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $zipPath = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
-        $errors = $this->zipArchiveValidator->validate($zipPath);
+        $errors = $this->zipArchiveValidator->validate($this->workspace->getLocalZipPath($validation));
         if (count($errors) > 0) {
             throw new ZipArchiveValidationException($errors);
         }
     }
 
     /**
-     * Unzips the compressed dataset.
+     * Saves the validator log, removes the local working directory and,
+     * if requested (delete-data), the persisted files.
      *
-     * @return void
-     */
-    private function unzip(Validation $validation)
-    {
-        $this->logger->info('Validation[{uid}] : extract source archive...', [
-            'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
-        ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $zipFilename = $validationDirectory . '/' . $validation->getDatasetName() . '.zip';
-        $zip = new \ZipArchive();
-
-        if (true === $zip->open($zipFilename)) {
-            $zip->extractTo($validationDirectory . '/' . $validation->getDatasetName());
-            $zip->close();
-        } else {
-            throw new \Exception('Zip decompression failed');
-        }
-    }
-
-    /**
-     * Zips the generated normalized data.
-     *
-     * @return void
-     */
-    private function zipNormData(Validation $validation)
-    {
-        $this->logger->info('Validation[{uid}] : compress normalized data...', [
-            'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
-        ]);
-        $fs = new Filesystem();
-
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $normDataParentDir = $validationDirectory . '/validation/';
-        $datasetName = $validation->getDatasetName();
-
-        // checking if normalized data is present
-        if (!$fs->exists($normDataParentDir . $datasetName)) {
-            return;
-        }
-
-        $process = new Process(['zip', '-r', "$datasetName.zip", $datasetName], $normDataParentDir);
-        $process->setTimeout(600);
-        $process->setIdleTimeout(600);
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
-    }
-
-    /**
-     * Saves output to storage.
-     */
-    private function saveToStorage(Validation $validation)
-    {
-        // Saves normalized data to storage
-        $this->logger->info('Validation[{uid}] : saving normalized data...', [
-            'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
-        ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-        $normDataPath = $validationDirectory . '/validation/' . $validation->getDatasetName() . '.zip';
-        $outputDirectory = $this->storage->getOutputDirectory($validation);
-        if (!$this->storage->getStorage()->directoryExists($outputDirectory)) {
-            $this->storage->getStorage()->createDirectory($outputDirectory);
-        }
-        $outputPath = $outputDirectory . $validation->getDatasetName() . '.zip';
-        if ($this->storage->getStorage()->fileExists($outputPath)) {
-            $this->storage->getStorage()->delete($outputPath);
-        }
-        $stream = fopen($normDataPath, 'r+');
-        $this->storage->getStorage()->writeStream($outputPath, $stream);
-        fclose($stream);
-
-        // Saves validator logs to storage
-        $this->logger->info('Validation[{uid}] : saving logs...', [
-            'uid' => $validation->getUid(),
-            'datasetName' => $validation->getDatasetName(),
-        ]);
-        $logPath = $validationDirectory . '/validator-debug.log';
-        $outputPath = $outputDirectory . '/validator-debug.log';
-
-        $stream = fopen($logPath, 'r+');
-        $this->storage->getStorage()->writeStream($outputPath, $stream);
-        fclose($stream);
-    }
-
-    /**
-     * Cleans up temporary files.
+     * Errors are logged but not raised so that the status of the validation is always saved.
      *
      * @return void
      */
@@ -384,27 +297,36 @@ class ValidationManager
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
-        $validationDirectory = $this->storage->getDirectory($validation);
-
-        $fs = new Filesystem();
-        if ($fs->exists($validationDirectory)) {
-            $this->logger->debug('Validation[{uid}] : rm -rf {uid}/{datasetName}/...', [
-                'uid' => $validation->getUid(),
-                'datasetName' => $validation->getDatasetName(),
-            ]);
-            $fs->remove($validationDirectory);
+        try {
+            $this->workspace->saveLog($validation);
+        } catch (\Throwable $th) {
+            $this->logger->error('Validation[{uid}] : fail to save logs', ['uid' => $validation->getUid(), 'exception' => $th]);
         }
 
-        if ($validation->getDeleteData()) {
-            $this->archive($validation);
+        try {
+            $this->workspace->removeLocalDirectory($validation);
+            if ($validation->getDeleteData()) {
+                $this->removeFiles($validation);
+                // keep the error status so that the user knows that the validation failed
+                if (Validation::STATUS_FINISHED === $validation->getStatus()) {
+                    $validation->setStatus(Validation::STATUS_ARCHIVED);
+                }
+            }
+        } catch (\Throwable $th) {
+            $this->logger->error('Validation[{uid}] : fail to cleanup', ['uid' => $validation->getUid(), 'exception' => $th]);
         }
     }
 
     /**
-     * @return ValidationRepository
+     * Removes local files, persisted files and database schema of a validation.
      */
-    protected function getValidationRepository()
+    private function removeFiles(Validation $validation): void
     {
-        return $this->em->getRepository(Validation::class);
+        $this->workspace->removeLocalDirectory($validation);
+        $this->workspace->removePersistedFiles($validation);
+        $this->logger->info('Validation[{uid}] : drop validation schema', [
+            'uid' => $validation->getUid(),
+        ]);
+        $this->validationRepository->dropSchema($validation);
     }
 }

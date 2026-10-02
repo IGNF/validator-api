@@ -3,12 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\Validation;
+use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use SortDirection;
 
 /**
  * @method Validation|null find($id, $lockMode = null, $lockVersion = null)
  * @method Validation|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Validation|null findOneByUid(string $uid)
  * @method Validation[]    findAll()
  * @method Validation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
@@ -28,45 +31,68 @@ class ValidationRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $conn = $em->getConnection();
+        $conn->setNestTransactionsWithSavepoints(true);
 
         $conn->beginTransaction();
-        $conn->executeQuery('LOCK TABLE validation IN ACCESS EXCLUSIVE MODE;');
+        try {
+            $conn->executeQuery('LOCK TABLE validation IN ACCESS EXCLUSIVE MODE;');
 
-        /** @var Validation|null $result */
-        $result = $this->createQueryBuilder('v')
-            ->where('v.status = :status')
-            ->setParameters(['status' => Validation::STATUS_PENDING])
-            ->orderBy('v.dateCreation', 'ASC')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
+            /** @var Validation|null $result */
+            $result = $this->createQueryBuilder('v')
+                ->where('v.status = :status')
+                ->setParameter('status', Validation::STATUS_PENDING)
+                ->orderBy('v.dateCreation', SortDirection::Ascending)
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
 
-        if (!is_null($result)) {
-            $result->setStatus(Validation::STATUS_PROCESSING);
-            $result->setDateStart(new \DateTime('now'));
-            $em->flush($result);
-            $em->refresh($result);
+            if (!is_null($result)) {
+                $result->setStatus(Validation::STATUS_PROCESSING);
+                $result->setDateStart(new DateTime('now'));
+                $em->flush();
+                $em->refresh($result);
+            }
+
+            $conn->commit();
+        } catch (\Throwable $th) {
+            // release the table lock
+            $conn->rollBack();
+            throw $th;
         }
-
-        $conn->commit();
 
         return $result;
     }
 
     /**
-     * Finds all archivable validations older than expiryDate.
+     * Finds all archivable validations older than expiryDate
+     * (validations being processed by a worker are ignored).
      *
      * @return array<Validation>
      */
-    public function findAllToBeArchived(\DateTime $expiryDate)
+    public function findAllToBeArchived(DateTime $expiryDate)
     {
         return $this->createQueryBuilder('v')
             ->where('v.dateCreation < :expiryDate')
-            ->andWhere('v.status != :ignoredStatus')
-            ->setParameters([
-                'expiryDate' => $expiryDate,
-                'ignoredStatus' => Validation::STATUS_ARCHIVED,
-            ])
+            ->andWhere('v.status NOT IN (:ignoredStatus)')
+            ->setParameter('expiryDate', $expiryDate)
+            ->setParameter('ignoredStatus', [Validation::STATUS_ARCHIVED, Validation::STATUS_PROCESSING])
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * Finds validations still "processing" after maxDateStart (worker killed, OOM...).
+     *
+     * @return array<Validation>
+     */
+    public function findAllInterrupted(DateTime $maxDateStart)
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.status = :status')
+            ->andWhere('v.dateStart < :maxDateStart')
+            ->setParameter('status', Validation::STATUS_PROCESSING)
+            ->setParameter('maxDateStart', $maxDateStart)
             ->getQuery()
             ->getResult()
         ;

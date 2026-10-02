@@ -1,18 +1,19 @@
 {
   "license": "AGPL-3.0-or-later",
   "private": true,
+  "engines": {
+    "node": ">=20.9"
+  },
   "scripts": {
     "start": "symfony server:start",
     "build": "webpack --mode=production",
     "build-dev": "webpack --mode=development",
     "watch": "webpack --mode=development --watch"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@ignf/validator-client": "git+https://github.com/IGNF/validator-api-client.git#v0.5.8",
-    "copy-webpack-plugin": "^9.0.1",
-    "webpack": "^5.44.0",
-    "webpack-cli": "^4.7.2",
-    "webpack-copy-plugin": "0.0.4"
+    "@ignf/validator-client": "https://github.com/IGNF/validator-api-client/archive/refs/tags/v0.6.0.tar.gz",
+    "copy-webpack-plugin": "^14.0.0",
+    "webpack": "^5.111.1",
+    "webpack-cli": "^7.2.3"
   }
 }
