@@ -63,6 +63,10 @@ jobs:
       run: make test
       env:
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/validator_api?serverVersion=14&charset=utf8
+        # validation database for validator-cli.jar (since v4.6.0, it fails if the database is not reachable)
+        DB_URL: jdbc:postgresql://localhost:5432/postgres
+        DB_USER: postgres
+        DB_PASSWORD: postgres
 
     - name: Upload coverage results to coveralls.io
       if: github.ref == 'refs/heads/master' && matrix.php-version == '8.5'
