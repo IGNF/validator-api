@@ -20,6 +20,7 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - **Le front n'est plus commité** (`public/build`, `public/vendor`, `public/css`, `public/font`, `public/img`). Il est construit par le Dockerfile (stage `assets`) ou en local avec `npm ci && npm run build`.
 - **`/api` redirige vers la documentation de la démo** (`/#/api`, swagger-ui 5). L'ancienne page swagger-ui 3 chargée depuis unpkg est supprimée.
 - **`composer.lock`, `symfony.lock` et `package-lock.json` sont versionnés.**
+- **`results.pdf` redirige (`302`) vers le rapport imprimable** `/api/validations/{uid}/report?print=1` : l'API ne génère plus de fichier PDF.
 - **Tests** : la base `validator_api_test` est désormais utilisée. Auparavant ils tournaient, par erreur, sur la base `validator_api` et la purgeaient. `make test` crée la base si besoin.
 
 ### Sécurité
@@ -42,7 +43,7 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - `/logs` est servi en `text/plain` avec `X-Content-Type-Options: nosniff`, pour éviter que le navigateur interprète du HTML issu des données.
 - Téléchargement des données sources et normalisées désactivable (`DATA_DOWNLOAD_ENABLED`, désactivé par défaut). Le contrôle a lieu avant la recherche de la validation, pour ne pas révéler l'existence d'un uid.
 - validator-cli.jar est téléchargé par `bin/install-validator.sh`, avec vérification de l'empreinte sha256. Ce script est la seule source de la version, partagée entre composer et le Dockerfile.
-- Le PDF est désormais généré par dompdf, sans ressources distantes, accès aux fichiers locaux ni JavaScript. Il remplace wkhtmltopdf, qui n'est plus maintenu et a des CVE connues, dont une SSRF.
+- Le rapport PDF n'est plus généré côté serveur par wkhtmltopdf, qui n'est plus maintenu et a des CVE connues (dont une SSRF) : l'API sert un rapport HTML imprimable, que le navigateur enregistre en PDF.
 - En-têtes de sécurité sur toutes les réponses : `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` et `Referrer-Policy`. Les pages HTML reçoivent aussi une `Content-Security-Policy` (hors mode debug) : tout est servi par l'API, sans CDN.
 - Limite de débit sur `POST` et `PATCH /api/validations` (`VALIDATION_RATE_LIMIT`, `429 Too Many Requests`).
 - Export CSV : les valeurs issues du dataset qui commencent par `=`, `+`, `-` ou `@` sont préfixées par `'`, pour que les tableurs ne les interprètent pas comme des formules. Les nombres sont conservés tels quels.
@@ -53,6 +54,7 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 ### Ajouté
 
 - Le fichier `document-info.json` produit par le validator (option `normalize`) est exposé dans le champ `document_info` des validations.
+- `GET /api/validations/{uid}/report` : rapport de validation imprimable (HTML), à enregistrer en PDF avec le navigateur. Avec `?print`, la boîte de dialogue d'impression s'ouvre directement.
 - Variables d'environnement `DATA_DOWNLOAD_ENABLED`, `VALIDATOR_MODEL_ALLOWED_HOSTS`, `VALIDATION_RATE_LIMIT` et `TRUSTED_PROXIES`.
 - `ign-validator:validations:cleanup --processing-timeout` (par défaut `PT1H`) : les validations encore en `processing` au-delà de ce délai (worker tué, manque de mémoire…) passent en `error` avec le message `Validation failed (processing interrupted)`.
 - Documentation OpenAPI : route `/logs`, réponses `403`, `404` et `429`, schémas `Error` et `Validation` (`results`, `delete_data`) conformes aux réponses réelles.
@@ -83,7 +85,8 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 
 ### Corrigé
 
-- `results.pdf` renvoyait toujours une erreur 500 : le binaire `wkhtmltopdf` utilisé par knp-snappy n'était installé ni dans l'image ni dans la CI. Le rapport est désormais généré par dompdf (PHP pur).
+- `results.pdf` renvoyait toujours une erreur 500 : le binaire `wkhtmltopdf` utilisé par knp-snappy n'était installé ni dans l'image ni dans la CI.
+- Rapport : les messages longs sans espace (chemins, identifiants) ne débordent plus de la page. Ils passent à la ligne, et les en-têtes de colonnes sont répétés sur chaque page imprimée.
 - Une validation avec `normalize: false` finissait toujours en `error` : la sauvegarde attendait des données normalisées.
 - En cas d'échec d'une validation :
   - le log `validator-debug.log` est désormais sauvegardé, donc `/logs` est disponible ;
@@ -134,7 +137,7 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
   - `league/flysystem-aws-s3-v3` et `aws/aws-sdk-php` (seul l'adaptateur async-aws est utilisé) ;
   - `symfony/validator` ;
   - `symfony/requirements-checker` ;
-  - `knplabs/knp-snappy-bundle` (wkhtmltopdf), remplacé par `dompdf/dompdf`.
+  - `knplabs/knp-snappy-bundle` (wkhtmltopdf), remplacé par l'impression du navigateur.
 - Les polyfills PHP 5.6 à 7.1 et `paragonie/random_compat` sont remplacés par les polyfills PHP 7.2 à 8.5, fournis par PHP 8.5.
 - Option composer `secure-http: false`.
 - Fichiers de configuration en double avec les blocs `when@` (`web_profiler` de dev et test, `routes/dev/`), ainsi que `prod/deprecations.yaml`, entièrement commenté.

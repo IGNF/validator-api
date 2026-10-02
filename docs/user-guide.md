@@ -46,7 +46,7 @@ curl --request GET \
 | `waiting_for_args` | Une demande de validation a été créée, mais l'utilisateur n'a pas encore fourni les arguments du validator-cli.jar. |
 | `pending`          | L'API a bien reçu les arguments du validator. La validation est prête pour l'exécution et sera traitée prochainement par un worker. |
 | `processing`       | La validation est en cours d'exécution. Elle ne peut alors être ni modifiée ni supprimée (`409`). |
-| `finished`         | La validation est terminée : le rapport est disponible (`results`, `results.csv`, `results.pdf`). |
+| `finished`         | La validation est terminée : le rapport est disponible (`results`, `results.csv`, rapport imprimable `report` à enregistrer en PDF avec le navigateur). |
 | `error`            | La validation a échoué (archive zip refusée, erreur de validator-cli.jar, traitement interrompu). Le champ `message` indique la cause et les logs restent consultables (`/logs`). |
 | `archived`         | Les fichiers de la validation ont été supprimés : automatiquement 5 jours (par défaut) après sa création, ou dès la fin de la validation avec l'argument `delete-data`. Les résultats restent consultables. |
 

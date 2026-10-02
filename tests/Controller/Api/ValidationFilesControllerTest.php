@@ -11,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
- * Tests for logs and reports (results.csv) endpoints.
+ * Tests for logs and reports (results.csv, report) endpoints.
  */
 class ValidationFilesControllerTest extends WebTestCase
 {
@@ -114,48 +114,68 @@ class ValidationFilesControllerTest extends WebTestCase
         );
     }
 
-    public function testPdfNotExecuted()
+    public function testReportNotExecuted()
     {
         $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS);
 
-        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/results.pdf');
+        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/report');
 
         $this->assertStatusCode(403, $this->client);
     }
 
-    public function testPdf()
+    /**
+     * Printable HTML report, printed to PDF by the browser.
+     */
+    public function testReport()
     {
+        $longMessage = 'chemin '.str_repeat('Donnees_geographiques/', 20).'PM3_ACTE_SUP.dbf';
         $validation = $this->updateValidation(ValidationsFixtures::VALIDATION_WITH_ARGS, Validation::STATUS_FINISHED, [
             ['level' => 'ERROR', 'code' => 'FILE_EMPTY', 'message' => 'fichier vide <b>é</b>', 'file' => 'a.csv'],
-            ['level' => 'WARNING', 'code' => 'ATTRIBUTE_UNEXPECTED', 'message' => 'attribut inattendu'],
+            ['level' => 'WARNING', 'code' => 'ATTRIBUTE_UNEXPECTED', 'message' => $longMessage],
             ['level' => 'INFO', 'code' => 'TABLE_LOADED', 'message' => 'table chargée'],
         ]);
 
-        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/results.pdf');
+        $crawler = $this->client->request('GET', '/api/validations/'.$validation->getUid().'/report');
 
         $this->assertStatusCode(200, $this->client);
         $response = $this->client->getResponse();
-        $this->assertEquals('application/pdf', $response->headers->get('Content-Type'));
-        $this->assertEquals(
-            'inline; filename='.$validation->getDatasetName().'.pdf',
-            $response->headers->get('Content-Disposition')
-        );
-        $this->assertStringStartsWith('%PDF-', $response->getContent());
+        $this->assertEquals('text/html; charset=utf-8', $response->headers->get('Content-Type'));
+        $this->assertSelectorTextContains('title', 'Rapport de validation - '.$validation->getDatasetName());
+        $this->assertSelectorTextContains('.banner', 'Document Invalide');
+        $this->assertEquals(['ERROR', 'WARNING', 'INFO'], $crawler->filter('h2.group-title')->each(fn ($node) => $node->text()));
+        // messages are escaped
+        $this->assertStringContainsString('fichier vide &lt;b&gt;é&lt;/b&gt;', $response->getContent());
+        $this->assertStringContainsString($longMessage, $response->getContent());
+        // print script served by the API (no inline script)
+        $this->assertEquals(['/js/report.js'], $crawler->filter('script')->each(fn ($node) => $node->attr('src')));
     }
 
     /**
      * Zip pre-validation errors (file, code, message) have no level.
      */
-    public function testPdfZipErrors()
+    public function testReportZipErrors()
     {
         $validation = $this->updateValidation(ValidationsFixtures::VALIDATION_WITH_ARGS, Validation::STATUS_ERROR, [
             ['file' => 'data/run.exe', 'code' => 'FILE_EXTENSION_NOT_ALLOWED', 'message' => "file extension is not allowed ('run.exe')"],
         ]);
 
-        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/results.pdf');
+        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/report');
 
         $this->assertStatusCode(200, $this->client);
-        $this->assertStringStartsWith('%PDF-', $this->client->getResponse()->getContent());
+        $this->assertSelectorTextContains('h2.group-title', 'ERROR');
+        $this->assertSelectorTextContains('.file', 'data/run.exe');
+    }
+
+    /**
+     * The former PDF report redirects to the printable report.
+     */
+    public function testPdfRedirectsToReport()
+    {
+        $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS);
+
+        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/results.pdf');
+
+        $this->assertResponseRedirects('/api/validations/'.$validation->getUid().'/report?print=1');
     }
 
     private function updateValidation(string $fixture, string $status, ?array $results): Validation

@@ -5,11 +5,12 @@ namespace App\Controller\Api;
 use App\Entity\Validation;
 use App\Exception\ApiException;
 use App\Export\CsvReportWriter;
-use App\Export\PdfReportWriter;
+use App\Export\HtmlReportWriter;
 use App\Repository\ValidationRepository;
 use App\Storage\ValidationsStorage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -68,21 +69,30 @@ class ValidationFilesController extends AbstractController
         return $response;
     }
 
-    #[Route('/{uid}/results.pdf', name: 'validator_api_get_validation_pdf', methods: ['GET'])]
-    public function generatePdf($uid, PdfReportWriter $writer,
-    ): Response {
+    /**
+     * Printable HTML report (the browser prints it to PDF, ?print opens the print dialog).
+     */
+    #[Route('/{uid}/report', name: 'validator_api_get_validation_report', methods: ['GET'])]
+    public function getReport($uid, HtmlReportWriter $writer): Response
+    {
         $validation = $this->repository->findOneByUid($uid);
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
         $this->denyIfNoResults($validation);
 
-        $pdf = $writer->generate($validation);
-
-        return new Response($pdf, Response::HTTP_OK, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => $this->makeDisposition(HeaderUtils::DISPOSITION_INLINE, $validation->getDatasetName() . '.pdf'),
+        return new Response($writer->render($validation), Response::HTTP_OK, [
+            'Content-Type' => 'text/html; charset=utf-8',
         ]);
+    }
+
+    /**
+     * Former PDF report, replaced by the printable HTML report.
+     */
+    #[Route('/{uid}/results.pdf', name: 'validator_api_get_validation_pdf', methods: ['GET'])]
+    public function generatePdf($uid): RedirectResponse
+    {
+        return $this->redirectToRoute('validator_api_get_validation_report', ['uid' => $uid, 'print' => 1]);
     }
 
     #[Route('/{uid}/files/normalized', name: 'validator_api_download_normalized_data', methods: ['GET'])]

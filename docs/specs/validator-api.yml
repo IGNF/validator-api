@@ -214,13 +214,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/validations/{uid}/results.pdf:
+  /api/validations/{uid}/report:
     get:
       tags:
         - validation
-      operationId: get_validation_pdf
-      summary: "Télécharger le résultat au format pdf"
-      description: "Télécharger le résultat au format pdf"
+      operationId: get_validation_report
+      summary: "Consulter le rapport imprimable"
+      description: "Rapport de validation au format HTML, à imprimer ou enregistrer en PDF avec le navigateur. Le paramètre print ouvre directement la boîte de dialogue d'impression."
       parameters:
         - description: "Identifiant unique de la validation"
           in: path
@@ -229,11 +229,17 @@ paths:
           schema:
             type: string
           example: g7258vq1t639uagbv8rg7b97
+        - description: "Ouvre la boîte de dialogue d'impression du navigateur"
+          in: query
+          name: print
+          required: false
+          schema:
+            type: string
       responses:
         200:
           description: Récupération réussie
           content:
-            application/pdf: {}
+            text/html: {}
         403:
           description: La validation n'a pas encore été exécutée
           content:
@@ -246,6 +252,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /api/validations/{uid}/results.pdf:
+    get:
+      tags:
+        - validation
+      operationId: get_validation_pdf
+      deprecated: true
+      summary: "Ancien rapport PDF (redirige vers le rapport imprimable)"
+      parameters:
+        - description: "Identifiant unique de la validation"
+          in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+          example: g7258vq1t639uagbv8rg7b97
+      responses:
+        302:
+          description: "Redirection vers /api/validations/{uid}/report?print=1"
 
   /api/validations/{uid}/logs:
     get:
