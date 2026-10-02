@@ -32,6 +32,8 @@ class ValidationsController extends AbstractController
         private EntityManagerInterface $entityManager,
         private ValidationManager $validationManager,
         private RateLimiterFactory $validationLimiter,
+        // "audit" channel (see monolog.yaml), always logged with the client IP
+        private LoggerInterface $auditLogger,
     ) {}
 
     #[Route('/', name: 'validator_api_disabled_routes', methods: ['GET', 'DELETE', 'PATCH', 'PUT'])]
@@ -120,6 +122,11 @@ class ValidationsController extends AbstractController
         $this->entityManager->flush();
         $this->entityManager->refresh($validation);
 
+        $this->auditLogger->info('Validation[{uid}] : created', [
+            'uid' => $validation->getUid(),
+            'dataset_name' => $validation->getDatasetName(),
+        ]);
+
         return new JsonResponse(
             $this->serializer->toArray($validation),
             Response::HTTP_CREATED
@@ -160,6 +167,12 @@ class ValidationsController extends AbstractController
         $this->entityManager->flush();
         $this->entityManager->refresh($validation);
 
+        $this->auditLogger->info('Validation[{uid}] : arguments updated', [
+            'uid' => $validation->getUid(),
+            'dataset_name' => $validation->getDatasetName(),
+            'model' => $arguments['model'] ?? null,
+        ]);
+
         return new JsonResponse(
             $this->serializer->toArray($validation),
             Response::HTTP_OK
@@ -176,6 +189,10 @@ class ValidationsController extends AbstractController
 
         $this->denyIfProcessing($validation);
 
+        $this->auditLogger->info('Validation[{uid}] : deleted', [
+            'uid' => $validation->getUid(),
+            'dataset_name' => $validation->getDatasetName(),
+        ]);
         $this->validationManager->delete($validation);
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);

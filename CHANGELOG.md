@@ -20,6 +20,7 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - **Le front n'est plus commité** (`public/build`, `public/vendor`, `public/css`, `public/font`, `public/img`). Il est construit par le Dockerfile (stage `assets`) ou en local avec `npm ci && npm run build`.
 - **`/api` redirige vers la documentation de la démo** (`/#/api`, swagger-ui 5). L'ancienne page swagger-ui 3 chargée depuis unpkg est supprimée.
 - **`composer.lock`, `symfony.lock` et `package-lock.json` sont versionnés.**
+- **Adresse IP des clients dans les logs** : derrière un reverse proxy, c'est l'IP du client (`X-Forwarded-For`) qui est enregistrée, et non plus celle du proxy. C'est le cas dans les logs applicatifs (`extra.ip`, à partir de `TRUSTED_PROXIES`) comme dans le log d'accès Apache (`mod_remoteip`, proxys des réseaux privés).
 - **`results.pdf` redirige (`302`) vers le rapport imprimable** `/api/validations/{uid}/report?print=1` : l'API ne génère plus de fichier PDF.
 - **Tests** : la base `validator_api_test` est désormais utilisée. Auparavant ils tournaient, par erreur, sur la base `validator_api` et la purgeaient. `make test` crée la base si besoin.
 
@@ -55,6 +56,8 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 
 - Le fichier `document-info.json` produit par le validator (option `normalize`) est exposé dans le champ `document_info` des validations.
 - `GET /api/validations/{uid}/report` : rapport de validation imprimable (HTML), à enregistrer en PDF avec le navigateur. Avec `?print`, la boîte de dialogue d'impression s'ouvre directement.
+- Logs applicatifs : IP du client, URL, méthode HTTP et user-agent ajoutés à chaque log (`WebProcessor`).
+- Canal de log `audit`, toujours écrit en prod (y compris sans erreur) : création, mise à jour des arguments et suppression des validations, avec l'uid, le nom du dataset et l'IP du client.
 - Variables d'environnement `DATA_DOWNLOAD_ENABLED`, `VALIDATOR_MODEL_ALLOWED_HOSTS`, `VALIDATION_RATE_LIMIT` et `TRUSTED_PROXIES`.
 - `ign-validator:validations:cleanup --processing-timeout` (par défaut `PT1H`) : les validations encore en `processing` au-delà de ce délai (worker tué, manque de mémoire…) passent en `error` avec le message `Validation failed (processing interrupted)`.
 - Documentation OpenAPI : route `/logs`, réponses `403`, `404` et `429`, schémas `Error` et `Validation` (`results`, `delete_data`) conformes aux réponses réelles.

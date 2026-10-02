@@ -40,6 +40,12 @@ services:
   
   # add more service definitions when explicit configuration is needed
   # please note that last definitions always *replace* previous ones
+  # adds the client IP (X-Forwarded-For from TRUSTED_PROXIES), url, method and user agent to the logs
+  Symfony\Bridge\Monolog\Processor\WebProcessor:
+    arguments:
+      $extraFields: { url: REQUEST_URI, ip: REMOTE_ADDR, http_method: REQUEST_METHOD, user_agent: HTTP_USER_AGENT }
+    tags: [monolog.processor]
+
   exception.listener:
     class: App\EventListener\ExceptionListener
     tags:
