@@ -47,21 +47,21 @@ class ValidatorArgumentsService
             $this->validateModelHost($args->model);
 
             return get_object_vars($args);
-        } else {
-            $details = [];
-
-            foreach ($validator->getErrors() as $error) {
-                $errorDetails = [];
-                if ($error['property']) {
-                    $errorDetails['name'] = $error['property'];
-                }
-                $errorDetails['message'] = $error['message'];
-
-                array_push($details, $errorDetails);
-            }
-
-            throw new ApiException('Invalid arguments, check details', Response::HTTP_BAD_REQUEST, $details);
         }
+        $details = [];
+
+        foreach ($validator->getErrors() as $error) {
+            $errorDetails = [];
+            if ($error['property']) {
+                $errorDetails['name'] = $error['property'];
+            }
+            $errorDetails['message'] = $error['message'];
+
+            array_push($details, $errorDetails);
+        }
+
+        throw new ApiException('Invalid arguments, check details', Response::HTTP_BAD_REQUEST, $details);
+
     }
 
     /**
@@ -78,9 +78,6 @@ class ValidatorArgumentsService
             }
         }
 
-        throw new ApiException('Invalid arguments, check details', Response::HTTP_BAD_REQUEST, [[
-            'name' => 'model',
-            'message' => sprintf("Host '%s' is not allowed", $host),
-        ]]);
+        throw new ApiException('Invalid arguments, check details', Response::HTTP_BAD_REQUEST, [['name' => 'model', 'message' => sprintf("Host '%s' is not allowed", $host)]]);
     }
 }

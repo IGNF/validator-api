@@ -34,7 +34,8 @@ class ValidationsController extends AbstractController
         private RateLimiterFactory $validationLimiter,
         // "audit" channel (see monolog.yaml), always logged with the client IP
         private LoggerInterface $auditLogger,
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'validator_api_disabled_routes', methods: ['GET', 'DELETE', 'PATCH', 'PUT'])]
     public function disabledRoutes()
@@ -85,10 +86,7 @@ class ValidationsController extends AbstractController
          */
         $datasetName = preg_replace('/\.zip$/i', '', basename($file->getClientOriginalName()));
         if (!Validation::isValidDatasetName($datasetName)) {
-            throw new ApiException(sprintf(
-                'Dataset filename is not valid (name without .zip must match %s)',
-                Validation::REGEXP_DATASET_NAME
-            ), Response::HTTP_BAD_REQUEST);
+            throw new ApiException(sprintf('Dataset filename is not valid (name without .zip must match %s)', Validation::REGEXP_DATASET_NAME), Response::HTTP_BAD_REQUEST);
         }
 
         /*
@@ -102,7 +100,7 @@ class ValidationsController extends AbstractController
         if (!$this->storage->getStorage()->directoryExists($uploadDirectory)) {
             $this->storage->getStorage()->createDirectory($uploadDirectory);
         }
-        $fileLocation = $uploadDirectory . $validation->getDatasetName() . '.zip';
+        $fileLocation = $uploadDirectory.$validation->getDatasetName().'.zip';
         if ($this->storage->getStorage()->fileExists($fileLocation)) {
             $this->storage->getStorage()->delete($fileLocation);
         }
@@ -207,10 +205,7 @@ class ValidationsController extends AbstractController
     {
         $limit = $this->validationLimiter->create($request->getClientIp())->consume();
         if (!$limit->isAccepted()) {
-            throw new ApiException(sprintf(
-                'Too many requests, retry after %s',
-                $limit->getRetryAfter()->format(\DateTimeInterface::ATOM)
-            ), Response::HTTP_TOO_MANY_REQUESTS);
+            throw new ApiException(sprintf('Too many requests, retry after %s', $limit->getRetryAfter()->format(\DateTimeInterface::ATOM)), Response::HTTP_TOO_MANY_REQUESTS);
         }
     }
 

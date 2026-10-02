@@ -14,7 +14,8 @@ class HtmlReportWriter
 
     public function __construct(
         private readonly Environment $twig,
-    ) {}
+    ) {
+    }
 
     /**
      * @return string HTML page

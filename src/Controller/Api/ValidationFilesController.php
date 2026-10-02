@@ -10,7 +10,6 @@ use App\Repository\ValidationRepository;
 use App\Storage\ValidationsStorage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\HeaderUtils;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,7 +21,8 @@ class ValidationFilesController extends AbstractController
         private ValidationRepository $repository,
         private ValidationsStorage $storage,
         private bool $dataDownloadEnabled,
-    ) {}
+    ) {
+    }
 
     #[Route('/{uid}/logs', name: 'validator_api_read_logs', methods: ['GET'])]
     public function readConsole($uid)
@@ -36,7 +36,7 @@ class ValidationFilesController extends AbstractController
             throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);
         }
 
-        $filepath = $this->storage->getOutputDirectory($validation) . 'validator-debug.log';
+        $filepath = $this->storage->getOutputDirectory($validation).'validator-debug.log';
         if (!$this->storage->getStorage()->fileExists($filepath)) {
             throw new ApiException('No logs found for this validation', Response::HTTP_NOT_FOUND);
         }
@@ -63,7 +63,7 @@ class ValidationFilesController extends AbstractController
         $response->headers->set('Content-Type', 'text/csv; charset=utf-8');
         $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(
             HeaderUtils::DISPOSITION_ATTACHMENT,
-            $validation->getUid() . '-results.csv'
+            $validation->getUid().'-results.csv'
         ));
 
         return $response;
@@ -109,9 +109,9 @@ class ValidationFilesController extends AbstractController
         }
 
         $outputDirectory = $this->storage->getOutputDirectory($validation);
-        $zipFilepath = $outputDirectory . $validation->getDatasetName() . '.zip';
+        $zipFilepath = $outputDirectory.$validation->getDatasetName().'.zip';
 
-        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . '-normalized.zip');
+        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName().'-normalized.zip');
     }
 
     #[Route('/{uid}/files/source', name: 'validator_api_download_source_data', methods: ['GET'])]
@@ -129,9 +129,9 @@ class ValidationFilesController extends AbstractController
         }
 
         $uploadDirectory = $this->storage->getUploadDirectory($validation);
-        $zipFilepath = $uploadDirectory . $validation->getDatasetName() . '.zip';
+        $zipFilepath = $uploadDirectory.$validation->getDatasetName().'.zip';
 
-        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName() . '-source.zip');
+        return $this->getDownloadResponse($zipFilepath, $validation->getDatasetName().'-source.zip');
     }
 
     /**

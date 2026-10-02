@@ -27,13 +27,14 @@ class ZipArchiveExtractor
         private ZipArchiveValidator $zipArchiveValidator,
         private FileContentValidator $fileContentValidator,
         private LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     /**
      * Extracts the archive zipPath in targetPath.
      *
      * @throws ZipArchiveValidationException if a file is not allowed (targetPath is then removed)
-     * @throws ValidationProcessException     if the archive can't be read or extracted
+     * @throws ValidationProcessException    if the archive can't be read or extracted
      */
     public function extract(string $zipPath, string $targetPath): void
     {
@@ -55,7 +56,7 @@ class ZipArchiveExtractor
                     throw new ValidationProcessException(sprintf("Zip decompression failed (path is not allowed '%s')", $name));
                 }
 
-                $path = $targetPath . '/' . $name;
+                $path = $targetPath.'/'.$name;
                 if (str_ends_with($name, '/')) {
                     $this->createDirectory($path);
                     continue;

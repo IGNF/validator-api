@@ -174,7 +174,7 @@ class ZipArchiveValidatorTest extends WebTestCase
         $zipPath = $this->createZip(['data/link.csv' => '/etc/passwd']);
         $zip = new \ZipArchive();
         $zip->open($zipPath);
-        $zip->setExternalAttributesName('data/link.csv', \ZipArchive::OPSYS_UNIX, (0o120777 << 16));
+        $zip->setExternalAttributesName('data/link.csv', \ZipArchive::OPSYS_UNIX, 0o120777 << 16);
         $zip->close();
 
         $errors = $this->zipArchiveValidator->validate($zipPath);

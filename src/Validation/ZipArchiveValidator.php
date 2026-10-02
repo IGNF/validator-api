@@ -64,7 +64,8 @@ class ZipArchiveValidator
         private int $maxEntries = self::DEFAULT_MAX_ENTRIES,
         private int $maxUncompressedSize = self::DEFAULT_MAX_UNCOMPRESSED_SIZE,
         private int $maxCompressionRatio = self::DEFAULT_MAX_COMPRESSION_RATIO,
-    ) {}
+    ) {
+    }
 
     /**
      * Validates a ZIP returning a set of errors in the same format as the validator.

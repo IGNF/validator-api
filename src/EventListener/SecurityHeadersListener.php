@@ -31,7 +31,8 @@ class SecurityHeadersListener
         // the web profiler toolbar (debug only) injects inline scripts in HTML pages
         #[Autowire('%kernel.debug%')]
         private bool $debug,
-    ) {}
+    ) {
+    }
 
     public function __invoke(ResponseEvent $event): void
     {

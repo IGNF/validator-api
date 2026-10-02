@@ -27,11 +27,12 @@ class ValidationsStorage
     /**
      * @param string $storageType "S3" (data.storage) or "local" (default.storage), see STORAGE_TYPE
      */
-    public function __construct($validationsDir,
+    public function __construct(
+        $validationsDir,
         FilesystemOperator $dataStorage,
         FilesystemOperator $defaultStorage,
-        string $storageType = 'local')
-    {
+        string $storageType = 'local'
+    ) {
         $this->path = $validationsDir;
         // note that getenv() doesn't see the variables defined in .env files
         if ('S3' === $storageType) {

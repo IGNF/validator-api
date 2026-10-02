@@ -89,8 +89,8 @@ class DocumentationController extends AbstractController
 
         if ($fs->exists($schemaPath)) {
             return new BinaryFileResponse($schemaPath);
-        } else {
-            throw new ApiException("No schema found with name=$schemaName", Response::HTTP_NOT_FOUND);
         }
+        throw new ApiException("No schema found with name=$schemaName", Response::HTTP_NOT_FOUND);
+
     }
 }

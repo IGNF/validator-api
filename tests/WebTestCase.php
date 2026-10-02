@@ -42,9 +42,9 @@ abstract class WebTestCase extends BaseWebTestCase
     {
         if ($this->fixtures->getReferenceRepository()->hasReference($name, Validation::class)) {
             return $this->fixtures->getReferenceRepository()->getReference($name, Validation::class);
-        } else {
-            throw new \Exception("No reference found for $name");
         }
+        throw new \Exception("No reference found for $name");
+
     }
 
     /**

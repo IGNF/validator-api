@@ -23,14 +23,15 @@ class ValidationWorkspace
         private ValidationsStorage $storage,
         private LoggerInterface $logger,
         private ZipArchiveExtractor $zipArchiveExtractor,
-    ) {}
+    ) {
+    }
 
     /**
      * Returns the path to the local (working directory) zip file.
      */
     public function getLocalZipPath(Validation $validation): string
     {
-        return $this->storage->getDirectory($validation) . '/' . $validation->getDatasetName() . '.zip';
+        return $this->storage->getDirectory($validation).'/'.$validation->getDatasetName().'.zip';
     }
 
     /**
@@ -49,7 +50,7 @@ class ValidationWorkspace
         ]);
 
         $validationDirectory = $this->storage->getDirectory($validation);
-        $uploadFile = $this->storage->getUploadDirectory($validation) . $validation->getDatasetName() . '.zip';
+        $uploadFile = $this->storage->getUploadDirectory($validation).$validation->getDatasetName().'.zip';
 
         if (!is_dir($validationDirectory)) {
             mkdir($validationDirectory, recursive: true);
@@ -76,7 +77,7 @@ class ValidationWorkspace
 
         $this->zipArchiveExtractor->extract(
             $this->getLocalZipPath($validation),
-            $validationDirectory . '/' . $validation->getDatasetName()
+            $validationDirectory.'/'.$validation->getDatasetName()
         );
     }
 
@@ -92,11 +93,11 @@ class ValidationWorkspace
         $fs = new Filesystem();
 
         $validationDirectory = $this->storage->getDirectory($validation);
-        $normDataParentDir = $validationDirectory . '/validation/';
+        $normDataParentDir = $validationDirectory.'/validation/';
         $datasetName = $validation->getDatasetName();
 
         // checking if normalized data is present
-        if (!$fs->exists($normDataParentDir . $datasetName)) {
+        if (!$fs->exists($normDataParentDir.$datasetName)) {
             return;
         }
 
@@ -116,7 +117,7 @@ class ValidationWorkspace
      */
     public function saveNormalizedData(Validation $validation): void
     {
-        $normDataPath = $this->storage->getDirectory($validation) . '/validation/' . $validation->getDatasetName() . '.zip';
+        $normDataPath = $this->storage->getDirectory($validation).'/validation/'.$validation->getDatasetName().'.zip';
         if (!file_exists($normDataPath)) {
             $this->logger->info('Validation[{uid}] : no normalized data to save', [
                 'uid' => $validation->getUid(),
@@ -129,7 +130,7 @@ class ValidationWorkspace
             'uid' => $validation->getUid(),
             'datasetName' => $validation->getDatasetName(),
         ]);
-        $this->writeToOutputDirectory($validation, $normDataPath, $validation->getDatasetName() . '.zip');
+        $this->writeToOutputDirectory($validation, $normDataPath, $validation->getDatasetName().'.zip');
     }
 
     /**
@@ -138,7 +139,7 @@ class ValidationWorkspace
      */
     public function saveLog(Validation $validation): void
     {
-        $logPath = $this->storage->getDirectory($validation) . '/validator-debug.log';
+        $logPath = $this->storage->getDirectory($validation).'/validator-debug.log';
         if (!file_exists($logPath)) {
             return;
         }
@@ -159,7 +160,7 @@ class ValidationWorkspace
         if (!$this->storage->getStorage()->directoryExists($outputDirectory)) {
             $this->storage->getStorage()->createDirectory($outputDirectory);
         }
-        $outputPath = $outputDirectory . $filename;
+        $outputPath = $outputDirectory.$filename;
         if ($this->storage->getStorage()->fileExists($outputPath)) {
             $this->storage->getStorage()->delete($outputPath);
         }
