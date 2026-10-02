@@ -104,7 +104,7 @@ class ValidationsFixtures extends Fixture
          */
         $args = [
             'srs' => 'EPSG:2154',
-            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
+            'model' => 'https://ignf.github.io/validator/validator-plugin-cnig/src/test/resources/config/cnig_SUP_PM3_2013/files.json',
         ];
         $args = $this->valArgsService->validate(\json_encode($args));
 
@@ -137,7 +137,7 @@ class ValidationsFixtures extends Fixture
          */
         $args = [
             'srs' => 'EPSG:2154',
-            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json',
+            'model' => 'https://ignf.github.io/validator/validator-plugin-cnig/src/test/resources/config/cnig_SUP_PM3_2013/files.json',
         ];
         $args = $this->valArgsService->validate(\json_encode($args));
 
