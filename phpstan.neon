@@ -3,10 +3,6 @@ includes:
   - vendor/phpstan/phpstan-phpunit/rules.neon
 
 parameters:
-  level: 2
+  level: 5
   paths:
     - src
-  excludePaths:
-    - src/Tests/bootstrap.php (?)
-  ignoreErrors:
-    - '#Call to an undefined method [a-zA-Z0-9\\_]+::findOneBy[A-Z][a-zA-Z]*\(\)#'

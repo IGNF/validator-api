@@ -1,1 +1,0 @@
-(()=>{let t=document.getElementById("demo-wrapper");validator.setValidatorApiUrl(t.dataset.api),validator.setValidatorSpecsUrl(t.dataset.specs),validator.createDemoApplication({targetElement:t})})();

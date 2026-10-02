@@ -32,7 +32,8 @@
     "league/flysystem-bundle": "^3.3",
     "league/flysystem-async-aws-s3": "^3.29",
     "symfony/polyfill-php86": "^1.37",
-    "dompdf/dompdf": "^3.1"
+    "dompdf/dompdf": "^3.1",
+    "symfony/rate-limiter": "7.4.*"
   },
   "require-dev": {
     "doctrine/doctrine-fixtures-bundle": "^4.0",

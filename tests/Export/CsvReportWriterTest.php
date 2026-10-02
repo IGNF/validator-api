@@ -82,4 +82,26 @@ class CsvReportWriterTest extends WebTestCase
             ])
         );
     }
+
+    /**
+     * Values from the dataset can't be interpreted as formulas by spreadsheet applications.
+     */
+    public function testFormulaInjection()
+    {
+        $validation = new Validation();
+        $validation->setResults([
+            ['code' => 'ATTRIBUTE_INVALID', 'message' => '=HYPERLINK("http://evil.example","x")', 'id' => '-12.5', 'attribute' => '@SUM(A1)', 'featureId' => '+33'],
+        ]);
+        $targetPath = $this->createTempDirectory('export-').'/export.csv';
+
+        (new CsvReportWriter())->write($validation, $targetPath);
+
+        $rows = array_map(fn ($line) => str_getcsv($line, escape: '\\'), file($targetPath, FILE_IGNORE_NEW_LINES));
+        $row = array_combine($rows[0], $rows[1]);
+        $this->assertEquals('\'=HYPERLINK("http://evil.example","x")', $row['message']);
+        $this->assertEquals('\'@SUM(A1)', $row['attribute']);
+        // numbers are kept as is
+        $this->assertEquals('-12.5', $row['id']);
+        $this->assertEquals('+33', $row['feat_id']);
+    }
 }

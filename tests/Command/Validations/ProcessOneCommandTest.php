@@ -50,70 +50,89 @@ class ProcessOneCommandTest extends WebTestCase
     }
 
     /**
-     * Testing execution of the command.
+     * Valid dataset : validator-cli.jar is executed and the results are saved.
      */
-    public function testExecute()
+    public function testExecuteValid()
     {
-        $this->markTestSkipped('TODO : fix test (use local directory for dev and test?)');
+        $validation = $this->processOnly(ValidationsFixtures::VALIDATION_WITH_ARGS);
 
-        $repo = $this->em->getRepository(Validation::class);
-
-        // this validation will run without any errors
-        static::ensureKernelShutdown();
-        $kernel = static::createKernel();
-        $application = new Application($kernel);
-        $command = $application->find('ign-validator:validations:process-one');
-        $commandTester = new CommandTester($command);
-        $statusCode = $commandTester->execute([]);
-
-        $this->assertEquals(0, $statusCode);
-
-        $valWithArgs = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS);
-        $validation = $repo->findOneByUid($valWithArgs->getUid());
-
-        $this->assertEquals('', $validation->getMessage());
+        $this->assertNull($validation->getMessage());
         $this->assertEquals(Validation::STATUS_FINISHED, $validation->getStatus());
         $this->assertNotNull($validation->getDateStart());
         $this->assertNotNull($validation->getDateFinish());
         $this->assertNotNull($validation->getResults());
+        // logs are saved to the storage
+        $storage = $this->getValidationsStorage();
+        $this->assertTrue($storage->getStorage()->fileExists($storage->getOutputDirectory($validation).'validator-debug.log'));
+    }
 
-        // this one will fail, the model_url argument is wrong and will raise a Java runtime exception which will mark the Symfony process as failed
-        $command = $application->find('ign-validator:validations:process-one');
-        $commandTester = new CommandTester($command);
-        $statusCode = $commandTester->execute([]);
+    /**
+     * Wrong model url : validator-cli.jar fails, the raw error is not exposed.
+     */
+    public function testExecuteValidatorFailure()
+    {
+        $validation = $this->processOnly(ValidationsFixtures::VALIDATION_WITH_BAD_ARGS);
 
-        $this->assertEquals(0, $statusCode);
-
-        $valWithBadArgs = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_BAD_ARGS);
-        $validation = $repo->findOneByUid($valWithBadArgs->getUid());
-
-        $this->assertNotEquals('', $validation->getMessage());
+        $this->assertStringStartsWith('Validation failed (exit code ', $validation->getMessage());
         $this->assertEquals(Validation::STATUS_ERROR, $validation->getStatus());
         $this->assertNotNull($validation->getDateStart());
         $this->assertNotNull($validation->getDateFinish());
-        $this->assertNull($validation->getResults()); // TODO fails intermittently ¯\_(ツ)_/¯
+        $this->assertNull($validation->getResults());
+    }
 
-        // this one will fail because the zip archive is invalid
-        $command = $application->find('ign-validator:validations:process-one');
-        $commandTester = new CommandTester($command);
-        $statusCode = $commandTester->execute([]);
-
-        $this->assertEquals(0, $statusCode);
-
-        $valInvalidRegex = $this->getValidationFixture(ValidationsFixtures::VALIDATION_INVALID_REGEX);
-        $validation = $repo->findOneByUid($valInvalidRegex->getUid());
+    /**
+     * Invalid file names in the zip : the zip pre-validation fails.
+     */
+    public function testExecuteInvalidZip()
+    {
+        $validation = $this->processOnly(ValidationsFixtures::VALIDATION_INVALID_REGEX);
 
         $this->assertEquals('Zip archive pre-validation failed', $validation->getMessage());
         $this->assertEquals(Validation::STATUS_ERROR, $validation->getStatus());
-        $this->assertNotNull($validation->getDateStart());
         $this->assertNotNull($validation->getDateFinish());
         $this->assertEquals(2, count($validation->getResults()));
+    }
 
-        // no validation pending, the command should exit right away
-        $command = $application->find('ign-validator:validations:process-one');
-        $commandTester = new CommandTester($command);
-        $statusCode = $commandTester->execute([]);
+    /**
+     * No validation pending : the command exits right away.
+     */
+    public function testExecuteNothingPending()
+    {
+        foreach ($this->em->getRepository(Validation::class)->findBy(['status' => Validation::STATUS_PENDING]) as $validation) {
+            $validation->setStatus(Validation::STATUS_WAITING_ARGS);
+        }
+        $this->em->flush();
 
-        $this->assertEquals(0, $statusCode);
+        $this->assertEquals(0, $this->executeCommand());
+    }
+
+    /**
+     * Processes the given fixture only (the other pending validations are put on hold
+     * as popNextPending order is undefined for validations created in the same second).
+     */
+    private function processOnly(string $fixture): Validation
+    {
+        $uid = $this->getValidationFixture($fixture)->getUid();
+        foreach ($this->em->getRepository(Validation::class)->findBy(['status' => Validation::STATUS_PENDING]) as $validation) {
+            if ($validation->getUid() !== $uid) {
+                $validation->setStatus(Validation::STATUS_WAITING_ARGS);
+            }
+        }
+        $this->em->flush();
+
+        $this->assertEquals(0, $this->executeCommand());
+
+        $this->em->clear();
+
+        return $this->em->getRepository(Validation::class)->findOneByUid($uid);
+    }
+
+    private function executeCommand(): int
+    {
+        static::ensureKernelShutdown();
+        $application = new Application(static::createKernel());
+        $commandTester = new CommandTester($application->find('ign-validator:validations:process-one'));
+
+        return $commandTester->execute([]);
     }
 }

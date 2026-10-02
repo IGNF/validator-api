@@ -2,12 +2,10 @@
 
 namespace App\Command\Validations;
 
-use App\Entity\Validation;
 use App\Repository\ValidationRepository;
 use App\Validation\ValidationManager;
 use DateInterval;
 use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -27,9 +25,10 @@ class CleanupCommand extends Command
     public const DEFAULT_EXPIRY_CONDITION = 'P5D';
 
     /**
-     * @var EntityManagerInterface
+     * Validations still processing after this duration are considered as interrupted
+     * (validator-cli.jar timeout is 10 minutes).
      */
-    private $em;
+    public const DEFAULT_PROCESSING_TIMEOUT = 'PT1H';
 
     /**
      * @var ValidationManager
@@ -42,12 +41,11 @@ class CleanupCommand extends Command
     private $logger;
 
     public function __construct(
-        EntityManagerInterface $em,
+        private ValidationRepository $validationRepository,
         ValidationManager $validationManager,
         LoggerInterface $logger,
     ) {
         parent::__construct();
-        $this->em = $em;
         $this->validationManager = $validationManager;
         $this->logger = $logger;
     }
@@ -61,11 +59,21 @@ class CleanupCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'Max duration to keep validation files (P1M : 1 month, P5D : 5 jours, PT30M : 30 minutes,...)',
                 self::DEFAULT_EXPIRY_CONDITION
+            )
+            ->addOption(
+                'processing-timeout',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Validations still processing after this duration are marked as failed (worker killed, out of memory...)',
+                self::DEFAULT_PROCESSING_TIMEOUT
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $interrupted = $this->markInterrupted($input->getOption('processing-timeout'));
+        $output->writeln(sprintf('%d interrupted validation(s) marked as failed.', $interrupted));
+
         $maxAge = $input->getOption('max-age');
         $today = new DateTime('now');
         $dateExpire = $today->sub(new DateInterval($maxAge));
@@ -73,7 +81,7 @@ class CleanupCommand extends Command
         $this->logger->info('archive validations older than {$maxAge}...', [
             '$maxAge' => $maxAge,
         ]);
-        $validations = $this->getValidationRepository()->findAllToBeArchived($dateExpire);
+        $validations = $this->validationRepository->findAllToBeArchived($dateExpire);
         $count = 0;
         $failures = 0;
         foreach ($validations as $validation) {
@@ -105,10 +113,16 @@ class CleanupCommand extends Command
     }
 
     /**
-     * @return ValidationRepository
+     * Marks as failed the validations still processing after processingTimeout.
      */
-    protected function getValidationRepository()
+    private function markInterrupted(string $processingTimeout): int
     {
-        return $this->em->getRepository(Validation::class);
+        $maxDateStart = (new DateTime('now'))->sub(new DateInterval($processingTimeout));
+        $validations = $this->validationRepository->findAllInterrupted($maxDateStart);
+        foreach ($validations as $validation) {
+            $this->validationManager->markInterrupted($validation);
+        }
+
+        return count($validations);
     }
 }

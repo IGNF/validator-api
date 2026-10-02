@@ -15,6 +15,16 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 abstract class WebTestCase extends BaseWebTestCase
 {
     /**
+     * Removes the files written to the storage (see flysystem.yaml, when@test).
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        (new Filesystem())->remove(dirname(__DIR__).'/var/data-test');
+    }
+
+    /**
      * @var AbstractExecutor
      */
     protected $fixtures;

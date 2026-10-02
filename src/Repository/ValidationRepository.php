@@ -11,6 +11,7 @@ use SortDirection;
 /**
  * @method Validation|null find($id, $lockMode = null, $lockVersion = null)
  * @method Validation|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Validation|null findOneByUid(string $uid)
  * @method Validation[]    findAll()
  * @method Validation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
@@ -75,6 +76,23 @@ class ValidationRepository extends ServiceEntityRepository
             ->andWhere('v.status NOT IN (:ignoredStatus)')
             ->setParameter('expiryDate', $expiryDate)
             ->setParameter('ignoredStatus', [Validation::STATUS_ARCHIVED, Validation::STATUS_PROCESSING])
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     * Finds validations still "processing" after maxDateStart (worker killed, OOM...).
+     *
+     * @return array<Validation>
+     */
+    public function findAllInterrupted(DateTime $maxDateStart)
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.status = :status')
+            ->andWhere('v.dateStart < :maxDateStart')
+            ->setParameter('status', Validation::STATUS_PROCESSING)
+            ->setParameter('maxDateStart', $maxDateStart)
             ->getQuery()
             ->getResult()
         ;

@@ -148,4 +148,31 @@ class ValidationManagerTest extends TestCase
 
         $this->assertEquals(Validation::STATUS_FINISHED, $this->validation->getStatus());
     }
+
+    /**
+     * SIGTERM while processing : validator-cli.jar is stopped and the validation is restarted later.
+     */
+    public function testCancelProcessing()
+    {
+        $this->validatorCli->method('process')->willReturnCallback(function () {
+            $this->manager->cancelProcessing();
+        });
+        $this->validatorCli->expects($this->once())->method('stop');
+        $this->workspace->expects($this->atLeastOnce())->method('removeLocalDirectory');
+
+        $this->manager->processOne();
+
+        // processOne normally doesn't return (the console application exits after the signal handler)
+        $this->assertNotNull($this->validation->getStatus());
+    }
+
+    /**
+     * Without validation in progress, SIGTERM has no effect.
+     */
+    public function testCancelProcessingWithoutValidation()
+    {
+        $this->validatorCli->expects($this->never())->method('stop');
+
+        $this->manager->cancelProcessing();
+    }
 }

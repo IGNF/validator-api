@@ -47,7 +47,7 @@ class ValidationManager
     /**
      * Current validation (in order to handle SIGTERM).
      *
-     * @var Validation
+     * @var Validation|null
      */
     private $currentValidation;
 
@@ -88,6 +88,24 @@ class ValidationManager
     }
 
     /**
+     * Marks as failed a validation that is still "processing" while no worker handles it anymore
+     * (worker killed, out of memory...). It is not restarted as the dataset may be the cause.
+     */
+    public function markInterrupted(Validation $validation): void
+    {
+        $this->logger->warning('Validation[{uid}] : processing interrupted, changing state to error', [
+            'uid' => $validation->getUid(),
+            'dateStart' => $validation->getDateStart(),
+        ]);
+        $this->workspace->removeLocalDirectory($validation);
+        $validation->setStatus(Validation::STATUS_ERROR);
+        $validation->setMessage('Validation failed (processing interrupted)');
+        $validation->setDateFinish(new DateTime('now'));
+        $this->em->persist($validation);
+        $this->em->flush();
+    }
+
+    /**
      * Delete a given validation removing all its files and its database schema.
      *
      * Files are removed first so that a storage error doesn't leave orphan files.
@@ -110,7 +128,7 @@ class ValidationManager
      */
     public function processOne()
     {
-        $validation = $this->getValidationRepository()->popNextPending();
+        $validation = $this->validationRepository->popNextPending();
         if (is_null($validation)) {
             $this->logger->debug('processOne : no validation pending, quitting');
 
@@ -136,6 +154,19 @@ class ValidationManager
         $this->logger->warning('Validation[{uid}]: SIGTERM received, changing state to pending', [
             'uid' => $this->currentValidation->getUid(),
         ]);
+        /*
+         * the console application exits after the signal handler (finally blocks are not executed) :
+         * stop validator-cli.jar and remove the local directory so that the validation can be restarted cleanly
+         */
+        try {
+            $this->validatorCli->stop();
+            $this->workspace->removeLocalDirectory($this->currentValidation);
+        } catch (\Throwable $th) {
+            $this->logger->error('Validation[{uid}]: fail to stop processing', [
+                'uid' => $this->currentValidation->getUid(),
+                'exception' => $th,
+            ]);
+        }
         $this->currentValidation->setStatus(Validation::STATUS_PENDING);
         $this->em->persist($this->currentValidation);
         $this->em->flush();
@@ -297,13 +328,5 @@ class ValidationManager
             'uid' => $validation->getUid(),
         ]);
         $this->validationRepository->dropSchema($validation);
-    }
-
-    /**
-     * @return ValidationRepository
-     */
-    protected function getValidationRepository()
-    {
-        return $this->em->getRepository(Validation::class);
     }
 }

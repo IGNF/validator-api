@@ -23,7 +23,7 @@ echo "$BASH_SOURCE - started with PID=$$"
 
 if [ $RUNNING -eq 1 ]
 then
-	php "${SCRIPT_DIR}/bin/console" ign-validator:validations:cleanup -vvv &
+	php "${SCRIPT_DIR}/console" ign-validator:validations:cleanup -vvv &
 	child_pid=$!
 	wait $child_pid
 

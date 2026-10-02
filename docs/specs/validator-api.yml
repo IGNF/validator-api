@@ -46,6 +46,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        429:
+          description: Trop de demandes depuis cette adresse IP (VALIDATION_RATE_LIMIT par heure)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/validations/{uid}:
     get:
@@ -115,7 +121,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         403:
-          description: La validation a été archivée (plus de 30 jours dépassés depuis la création)
+          description: La validation a été archivée (par défaut 5 jours après la création)
           content:
             application/json:
               schema:
@@ -128,6 +134,12 @@ paths:
                 $ref: "#/components/schemas/Error"
         409:
           description: La validation est en cours de traitement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        429:
+          description: Trop de demandes depuis cette adresse IP (VALIDATION_RATE_LIMIT par heure)
           content:
             application/json:
               schema:
@@ -189,16 +201,15 @@ paths:
           description: Récupération réussie
           content:
             text/csv: {}
-        400:
-          description: "Paramètre uid manquant"
+        403:
+          description: La validation n'a pas encore été exécutée
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         404:
-          description: "Aucune demande de validation ne correspond à l'uid"
+          description: "Aucune demande de validation ne correspond à l'uid, ou la validation n'a pas de résultats"
           content:
-
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
@@ -222,17 +233,49 @@ paths:
         200:
           description: Récupération réussie
           content:
-            text/csv: {}
-        400:
-          description: "Paramètre uid manquant"
+            application/pdf: {}
+        403:
+          description: La validation n'a pas encore été exécutée
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         404:
-          description: "Aucune demande de validation ne correspond à l'uid"
+          description: "Aucune demande de validation ne correspond à l'uid, ou la validation n'a pas de résultats"
           content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
+  /api/validations/{uid}/logs:
+    get:
+      tags:
+        - validation
+      operationId: get_validation_logs
+      summary: "Consulter les logs du validateur"
+      description: "Log d'exécution de validator-cli.jar (validator-debug.log), disponible aussi pour les validations en erreur"
+      parameters:
+        - description: "Identifiant unique de la validation"
+          in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+          example: g7258vq1t639uagbv8rg7b97
+      responses:
+        200:
+          description: Récupération réussie
+          content:
+            text/plain: {}
+        403:
+          description: La validation a été archivée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: "Aucune demande de validation ne correspond à l'uid, ou aucun log n'est disponible"
+          content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
@@ -260,7 +303,7 @@ paths:
               schema:
                 format: binary
         403:
-          description: Téléchargement désactivé sur cette instance (DATA_DOWNLOAD_ENABLED), ou aucun contenu téléchargeable trouvé parce que la validation a été archivée (plus de 30 jours sont passés depuis la création)
+          description: Téléchargement désactivé sur cette instance (DATA_DOWNLOAD_ENABLED), ou aucun contenu téléchargeable trouvé parce que la validation a été archivée (par défaut 5 jours après la création)
           content:
             application/json:
               schema:
@@ -294,7 +337,7 @@ paths:
               schema:
                 format: binary
         403:
-          description: Téléchargement désactivé sur cette instance (DATA_DOWNLOAD_ENABLED), ou aucun contenu téléchargeable trouvé parce que soit la validation n'a pas encore été exécutée, elle a été archivée (plus de 30 jours dépassés depuis la création), ou bien elle a terminé en une erreur
+          description: Téléchargement désactivé sur cette instance (DATA_DOWNLOAD_ENABLED), ou aucun contenu téléchargeable trouvé parce que soit la validation n'a pas encore été exécutée, elle a été archivée (par défaut 5 jours après la création), ou bien elle a terminé en une erreur
           content:
             application/json:
               schema:
@@ -346,22 +389,51 @@ components:
           type: string
           example: null
         results:
-          type: string
+          description: "Erreurs et avertissements du validateur, ou erreurs de pré-validation de l'archive zip (sans level)"
+          type: array
+          nullable: true
+          items:
+            type: object
+            properties:
+              level:
+                type: string
+                example: ERROR
+              code:
+                type: string
+                example: FILE_EMPTY
+              message:
+                type: string
+              file:
+                type: string
           example: null
         document_info:
           description: "Métadonnées du document extraites par le validateur. Uniquement disponible lorsque la validation a été exécutée avec l'argument \"normalize\" activé"
           type: object
           example: null
+        delete_data:
+          description: "Suppression des données à la fin de la validation (argument delete-data)"
+          type: boolean
+          example: false
 
     Error:
       type: object
       properties:
         code:
           type: integer
-          description: code de l'erreur rencontrée
-        error:
+          description: code HTTP de l'erreur rencontrée
+          example: 400
+        status:
+          type: string
+          description: libellé du code HTTP
+          example: Bad Request
+        message:
           type: string
           description: message précis de l'erreur rencontrée
+        details:
+          type: array
+          description: "détail des erreurs (ex : arguments invalides)"
+          items:
+            type: object
 
     ValArgs:
       $ref: "./schema/validator-arguments.json#/"

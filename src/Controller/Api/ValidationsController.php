@@ -16,6 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/validations')]
@@ -30,6 +31,7 @@ class ValidationsController extends AbstractController
         private LoggerInterface $logger,
         private EntityManagerInterface $entityManager,
         private ValidationManager $validationManager,
+        private RateLimiterFactory $validationLimiter,
     ) {}
 
     #[Route('/', name: 'validator_api_disabled_routes', methods: ['GET', 'DELETE', 'PATCH', 'PUT'])]
@@ -52,6 +54,8 @@ class ValidationsController extends AbstractController
     #[Route('/', name: 'validator_api_upload_dataset', methods: ['POST'])]
     public function uploadDataset(Request $request)
     {
+        $this->denyIfRateLimitExceeded($request);
+
         $files = $request->files;
         /*
          * Ensure that input file is submitted
@@ -125,6 +129,8 @@ class ValidationsController extends AbstractController
     #[Route('/{uid}', name: 'validator_api_update_arguments', methods: ['PATCH'])]
     public function updateArguments(Request $request, $uid)
     {
+        $this->denyIfRateLimitExceeded($request);
+
         $data = $request->getContent();
 
         if (!json_decode($data, true)) {
@@ -173,6 +179,22 @@ class ValidationsController extends AbstractController
         $this->validationManager->delete($validation);
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Limits the number of validations created or updated per client IP (VALIDATION_RATE_LIMIT per hour).
+     *
+     * @throws ApiException
+     */
+    private function denyIfRateLimitExceeded(Request $request): void
+    {
+        $limit = $this->validationLimiter->create($request->getClientIp())->consume();
+        if (!$limit->isAccepted()) {
+            throw new ApiException(sprintf(
+                'Too many requests, retry after %s',
+                $limit->getRetryAfter()->format(\DateTimeInterface::ATOM)
+            ), Response::HTTP_TOO_MANY_REQUESTS);
+        }
     }
 
     /**

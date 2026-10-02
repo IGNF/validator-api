@@ -11,6 +11,18 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class DocumentationControllerTest extends WebTestCase
 {
     /**
+     * /api redirects to the swagger displayed by the demo client.
+     */
+    public function testApiRootRedirectsToSwagger()
+    {
+        self::ensureKernelShutdown();
+        $client = static::createClient();
+        $client->request('GET', '/api');
+
+        $this->assertResponseRedirects('/#/api');
+    }
+
+    /**
      * Test openapi specification.
      */
     public function testSwagger()

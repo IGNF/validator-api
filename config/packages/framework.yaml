@@ -18,3 +18,7 @@ framework:
     #fragments: true
     php_errors:
         log: true
+
+    # IP of the reverse proxy (ex : REMOTE_ADDR or 10.0.0.0/8) to get the client IP (rate limiter, logs)
+    trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-port', 'x-forwarded-host']

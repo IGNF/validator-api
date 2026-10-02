@@ -2,7 +2,7 @@
 set -e
 
 #---------------------------------------------------------------------------
-# env vars specific to .docker/application.sh
+# env vars specific to bin/application.sh
 #---------------------------------------------------------------------------
 
 # allows to enable / disable automatic database creation (doctrine:database:create)
@@ -37,7 +37,7 @@ backend(){
 }
 
 archive(){
-    exec bash archive.sh
+    exec bash bin/archive.sh
 }
 
 test(){

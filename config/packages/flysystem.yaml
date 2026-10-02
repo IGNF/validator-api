@@ -20,3 +20,10 @@ flysystem:
             asyncaws:
                 client: 's3_client'
                 bucket: '%env(S3_BUCKET)%'
+when@test:
+    flysystem:
+        storages:
+            # removed after each test (see App\Tests\WebTestCase::tearDown)
+            default.storage:
+                local:
+                    directory: '%kernel.project_dir%/var/data-test'

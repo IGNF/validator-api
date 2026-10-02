@@ -4,11 +4,10 @@ namespace App\Tests\Controller\Api;
 
 use App\DataFixtures\ValidationsFixtures;
 use App\Tests\WebTestCase;
+use App\Entity\Validation;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
-use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -112,60 +111,32 @@ class ValidationNormDataDownloadTest extends WebTestCase
     }
 
     /**
-     * Trying to download normalized data after execution of validations command.
+     * Download of the normalized data of a finished validation.
      */
     public function testDownload()
     {
-        $this->markTestSkipped('TODO : fix outputs');
+        $uid = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS)->getUid();
+        $em = static::getContainer()->get('doctrine')->getManager();
+        $validation = $em->getRepository(Validation::class)->findOneByUid($uid);
+        $validation->setStatus(Validation::STATUS_FINISHED);
+        $em->flush();
 
-        // running validations command twice because there are two validations pending
-        static::ensureKernelShutdown();
-        $kernel = static::createKernel();
-        $application = new Application($kernel);
-        $command = $application->find('ign-validator:validations:process-one');
-        $commandTester = new CommandTester($command);
-        $statusCode = $commandTester->execute([]);
-        $this->assertEquals(0, $statusCode);
-
-        $command = $application->find('ign-validator:validations:process-one');
-        $commandTester = new CommandTester($command);
-        $statusCode = $commandTester->execute([]);
-        $this->assertEquals(0, $statusCode);
-
-        // this one has failed
-        $validation2 = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_BAD_ARGS);
-
-        $this->client->request(
-            'GET',
-            '/api/validations/'.$validation2->getUid().'/files/normalized',
+        $storage = $this->getValidationsStorage();
+        $storage->getStorage()->write(
+            $storage->getOutputDirectory($validation).$validation->getDatasetName().'.zip',
+            'normalized-zip-content'
         );
 
-        $response = $this->client->getResponse();
-        $json = \json_decode($response->getContent(), true);
+        $this->client->request('GET', '/api/validations/'.$uid.'/files/normalized');
 
-        $this->assertStatusCode(403, $this->client);
-        $this->assertEquals('Validation failed, no normalized data', $json['message']);
-
-        // this one has succeeded
-        $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS);
-
-        $this->client->request(
-            'GET',
-            '/api/validations/'.$validation->getUid().'/files/normalized',
-        );
-
-        $response = $this->client->getResponse();
         $this->assertStatusCode(200, $this->client);
-
-        $file = $response->getFile();
-        // TODO
-        // expected: filename suffix should be -normalized.zip
-        // actual: -normalized is not present in the suffix
-        // var_dump($file);
-        $headers = $response->headers->all();
-
-        $this->assertEquals('application/zip', $headers['content-type'][0]);
-        $this->assertEquals($validation->getDatasetName().'.zip', $file->getFilename());
-        $this->assertEquals('zip', $file->getExtension());
+        $response = $this->client->getResponse();
+        $this->assertEquals('application/zip', $response->headers->get('Content-Type'));
+        $this->assertEquals('22', $response->headers->get('Content-Length'));
+        $this->assertEquals(
+            'attachment; filename='.$validation->getDatasetName().'-normalized.zip',
+            $response->headers->get('Content-Disposition')
+        );
+        $this->assertEquals('normalized-zip-content', $this->client->getInternalResponse()->getContent());
     }
 }

@@ -2,6 +2,7 @@ ARG REGISTRY=docker.io
 # images versions
 ARG UBUNTU_IMAGE_VERSION=24.04
 ARG COMPOSER_IMAGE_VERSION=2.10
+ARG NODE_IMAGE_VERSION=22-alpine
 # packages versions
 ARG OPENJDK_VERSION=17
 ARG PHP_VERSION=8.5
@@ -26,6 +27,19 @@ RUN composer install $(if [ "${COMPOSER_NO_DEV}" = "1" ]; then echo --no-dev; fi
     --no-interaction \
     --ignore-platform-req=ext-pcntl \
   && composer clear-cache
+
+#----------------------------------------------------------------------
+# Assets stage - front (demo) built with webpack --------------------------
+#----------------------------------------------------------------------
+FROM ${REGISTRY}/library/node:${NODE_IMAGE_VERSION} AS assets
+
+WORKDIR /opt/validator-api
+COPY package.json package-lock.json webpack.config.js ./
+COPY assets ./assets
+# produces public/build, public/vendor/validator-api-client, public/css, public/font and public/img
+RUN npm ci --no-audit --no-fund \
+  && npm run build \
+  && rm -rf node_modules
 
 #----------------------------------------------------------------------
 # Production application container ---------------------------------------
@@ -150,6 +164,7 @@ RUN apt-get update -qq \
 COPY . /opt/validator-api
 WORKDIR /opt/validator-api
 COPY --from=composer --chown=www-data:www-data /opt/validator-api/vendor ./vendor
+COPY --from=assets /opt/validator-api/public ./public
 
 #----------------------------------------------------------------------
 # Prepare data storage

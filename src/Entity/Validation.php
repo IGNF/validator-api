@@ -13,7 +13,7 @@ class Validation
 {
     /**
      * User has uploaded a dataset but is yet to post the arguments
-     * User has 30 days to provide the arguments, otherwise the dataset will be deleted.
+     * (the dataset is archived after max-age, see CleanupCommand).
      */
     public const STATUS_WAITING_ARGS = 'waiting_for_args';
 
@@ -38,7 +38,8 @@ class Validation
     public const STATUS_ERROR = 'error';
 
     /**
-     * Validation created 30 days ago and its files have been deleted automatically to save space on the server.
+     * Files of the validation have been deleted (after max-age, see CleanupCommand, or delete-data argument),
+     * the results are kept.
      */
     public const STATUS_ARCHIVED = 'archived';
 

@@ -6,6 +6,7 @@ use App\Exception\ApiException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Yaml\Dumper;
@@ -35,12 +36,12 @@ class DocumentationController extends AbstractController
     }
 
     /**
-     * Root path for the API displaying swagger.
+     * Root path for the API : redirects to the swagger displayed by the demo client.
      */
-    #[Route('/api', name: 'validator_api_root')]
-    public function index()
+    #[Route('/api', name: 'validator_api_root', methods: ['GET'])]
+    public function index(): RedirectResponse
     {
-        return $this->render('swagger.html.twig');
+        return $this->redirect($this->generateUrl('validator_api_demo').'#/api');
     }
 
     /**

@@ -16,7 +16,11 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - **Le nom du fichier uploadé est contrôlé.** Sans l'extension `.zip`, il doit respecter `^[A-Za-z0-9_][A-Za-z0-9_.-]{0,99}$` : pas d'espace, d'accent ni de `/`, et pas de `.` ou de `-` en premier caractère. Sinon, l'upload répond `400`.
 - **L'argument `model` doit être une URL `https://` sur un hôte autorisé** (`VALIDATOR_MODEL_ALLOWED_HOSTS`, par défaut `geoportail-urbanisme.gouv.fr,ignf.github.io`, sous-domaines compris).
 - **`PATCH` et `DELETE` répondent `409`** pendant le traitement d'une validation.
-- **Les tests utilisent désormais la base `validator_api_test`.** Auparavant ils tournaient, par erreur, sur la base `validator_api` et la purgeaient. `make test` crée la base si besoin.
+- **Limite de débit** : au plus `VALIDATION_RATE_LIMIT` (100 par défaut) créations et mises à jour de validations par heure et par adresse IP, puis `429`. Derrière un reverse proxy, l'adresse du client est lue dans `X-Forwarded-For` pour les proxys de `TRUSTED_PROXIES` (par défaut `PRIVATE_SUBNETS`). Si l'ingress n'a pas une IP privée, il faut adapter cette variable, sinon tous les clients partagent la même limite.
+- **Le front n'est plus commité** (`public/build`, `public/vendor`, `public/css`, `public/font`, `public/img`). Il est construit par le Dockerfile (stage `assets`) ou en local avec `npm ci && npm run build`.
+- **`/api` redirige vers la documentation de la démo** (`/#/api`, swagger-ui 5). L'ancienne page swagger-ui 3 chargée depuis unpkg est supprimée.
+- **`composer.lock`, `symfony.lock` et `package-lock.json` sont versionnés.**
+- **Tests** : la base `validator_api_test` est désormais utilisée. Auparavant ils tournaient, par erreur, sur la base `validator_api` et la purgeaient. `make test` crée la base si besoin.
 
 ### Sécurité
 
@@ -39,12 +43,19 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - Téléchargement des données sources et normalisées désactivable (`DATA_DOWNLOAD_ENABLED`, désactivé par défaut). Le contrôle a lieu avant la recherche de la validation, pour ne pas révéler l'existence d'un uid.
 - validator-cli.jar est téléchargé par `bin/install-validator.sh`, avec vérification de l'empreinte sha256. Ce script est la seule source de la version, partagée entre composer et le Dockerfile.
 - Le PDF est désormais généré par dompdf, sans ressources distantes, accès aux fichiers locaux ni JavaScript. Il remplace wkhtmltopdf, qui n'est plus maintenu et a des CVE connues, dont une SSRF.
+- En-têtes de sécurité sur toutes les réponses : `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY` et `Referrer-Policy`. Les pages HTML reçoivent aussi une `Content-Security-Policy` (hors mode debug) : tout est servi par l'API, sans CDN.
+- Limite de débit sur `POST` et `PATCH /api/validations` (`VALIDATION_RATE_LIMIT`, `429 Too Many Requests`).
+- Export CSV : les valeurs issues du dataset qui commencent par `=`, `+`, `-` ou `@` sont préfixées par `'`, pour que les tableurs ne les interprètent pas comme des formules. Les nombres sont conservés tels quels.
+- Démo : plus aucune ressource chargée depuis un CDN (Bootstrap, jQuery, Popper, select2, swagger-ui@3 sur unpkg sans version fixée ni SRI).
+- docker-compose : PostgreSQL n'est plus exposé sur l'hôte (seulement `127.0.0.1` via `compose.override.yaml`), et l'environnement `prod` de l'image n'est plus remplacé par le `APP_ENV=dev` du `.env`.
 - Image Docker : `curl` et `wget` ne sont plus présents dans l'image finale, et Pebble (embarqué dans l'image Ubuntu, inutilisé et vulnérable) est supprimé.
 
 ### Ajouté
 
 - Le fichier `document-info.json` produit par le validator (option `normalize`) est exposé dans le champ `document_info` des validations.
-- Variables d'environnement `DATA_DOWNLOAD_ENABLED` et `VALIDATOR_MODEL_ALLOWED_HOSTS`.
+- Variables d'environnement `DATA_DOWNLOAD_ENABLED`, `VALIDATOR_MODEL_ALLOWED_HOSTS`, `VALIDATION_RATE_LIMIT` et `TRUSTED_PROXIES`.
+- `ign-validator:validations:cleanup --processing-timeout` (par défaut `PT1H`) : les validations encore en `processing` au-delà de ce délai (worker tué, manque de mémoire…) passent en `error` avec le message `Validation failed (processing interrupted)`.
+- Documentation OpenAPI : route `/logs`, réponses `403`, `404` et `429`, schémas `Error` et `Validation` (`results`, `delete_data`) conformes aux réponses réelles.
 - Réponse `409 Conflict` sur `PATCH` et `DELETE` d'une validation en cours de traitement.
 - Fichier `CHANGELOG.md`.
 
@@ -65,7 +76,10 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - Refactorings :
   - les routes de fichiers (logs, results.csv/pdf, files/*) passent dans `ValidationFilesController` ;
   - la gestion des répertoires de travail et du stockage passe dans `ValidationWorkspace`.
-- Front de démo : `@ignf/validator-client` passe en v0.5.9, avec chargement des chunks `runtime` et `vendors`.
+- Front de démo : `@ignf/validator-client` passe en v0.5.9, avec chargement des chunks `runtime` et `vendors`. La dépendance pointe vers l'archive du tag GitHub (et non `git+ssh`) : `npm ci` n'a besoin ni de git ni d'une clé SSH.
+- webpack-cli 4 → 7, et `webpack-copy-plugin` (inutilisé) est supprimé.
+- phpstan passe du niveau 2 au niveau 5, sans règle d'exclusion.
+- Les tests n'écrivent plus dans `var/data` : le stockage de test est `var/data-test`, supprimé après chaque test.
 
 ### Corrigé
 
@@ -93,7 +107,15 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
   - en-tête `Content-Transfer-Encoding` malformé supprimé ;
   - `404` au lieu de `403` quand le fichier est absent ;
   - nom de fichier échappé dans `Content-Disposition`.
-
+- Arrêt du worker (SIGTERM) : validator-cli.jar est désormais arrêté et le répertoire local supprimé, avant que la validation repasse en `pending`.
+- `bin/application.sh archive` et `bin/archive.sh` pointaient vers des chemins inexistants : l'archivage ne pouvait pas tourner.
+- docker-compose :
+  - le service `database` était défini deux fois (la recette Doctrine remplaçait PostGIS par `postgres:16`) ;
+  - le worker lançait `.docker/application.sh`, qui n'existe plus ;
+  - le `serverVersion` différait entre l'API et le worker.
+- La CI de publication Docker pointait vers `.docker/Dockerfile`, qui n'existe plus.
+- validator-cli : les options valant `0` (ex : `max-errors`, `dgpr-tolerance`) étaient ignorées, et un `VALIDATOR_JAVA_OPTS` vide produisait un argument vide.
+- Tests réactivés et fiabilisés : traitement complet par validator-cli (le test était désactivé, et instable car il dépendait de l'ordre de traitement des validations), téléchargements réussis.
 - La démo restait bloquée sur « Chargement… » avec le bundle validator-client découpé en chunks.
 - Les tests purgeaient la base de dev : l'option `dbname` de test était ignorée en présence de `url`.
 - Build Docker :
@@ -117,3 +139,5 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - Option composer `secure-http: false`.
 - Fichiers de configuration en double avec les blocs `when@` (`web_profiler` de dev et test, `routes/dev/`), ainsi que `prod/deprecations.yaml`, entièrement commenté.
 - Script `download-validator.sh`, remplacé par `bin/install-validator.sh`.
+- `templates/swagger.html.twig` (swagger-ui 3 chargé depuis unpkg).
+- Fichiers générés par le build front, qui n'étaient plus synchronisés avec la version de validator-api-client.

@@ -41,6 +41,11 @@ class ValidatorCLI
      */
     private $logger;
 
+    /**
+     * Running validator-cli.jar process (to stop it when the worker is stopped).
+     */
+    private ?Process $currentProcess = null;
+
     public function __construct(
         ValidationsStorage $storage,
         $validatorPath,
@@ -83,7 +88,8 @@ class ValidatorCLI
 
         $sourceDataDir = $validationDirectory.'/'.$validation->getDatasetName();
         $cmd = ['java'];
-        $cmd = \array_merge($cmd, explode(' ', $this->validatorJavaOpts));
+        // ignore empty options (ex : VALIDATOR_JAVA_OPTS='')
+        $cmd = \array_merge($cmd, array_values(array_filter(explode(' ', $this->validatorJavaOpts), fn (string $opt) => '' !== $opt)));
         $cmd = \array_merge($cmd, [
             '-jar', $this->validatorPath,
             'document_validator',
@@ -101,7 +107,12 @@ class ValidatorCLI
         );
         $process->setTimeout(600);
         $process->setIdleTimeout(600);
-        $process->run();
+        $this->currentProcess = $process;
+        try {
+            $process->run();
+        } finally {
+            $this->currentProcess = null;
+        }
 
         if (!$process->isSuccessful()) {
             throw new ProcessFailedException($process);
@@ -130,6 +141,19 @@ class ValidatorCLI
     }
 
     /**
+     * Stops the running validator-cli.jar process, if any (invoked when the worker receives SIGTERM).
+     */
+    public function stop(): void
+    {
+        if (null !== $this->currentProcess && $this->currentProcess->isRunning()) {
+            $this->logger->warning('stopping validator-cli.jar process (pid={pid})', [
+                'pid' => $this->currentProcess->getPid(),
+            ]);
+            $this->currentProcess->stop(10);
+        }
+    }
+
+    /**
      * Reconstructs the arguments as an array of strings.
      *
      * @return array[string]
@@ -140,7 +164,8 @@ class ValidatorCLI
         $arguments = $validation->getArguments();
 
         foreach ($arguments as $key => $value) {
-            if (!$value || '' == $value || null == $value) {
+            // false : flag disabled, null or '' : option not set (0 is a valid value, ex : max-errors)
+            if (false === $value || null === $value || '' === $value) {
                 continue;
             }
 
@@ -151,7 +176,7 @@ class ValidatorCLI
             }
 
             if (!is_bool($value)) {
-                array_push($args, $value);
+                array_push($args, (string) $value);
             }
         }
 
