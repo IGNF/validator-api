@@ -3,9 +3,9 @@ openapi: "3.0.0"
 info:
   description: >
     API permettant d'appeler [IGNF/validator](https://github.com/IGNF/validator) pour valider et normaliser des dossiers contenant une arborescence de fichiers.
-  contact:
-    name: IGNF/validator
-    url: "https://github.com/IGNF/validator/issues"
+
+
+    Pour signaler un problème : [tickets GitHub](https://github.com/IGNF/validator-api/issues).
   version: "0.6.2"
   title: "API Validator"
   license:
@@ -252,25 +252,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
-  /api/validations/{uid}/results.pdf:
-    get:
-      tags:
-        - validation
-      operationId: get_validation_pdf
-      deprecated: true
-      summary: "Ancien rapport PDF (redirige vers le rapport imprimable)"
-      parameters:
-        - description: "Identifiant unique de la validation"
-          in: path
-          name: uid
-          required: true
-          schema:
-            type: string
-          example: g7258vq1t639uagbv8rg7b97
-      responses:
-        302:
-          description: "Redirection vers /api/validations/{uid}/report?print=1"
 
   /api/validations/{uid}/logs:
     get:

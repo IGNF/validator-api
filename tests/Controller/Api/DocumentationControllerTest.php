@@ -4,6 +4,9 @@ namespace App\Tests\Controller\Api;
 
 use App\Tests\WebTestCase;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\Routing\Exception\ResourceNotFoundException;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Tests for ValidatorController class.
@@ -43,6 +46,32 @@ class DocumentationControllerTest extends WebTestCase
             "API permettant d'appeler [IGNF/validator](https://github.com/IGNF/validator)",
             $client->getInternalResponse()->getContent()
         );
+    }
+
+    /**
+     * Every operation documented in the specification matches an existing route
+     * (prevents documenting routes that have been removed).
+     */
+    public function testSwaggerOperationsMatchRoutes()
+    {
+        self::ensureKernelShutdown();
+        static::bootKernel();
+        $router = static::getContainer()->get(RouterInterface::class);
+        $specs = Yaml::parseFile(static::getContainer()->getParameter('kernel.project_dir').'/docs/specs/validator-api.yml');
+
+        foreach ($specs['paths'] as $path => $operations) {
+            // replace path parameters ({uid}, {schemaName}...) by a sample value
+            $url = preg_replace('/\{[^}]+\}/', 'sample', $path);
+            foreach (array_keys($operations) as $method) {
+                $router->getContext()->setMethod(strtoupper($method));
+                try {
+                    $router->match($url);
+                } catch (ResourceNotFoundException $e) {
+                    $this->fail(strtoupper($method)." $path is documented but no route matches it");
+                }
+            }
+        }
+        $this->addToAssertionCount(1);
     }
 
     /**
