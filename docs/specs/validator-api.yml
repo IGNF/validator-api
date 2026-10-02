@@ -6,7 +6,7 @@ info:
 
 
     Pour signaler un problème : [tickets GitHub](https://github.com/IGNF/validator-api/issues).
-  version: "0.7.0"
+  version: "0.7.1"
   title: "API Validator"
   license:
     name: "AGPL-3.0-or-later"
