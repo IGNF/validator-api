@@ -20,8 +20,8 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - **Le front n'est plus commité** (`public/build`, `public/vendor`, `public/css`, `public/font`, `public/img`). Il est construit par le Dockerfile (stage `assets`) ou en local avec `npm ci && npm run build`.
 - **`/api` redirige vers la documentation de la démo** (`/#/api`, swagger-ui 5). L'ancienne page swagger-ui 3 chargée depuis unpkg est supprimée.
 - **`composer.lock`, `symfony.lock` et `package-lock.json` sont versionnés.**
+- **La structure de la base est gérée par les migrations Doctrine.** `DB_UPGRADE=1` lance `doctrine:migrations:migrate` à la place de `doctrine:schema:update`. La migration initiale aligne aussi les bases existantes : elle ajoute les colonnes manquantes, passe `status` et `delete_data` en `NOT NULL` et ajoute la contrainte `CHECK` sur les statuts.
 - **Adresse IP des clients dans les logs** : derrière un reverse proxy, c'est l'IP du client (`X-Forwarded-For`) qui est enregistrée, et non plus celle du proxy. C'est le cas dans les logs applicatifs (`extra.ip`, à partir de `TRUSTED_PROXIES`) comme dans le log d'accès Apache (`mod_remoteip`, proxys des réseaux privés).
-- **`results.pdf` redirige (`302`) vers le rapport imprimable** `/api/validations/{uid}/report?print=1` : l'API ne génère plus de fichier PDF.
 - **Tests** : la base `validator_api_test` est désormais utilisée. Auparavant ils tournaient, par erreur, sur la base `validator_api` et la purgeaient. `make test` crée la base si besoin.
 
 ### Sécurité
@@ -82,8 +82,14 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
   - les routes de fichiers (logs, results.csv/pdf, files/*) passent dans `ValidationFilesController` ;
   - la gestion des répertoires de travail et du stockage passe dans `ValidationWorkspace`.
 - Front de démo : `@ignf/validator-client` passe en v0.5.9, avec chargement des chunks `runtime` et `vendors`. La dépendance pointe vers l'archive du tag GitHub (et non `git+ssh`) : `npm ci` n'a besoin ni de git ni d'une clé SSH.
-- webpack-cli 4 → 7, et `webpack-copy-plugin` (inutilisé) est supprimé.
+- webpack-cli 4 → 7, et `webpack-copy-plugin` (inutilisé) est supprimé. Node 20.9 minimum (`engines`).
+- Build webpack :
+  - les dossiers générés de `public/` sont vidés à chaque build (plus de chunks périmés après une mise à jour du client) ;
+  - les bundles du client sont copiés tels quels, sans être reminifiés (build ~25 fois plus rapide) ;
+  - les polices `eot` et `otf`, non référencées par la CSS, ne sont plus copiées (6 Mo de moins dans l'image).
 - phpstan passe du niveau 2 au niveau 5, sans règle d'exclusion.
+- Routes : `/`, `/api/validator-api.yml`, `/api/schema/*` et `/health/*` n'acceptent plus que `GET`. Les imports de routes du framework et du profiler passent au format PHP (format XML déprécié en Symfony 7.4).
+- Entité `Validation` : propriétés et accesseurs typés. `delete_data` n'est plus nullable (`false` par défaut), et le `columnDefinition` de `status` est supprimé : il provoquait une différence permanente entre le mapping et la base.
 - Les tests n'écrivent plus dans `var/data` : le stockage de test est `var/data-test`, supprimé après chaque test.
 
 ### Corrigé
@@ -100,11 +106,13 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
   - ignore les validations en cours de traitement ;
   - continue en cas d'erreur sur une validation ;
   - renvoie un code d'erreur s'il y a eu des échecs.
+- **Perte de données en cours de validation** : `doctrine:schema:update`, lancé à chaque démarrage de l'API (`DB_UPGRADE=1`), supprimait les tables des schémas `validation<uid>` créés par validator-cli. Doctrine ignore désormais ces schémas (`schema_filter`).
+- `STORAGE_TYPE=S3` défini dans un fichier `.env` était ignoré : la variable était lue avec `getenv()`. Elle est désormais injectée par la configuration.
 - Rollback de la transaction (et donc libération du verrou sur la table) en cas d'erreur dans `popNextPending`.
 - `/logs` :
   - répond `200` au lieu de `201` ;
   - répond `404` quand le log n'existe pas, au lieu d'une erreur 500.
-- `results.csv` et `results.pdf` :
+- `results.csv` :
   - `403` pour une validation non exécutée ;
   - `404` quand la validation n'a pas de résultats, au lieu d'un CSV vide ou d'une erreur 500 ;
   - le CSV est servi en `text/csv` ;
@@ -143,7 +151,21 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
   - `knplabs/knp-snappy-bundle` (wkhtmltopdf), remplacé par l'impression du navigateur.
 - Les polyfills PHP 5.6 à 7.1 et `paragonie/random_compat` sont remplacés par les polyfills PHP 7.2 à 8.5, fournis par PHP 8.5.
 - Option composer `secure-http: false`.
+- Configuration (`config/`) :
+  - `services_test.yaml`, qui dupliquait `services.yaml` : seul le dossier de travail diffère en test (paramètre `validations_dir` dans un bloc `when@test`) ;
+  - sous-dossiers `packages/dev`, `packages/prod` et `packages/test`, intégrés dans des blocs `when@` ;
+  - `routes.yaml` (entièrement commenté) ;
+  - déclaration en double du listener d'exceptions (remplacée par l'attribut `#[AsEventListener]`) ;
+  - bloc `App\Controller\` et exclusions de dossiers inexistants ;
+  - sessions, inutilisées par l'API ;
+  - vieille branche `srcApp_` de `preload.php`.
 - Fichiers de configuration en double avec les blocs `when@` (`web_profiler` de dev et test, `routes/dev/`), ainsi que `prod/deprecations.yaml`, entièrement commenté.
 - Script `download-validator.sh`, remplacé par `bin/install-validator.sh`.
+- Script `sql/validator-api.0.1.sql` et anciennes migrations de 2020 (jamais exécutées), remplacés par une migration initiale unique.
+- Fichiers inutilisés :
+  - `src/DataFixtures/AppFixtures.php` (fixture vide de la recette) ;
+  - `src/.preload.php` (préchargement d'un conteneur `srcApp_` d'avant Symfony 5) ;
+  - `bin/phpunit` (wrapper `simple-phpunit`, les tests utilisent `vendor/bin/phpunit`).
+- `make clean` ne supprime plus `composer.lock`, `symfony.lock` ni `package-lock.json`, désormais versionnés.
 - `templates/swagger.html.twig` (swagger-ui 3 chargé depuis unpkg).
 - Fichiers générés par le build front, qui n'étaient plus synchronisés avec la version de validator-api-client.

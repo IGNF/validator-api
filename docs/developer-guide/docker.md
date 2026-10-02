@@ -27,7 +27,7 @@ Le paramétrage de l'application est réalisé via des variables d'environnement
 Le script [bin/application.sh](../../bin/application.sh) comporte des options spécifiques au démarrage de l'API :
 
 * `DB_CREATE` à définir à 0 ou 1 pour créer automatiquement la base de données
-* `DB_UPGRADE` à définir à 0 ou 1 pour mettre à jour automatiquement la structure
+* `DB_UPGRADE` à définir à 0 ou 1 pour mettre à jour automatiquement la structure (`doctrine:migrations:migrate`, défaut 1)
 
 ## Construction et démarrage de l'application
 

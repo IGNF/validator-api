@@ -4,6 +4,8 @@
 
 * Le démonstrateur est fourni par [IGNF/validator-api-client](https://github.com/IGNF/validator-api-client) (`@ignf/validator-client`, version définie dans `package.json`).
 * `npm run build` (webpack) produit `public/build`, `public/vendor/validator-api-client`, `public/css`, `public/font` et `public/img` (voir `webpack.config.js`).
+* Ces dossiers sont vidés à chaque build (les fichiers d'une ancienne version du client ne restent pas), les autres fichiers de `public/` (`index.php`, `js/`...) sont conservés.
+* Si validator-api-client change le nom de ses fichiers JS (ex : `runtime.` et `vendors.`), adapter les balises `<script>` de `templates/demo.html.twig`.
 * Ces fichiers ne sont **pas commités** : ils sont construits dans l'image Docker (stage `assets` du `Dockerfile`) et doivent être construits localement pour le développement.
 
 ## Construire le front en local

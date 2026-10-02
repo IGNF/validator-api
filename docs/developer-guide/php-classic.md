@@ -31,14 +31,17 @@ Utilisez les commentaires de `.env.local` pour compléter les paramètres de vot
 
 ```bash
 php bin/console doctrine:database:create
-php bin/console doctrine:schema:update --force
+# structure gérée par les migrations Doctrine (dossier migrations/)
+php bin/console doctrine:migrations:migrate
 ```
+
+En cas de modification de `src/Entity`, générer une migration avec `php bin/console doctrine:migrations:diff` puis la relire avant de la commiter.
 
 * Télécharger le fichier `bin/validator-cli.jar` :
 
 ```bash
-# bash download-validator.sh [<MAJOR>.<MINOR>.<PATCH>]
-bash download-validator.sh
+# version et empreinte définies dans le script (exécuté aussi par "composer install")
+sh bin/install-validator.sh
 ```
 
 * Lancer l'application :
@@ -67,8 +70,8 @@ DATABASE_URL=postgresql://${PGUSER}:${PGPASSWORD}@localhost:5432/validator_api_t
 ```bash
 # Créer la base de données
 php bin/console --env=test doctrine:database:create --if-not-exists
-# Mettre à jour le schéma de la base de donnnées
-php bin/console --env=test doctrine:schema:update --force
+# Mettre à jour le schéma de la base de données
+php bin/console --env=test doctrine:migrations:migrate --no-interaction
 ```
 
 * 3) Téléchargez l'exécutable java validator-cli.jar
@@ -79,7 +82,7 @@ Si `validator-cli.jar` est déjà installé, vous pouvez configurer son emplacem
 VALIDATOR_PATH=/opt/ign-validation/validator-cli.jar
 ```
 
-Sinon, vous pouvez lancer `bash download-validator.sh <VALIDATOR_VERSION>` pour le télécharger dans `${projectDir}/bin/validator-cli.jar` (chemin par défaut)
+Sinon, vous pouvez lancer `sh bin/install-validator.sh` pour le télécharger dans `${projectDir}/bin/validator-cli.jar` (chemin par défaut)
 
 * 4) Exécutez les tests
 

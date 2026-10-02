@@ -10,7 +10,7 @@ class DefaultController extends AbstractController
     /**
      * Display demonstrator.
      */
-    #[Route('/', name: 'validator_api_demo')]
+    #[Route('/', name: 'validator_api_demo', methods: ['GET'])]
     public function demo()
     {
         return $this->render('demo.html.twig');

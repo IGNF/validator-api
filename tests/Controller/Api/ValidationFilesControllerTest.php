@@ -166,18 +166,6 @@ class ValidationFilesControllerTest extends WebTestCase
         $this->assertSelectorTextContains('.file', 'data/run.exe');
     }
 
-    /**
-     * The former PDF report redirects to the printable report.
-     */
-    public function testPdfRedirectsToReport()
-    {
-        $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_WITH_ARGS);
-
-        $this->client->request('GET', '/api/validations/'.$validation->getUid().'/results.pdf');
-
-        $this->assertResponseRedirects('/api/validations/'.$validation->getUid().'/report?print=1');
-    }
-
     private function updateValidation(string $fixture, string $status, ?array $results): Validation
     {
         $uid = $this->getValidationFixture($fixture)->getUid();

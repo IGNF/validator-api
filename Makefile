@@ -1,7 +1,7 @@
 test: vendor
 	# see SYMFONY_DEPRECATIONS_HELPER in phpunit.xml.dist
 	rm -rf var/log/test.deprecations.log
-	# test database (validator_api_test, see config/packages/test/doctrine.yaml)
+	# test database (validator_api_test, see when@test in config/packages/doctrine.yaml)
 	APP_ENV=test php bin/console doctrine:database:create --if-not-exists
 	APP_ENV=test XDEBUG_MODE=coverage vendor/bin/phpunit \
 		--coverage-clover var/data/output/coverage.xml \
@@ -28,14 +28,10 @@ vendor:
 
 .PHONY: clean
 clean:
+	# note : composer.lock, symfony.lock and package-lock.json are versioned (not removed)
 	rm -rf vendor
 	rm -rf var
-	rm -rf output
-	rm -f *.log
-	rm -f *.lock
-	rm -f package-lock.json
-	rm -f .php_cs.cache
-	rm -rf output
 	rm -rf node_modules
-	rm -rf .scannerwork
-	rm -rf sonar-scanner
+	rm -rf public/build public/vendor public/css public/font public/img
+	rm -f *.log
+	rm -f .php-cs-fixer.cache .phpunit.result.cache

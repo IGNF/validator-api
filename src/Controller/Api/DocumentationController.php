@@ -16,12 +16,14 @@ use Symfony\Component\Yaml\Yaml;
 class DocumentationController extends AbstractController
 {
     /**
-     * Paths hidden from the specification when DATA_DOWNLOAD_ENABLED is off.
+     * Paths flagged as disabled in the specification when DATA_DOWNLOAD_ENABLED is off.
      */
     private const DATA_DOWNLOAD_PATHS = [
         '/api/validations/{uid}/files/source',
         '/api/validations/{uid}/files/normalized',
     ];
+
+    private const DISABLED_MESSAGE = 'Route désactivée temporairement pour des raisons de sécurité.';
 
     /**
      * @var string
@@ -47,7 +49,7 @@ class DocumentationController extends AbstractController
     /**
      * Get OpenAPI specifications.
      */
-    #[Route('/api/validator-api.yml', name: 'validator_api_swagger')]
+    #[Route('/api/validator-api.yml', name: 'validator_api_swagger', methods: ['GET'])]
     public function swagger()
     {
         $swaggerPath = $this->specsDir.'/validator-api.yml';
@@ -56,9 +58,17 @@ class DocumentationController extends AbstractController
             return new BinaryFileResponse($swaggerPath);
         }
 
+        // disabled routes stay documented, flagged as deprecated (greyed out by swagger-ui)
+        // and with "x-disabled" (read by the demo client to hide the matching downloads)
         $specs = (new Parser())->parseFile($swaggerPath);
         foreach (self::DATA_DOWNLOAD_PATHS as $path) {
-            unset($specs['paths'][$path]);
+            foreach ($specs['paths'][$path] as $method => $operation) {
+                $operation['deprecated'] = true;
+                $operation['x-disabled'] = true;
+                $operation['summary'] = '[Désactivé] '.($operation['summary'] ?? '');
+                $operation['description'] = '**'.self::DISABLED_MESSAGE."**\n\n".($operation['description'] ?? '');
+                $specs['paths'][$path][$method] = $operation;
+            }
         }
 
         return new Response(
@@ -71,7 +81,7 @@ class DocumentationController extends AbstractController
     /**
      * Get a schema from docs/specs/schema.
      */
-    #[Route('/api/schema/{schemaName}.json', name: 'validator_api_schema', requirements: ['schemaName' => '[\w\-]+'])]
+    #[Route('/api/schema/{schemaName}.json', name: 'validator_api_schema', requirements: ['schemaName' => '[\w\-]+'], methods: ['GET'])]
     public function schema($schemaName)
     {
         $fs = new Filesystem();

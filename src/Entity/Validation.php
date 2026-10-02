@@ -3,7 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\ValidationRepository;
-use DateTime;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ValidationRepository::class)]
@@ -52,78 +52,81 @@ class Validation
      * Unique identifier.
      */
     #[ORM\Id]
-    #[ORM\Column(type: 'string', length: 24, unique: true)]
-    private $uid;
+    #[ORM\Column(type: Types::STRING, length: 24, unique: true)]
+    private string $uid;
 
     /**
      * Name of the dataset, derived from the name of the compressed file (zip) containing the dataset.
      */
-    #[ORM\Column(type: 'string', length: 100)]
-    private $datasetName;
+    #[ORM\Column(type: Types::STRING, length: 100)]
+    private ?string $datasetName = null;
 
     /**
      * CLI Arguments for the Java executable program.
      */
-    #[ORM\Column(type: 'json', nullable: true)]
-    private $arguments;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $arguments = null;
 
     /**
      * Date of creation.
      */
-    #[ORM\Column(type: 'datetime', nullable: false)]
-    private $dateCreation;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private \DateTimeInterface $dateCreation;
 
     /**
-     * Status.
+     * Status (one of the STATUS_* constants, see also the CHECK constraint in the migrations).
      */
-    #[ORM\Column(type: 'string', length: 16, nullable: false, options: ['default' => 'waiting_for_args'], columnDefinition: "character varying(16) CHECK (status IN ('waiting_for_args','pending','processing','finished','archived','error'))")]
-    private $status;
+    #[ORM\Column(type: Types::STRING, length: 16, options: ['default' => self::STATUS_WAITING_ARGS])]
+    private string $status;
 
     /**
-     * Message.
+     * Message (error message for STATUS_ERROR).
      */
-    #[ORM\Column(type: 'text', nullable: true)]
-    private $message;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $message = null;
 
     /**
      * Start date.
      */
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private $dateStart;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $dateStart = null;
 
     /**
      * Finish date.
      */
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private $dateFinish;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $dateFinish = null;
 
     /**
-     * Results in json format.
+     * Results in json format (validator-cli.jar report or zip pre-validation errors).
      */
-    #[ORM\Column(type: 'json', nullable: true)]
-    private $results;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $results = null;
 
     /**
      * Document info (metadata extracted from the dataset by the validator), in json format.
      * Only available when the validation was run with the "normalize" argument enabled.
      */
-    #[ORM\Column(type: 'json', nullable: true)]
-    private $documentInfo;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $documentInfo = null;
 
-    #[ORM\Column(type: 'boolean', nullable: true)]
-    private $deleteData;
+    /**
+     * Delete the files as soon as the validation is done ("delete-data" argument).
+     */
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $deleteData = false;
 
     /**
      * Constructor.
      */
     public function __construct()
     {
-        $this->setDateCreation(new DateTime('now'));
-        $this->setStatus($this::STATUS_WAITING_ARGS);
+        $this->setDateCreation(new \DateTime('now'));
+        $this->setStatus(self::STATUS_WAITING_ARGS);
         $this->setUid($this->generateUid());
     }
 
-    public function getUid(): ?string
+    public function getUid(): string
     {
         return $this->uid;
     }
@@ -162,19 +165,19 @@ class Validation
         return null !== $datasetName && 1 === preg_match(self::REGEXP_DATASET_NAME, $datasetName);
     }
 
-    public function getArguments()
+    public function getArguments(): ?array
     {
         return $this->arguments;
     }
 
-    public function setArguments($arguments): self
+    public function setArguments(?array $arguments): self
     {
         $this->arguments = $arguments;
 
         return $this;
     }
 
-    public function getDateCreation(): ?\DateTimeInterface
+    public function getDateCreation(): \DateTimeInterface
     {
         return $this->dateCreation;
     }
@@ -186,7 +189,7 @@ class Validation
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): string
     {
         return $this->status;
     }
@@ -234,36 +237,36 @@ class Validation
         return $this;
     }
 
-    public function getResults()
+    public function getResults(): ?array
     {
         return $this->results;
     }
 
-    public function setResults($results)
+    public function setResults(?array $results): self
     {
         $this->results = $results;
 
         return $this;
     }
 
-    public function getDocumentInfo()
+    public function getDocumentInfo(): ?array
     {
         return $this->documentInfo;
     }
 
-    public function setDocumentInfo($documentInfo)
+    public function setDocumentInfo(?array $documentInfo): self
     {
         $this->documentInfo = $documentInfo;
 
         return $this;
     }
 
-    public function getDeleteData()
+    public function getDeleteData(): bool
     {
         return $this->deleteData;
     }
 
-    public function setDeleteData($deleteData)
+    public function setDeleteData(bool $deleteData): self
     {
         $this->deleteData = $deleteData;
 
@@ -272,12 +275,10 @@ class Validation
 
     /**
      * Reset all attributes because user has requested a validation with updated parameters.
-     *
-     * @return Validation
      */
-    public function reset()
+    public function reset(): self
     {
-        $this->setStatus($this::STATUS_PENDING);
+        $this->setStatus(self::STATUS_PENDING);
         $this->setMessage(null);
         $this->setDateStart(null);
         $this->setDateFinish(null);
@@ -288,13 +289,9 @@ class Validation
     }
 
     /**
-     * Generate UID.
-     *
-     * @param int $length
-     *
-     * @return string
+     * Generate UID (lower case letters and digits).
      */
-    private function generateUid($length = 24)
+    private function generateUid(int $length = 24): string
     {
         $randomUid = '';
 

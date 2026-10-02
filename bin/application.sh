@@ -7,7 +7,7 @@ set -e
 
 # allows to enable / disable automatic database creation (doctrine:database:create)
 DB_CREATE=${DB_CREATE:-0}
-# allows to enable / disable automatic schema upgrade (doctrine:schema:update)
+# allows to enable / disable automatic schema upgrade (doctrine:migrations:migrate)
 DB_UPGRADE=${DB_UPGRADE:-1}
 
 # run (apache2) / backend / test 
@@ -23,7 +23,7 @@ run(){
     fi
     if [ "$DB_UPGRADE" = "1" ];
     then
-        bin/console doctrine:schema:update --force
+        bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
     fi
 
     #---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ test(){
     export APP_ENV=test
     export DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/validator_api?serverVersion=15&charset=utf8"
     bin/console --env=test doctrine:database:create --if-not-exists
-    bin/console --env=test doctrine:schema:update --force
+    bin/console --env=test doctrine:migrations:migrate --no-interaction --allow-no-migration
     XDEBUG_MODE=coverage vendor/bin/phpunit
 }
 

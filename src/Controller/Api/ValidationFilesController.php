@@ -86,15 +86,6 @@ class ValidationFilesController extends AbstractController
         ]);
     }
 
-    /**
-     * Former PDF report, replaced by the printable HTML report.
-     */
-    #[Route('/{uid}/results.pdf', name: 'validator_api_get_validation_pdf', methods: ['GET'])]
-    public function generatePdf($uid): RedirectResponse
-    {
-        return $this->redirectToRoute('validator_api_get_validation_report', ['uid' => $uid, 'print' => 1]);
-    }
-
     #[Route('/{uid}/files/normalized', name: 'validator_api_download_normalized_data', methods: ['GET'])]
     public function downloadNormalizedData($uid)
     {

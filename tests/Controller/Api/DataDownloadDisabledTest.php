@@ -71,21 +71,31 @@ class DataDownloadDisabledTest extends WebTestCase
     }
 
     /**
-     * Download endpoints are hidden from the OpenAPI specification.
+     * Download endpoints are flagged as disabled in the OpenAPI specification.
      */
-    public function testSwaggerHidesDownloadPaths()
+    public function testSwaggerFlagsDownloadPathsAsDisabled()
     {
         $this->client->request('GET', '/api/validator-api.yml');
 
         $this->assertResponseIsSuccessful();
         $specs = Yaml::parse($this->client->getResponse()->getContent());
-        $this->assertArrayHasKey('/api/validations/{uid}/results.csv', $specs['paths']);
-        $this->assertArrayNotHasKey('/api/validations/{uid}/files/source', $specs['paths']);
-        $this->assertArrayNotHasKey('/api/validations/{uid}/files/normalized', $specs['paths']);
+        $this->assertArrayNotHasKey('x-disabled', $specs['paths']['/api/validations/{uid}/results.csv']['get']);
+
+        $expected = Yaml::parseFile(static::getContainer()->getParameter('kernel.project_dir').'/docs/specs/validator-api.yml');
+        foreach (['source', 'normalized'] as $files) {
+            $path = "/api/validations/{uid}/files/$files";
+            $operation = $specs['paths'][$path]['get'];
+            $this->assertTrue($operation['deprecated']);
+            $this->assertTrue($operation['x-disabled']);
+            $this->assertStringStartsWith('[Désactivé] ', $operation['summary']);
+            $this->assertStringContainsString('désactivée temporairement pour des raisons de sécurité', $operation['description']);
+
+            // the documentation of the route is kept
+            $this->assertEquals($expected['paths'][$path]['get']['responses'], $operation['responses']);
+            unset($specs['paths'][$path], $expected['paths'][$path]);
+        }
 
         // the rest of the specification is unchanged
-        $expected = Yaml::parseFile(static::getContainer()->getParameter('kernel.project_dir').'/docs/specs/validator-api.yml');
-        unset($expected['paths']['/api/validations/{uid}/files/source'], $expected['paths']['/api/validations/{uid}/files/normalized']);
         $this->assertEquals($expected, $specs);
     }
 }

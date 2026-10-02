@@ -24,8 +24,6 @@ validator-debug.log
 
 validator-cli.jar
 
-.scannerwork
-sonar-scanner
 node_modules
 
 /output/

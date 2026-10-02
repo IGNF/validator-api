@@ -129,14 +129,15 @@ class ValidatorCLI
         $results = '['.$results.']';
         $results = \json_decode($results, true);
 
-        $validation->setResults($results);
+        $validation->setResults(is_array($results) ? $results : null);
 
         /*
          * read document info, only produced when the "normalize" argument is enabled
          */
         $documentInfoPath = $validationDirectory.'/validation/document-info.json';
         if (file_exists($documentInfoPath)) {
-            $validation->setDocumentInfo(\json_decode(\file_get_contents($documentInfoPath), true));
+            $documentInfo = \json_decode(\file_get_contents($documentInfoPath), true);
+            $validation->setDocumentInfo(is_array($documentInfo) ? $documentInfo : null);
         }
     }
 

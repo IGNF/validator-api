@@ -22,7 +22,7 @@ class HealthController extends AbstractController
     /**
      * Checks for Database connection.
      */
-    #[Route('/db', name: 'health_db')]
+    #[Route('/db', name: 'health_db', methods: ['GET'])]
     public function healthDB(EntityManagerInterface $entityManager)
     {
         $sql = 'SELECT postgis_version() as postgis_version';
@@ -45,7 +45,7 @@ class HealthController extends AbstractController
     /**
      * Checks for S3 connection.
      */
-    #[Route('/s3', name: 'health_s3')]
+    #[Route('/s3', name: 'health_s3', methods: ['GET'])]
     public function healthS3()
     {
         $this->logger->info('list files from S3 bucket...');
