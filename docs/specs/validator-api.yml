@@ -8,11 +8,10 @@ info:
     Pour signaler un problème : [tickets GitHub](https://github.com/IGNF/validator-api/issues).
 
 
-    **Authentification** : quand elle est activée sur l'instance (`OIDC_ENABLED=1`), créer, modifier et supprimer une validation
-    nécessite d'être authentifié, avec un jeton OIDC (`Authorization: Bearer <access_token>`) ou la session de la démo.
-    Seuls le créateur d'une validation et les administrateurs peuvent la modifier ou la supprimer.
-    La consultation d'une validation (et de ses rapports) reste publique. Voir `GET /api/me`.
-  version: "0.7.5"
+    **Authentification** : créer, modifier et supprimer une validation nécessite d'être authentifié.
+    Seul le créateur d'une validation peut la modifier ou la supprimer.
+    La consultation d'une validation (et de ses rapports) reste publique.
+  version: "0.7.6"
   title: "API Validator"
   license:
     name: "AGPL-3.0-or-later"
