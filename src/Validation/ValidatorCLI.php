@@ -52,6 +52,8 @@ class ValidatorCLI
         $validatorJavaOpts,
         $gmlasConfigPath,
         LoggerInterface $logger,
+        // max duration of validator-cli.jar in seconds (VALIDATOR_TIMEOUT)
+        private int $validatorTimeout = 1800,
     ) {
         $this->storage = $storage;
         $this->validatorPath = $validatorPath;
@@ -105,8 +107,8 @@ class ValidatorCLI
             $validationDirectory, // note that validator-debug.log is located in current directory,
             $env
         );
-        $process->setTimeout(600);
-        $process->setIdleTimeout(600);
+        $process->setTimeout($this->validatorTimeout);
+        $process->setIdleTimeout($this->validatorTimeout);
         $this->currentProcess = $process;
         try {
             $process->run();

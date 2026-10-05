@@ -2,12 +2,16 @@
 
 namespace App\Tests\Command\Validations;
 
+use App\Command\Validations\CleanupCommand;
 use App\DataFixtures\ValidationsFixtures;
 use App\Entity\Validation;
+use App\Repository\ValidationRepository;
 use App\Tests\WebTestCase;
+use App\Validation\ValidationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Liip\TestFixturesBundle\Services\DatabaseTools\AbstractDatabaseTool;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
@@ -122,5 +126,45 @@ class CleanupCommandTest extends WebTestCase
         $validation = $this->em->getRepository(Validation::class)->findOneByUid($uid);
         $this->assertEquals(Validation::STATUS_ERROR, $validation->getStatus());
         $this->assertEquals('Validation failed (processing interrupted)', $validation->getMessage());
+    }
+
+    /**
+     * The default processing timeout is longer than the validator-cli.jar timeout (VALIDATOR_TIMEOUT).
+     */
+    public function testDefaultProcessingTimeout()
+    {
+        $command = fn (int $timeout) => new CleanupCommand(
+            $this->createStub(ValidationRepository::class),
+            $this->createStub(ValidationManager::class),
+            $this->createStub(LoggerInterface::class),
+            $timeout
+        );
+
+        // at least 1 hour
+        $this->assertEquals('PT3600S', $command(600)->getDefaultProcessingTimeout());
+        // timeout + 10 minutes
+        $this->assertEquals('PT7800S', $command(7200)->getDefaultProcessingTimeout());
+    }
+
+    /**
+     * A validation running for less than the default processing timeout is not marked as failed.
+     */
+    public function testCleanupKeepsLongValidationsByDefault()
+    {
+        $validation = $this->em->getRepository(Validation::class)->findOneBy(['status' => Validation::STATUS_PENDING]);
+        $validation->setStatus(Validation::STATUS_PROCESSING);
+        // VALIDATOR_TIMEOUT=1800 : default processing timeout of 1 hour
+        $validation->setDateStart(new \DateTime('-40 minutes'));
+        $this->em->flush();
+        $uid = $validation->getUid();
+
+        static::ensureKernelShutdown();
+        $application = new Application(static::createKernel());
+        $commandTester = new CommandTester($application->find('ign-validator:validations:cleanup'));
+        $this->assertEquals(0, $commandTester->execute([]));
+        $this->assertStringContainsString('0 interrupted validation(s) marked as failed.', $commandTester->getDisplay());
+
+        $this->em->clear();
+        $this->assertEquals(Validation::STATUS_PROCESSING, $this->em->getRepository(Validation::class)->findOneByUid($uid)->getStatus());
     }
 }

@@ -25,10 +25,11 @@ class CleanupCommand extends Command
     public const DEFAULT_EXPIRY_CONDITION = 'P5D';
 
     /**
-     * Validations still processing after this duration are considered as interrupted
-     * (validator-cli.jar timeout is 10 minutes).
+     * Validations still processing after the validator-cli.jar timeout (VALIDATOR_TIMEOUT) plus this margin
+     * are considered as interrupted (worker killed, out of memory...), with at least MIN_PROCESSING_TIMEOUT.
      */
-    public const DEFAULT_PROCESSING_TIMEOUT = 'PT1H';
+    public const PROCESSING_TIMEOUT_MARGIN = 600;
+    public const MIN_PROCESSING_TIMEOUT = 3600;
 
     /**
      * @var ValidationManager
@@ -44,6 +45,8 @@ class CleanupCommand extends Command
         private ValidationRepository $validationRepository,
         ValidationManager $validationManager,
         LoggerInterface $logger,
+        // max duration of validator-cli.jar in seconds (VALIDATOR_TIMEOUT)
+        private int $validatorTimeout = 1800,
     ) {
         parent::__construct();
         $this->validationManager = $validationManager;
@@ -64,14 +67,14 @@ class CleanupCommand extends Command
                 'processing-timeout',
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Validations still processing after this duration are marked as failed (worker killed, out of memory...)',
-                self::DEFAULT_PROCESSING_TIMEOUT
+                'Validations still processing after this duration are marked as failed (worker killed, out of memory...), default : VALIDATOR_TIMEOUT + 10 minutes, at least 1 hour',
+                null
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $interrupted = $this->markInterrupted($input->getOption('processing-timeout'));
+        $interrupted = $this->markInterrupted($input->getOption('processing-timeout') ?? $this->getDefaultProcessingTimeout());
         $output->writeln(sprintf('%d interrupted validation(s) marked as failed.', $interrupted));
 
         $maxAge = $input->getOption('max-age');
@@ -110,6 +113,15 @@ class CleanupCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * Default processing timeout (ISO 8601 duration), longer than the validator-cli.jar timeout
+     * (a long validation must not be marked as failed while it is still running).
+     */
+    public function getDefaultProcessingTimeout(): string
+    {
+        return sprintf('PT%dS', max(self::MIN_PROCESSING_TIMEOUT, $this->validatorTimeout + self::PROCESSING_TIMEOUT_MARGIN));
     }
 
     /**

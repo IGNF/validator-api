@@ -16,6 +16,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 use Symfony\Component\Process\Process;
 
 /**
@@ -79,6 +80,10 @@ class ValidationManagerTest extends TestCase
             'validator-cli failure (command line and output are hidden)' => [
                 new ProcessFailedException($process),
                 'Validation failed (exit code 1)',
+            ],
+            'validator-cli timeout (VALIDATOR_TIMEOUT)' => [
+                new ProcessTimedOutException((new Process(['sleep', '1']))->setTimeout(1800), ProcessTimedOutException::TYPE_GENERAL),
+                'Validation failed (not completed after 1800 seconds)',
             ],
             'internal error (raw message is hidden)' => [
                 new \RuntimeException('Unable to write /opt/validator-api/var/data/secret'),

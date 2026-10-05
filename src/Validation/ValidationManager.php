@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
 
 class ValidationManager
 {
@@ -257,6 +258,9 @@ class ValidationManager
         }
         if ($throwable instanceof ProcessFailedException) {
             return sprintf('Validation failed (exit code %s)', $throwable->getProcess()->getExitCode());
+        }
+        if ($throwable instanceof ProcessTimedOutException) {
+            return sprintf('Validation failed (not completed after %d seconds)', $throwable->getExceededTimeout());
         }
 
         return 'Validation failed (internal error)';

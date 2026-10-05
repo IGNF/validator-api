@@ -9,6 +9,8 @@ parameters:
   env(GMLAS_CONFIG): '%kernel.project_dir%/config/gdal/gmlasconf-validator.xml'
   # local working directory of the validations
   validations_dir: '%env(resolve:DATA_DIR)%/validations'
+  # max duration of validator-cli.jar in seconds (VALIDATOR_TIMEOUT)
+  validator_timeout_default: 1800
   # storage of the uploaded and produced files : "local" (var/data) or "S3"
   env(STORAGE_TYPE): 'local'
 
@@ -22,6 +24,7 @@ services:
       $projectDir: "%kernel.project_dir%"
       $validatorPath: "%ignf_validator.path%"
       $validatorJavaOpts: "%env(resolve:VALIDATOR_JAVA_OPTS)%"
+      $validatorTimeout: "%env(int:default:validator_timeout_default:VALIDATOR_TIMEOUT)%"
       $gmlasConfigPath: "%env(resolve:GMLAS_CONFIG)%"
       $dataDownloadEnabled: "%env(bool:DATA_DOWNLOAD_ENABLED)%"
       $modelAllowedHosts: "%env(VALIDATOR_MODEL_ALLOWED_HOSTS)%"
