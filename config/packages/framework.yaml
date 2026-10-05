@@ -26,3 +26,8 @@ framework:
 when@test:
     framework:
         test: true
+        # sessions in files, without PdoSessionHandler : it uses DATABASE_URL without the "_test" suffix
+        # (also used by the schema created by the tests, see PdoSessionHandlerSchemaListener)
+        session:
+            storage_factory_id: session.storage.factory.mock_file
+            handler_id: ~
