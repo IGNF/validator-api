@@ -37,6 +37,10 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - Le téléchargement des données sources et normalisées est réservé au créateur et aux administrateurs.
 - Migration : colonnes `owner` et `owner_name` dans `validation`, table `sessions` pour les sessions (`PdoSessionHandler`).
 - La limite de débit s'applique par utilisateur une fois authentifié.
+- Migration : activation de l'extension PostGIS dans le schéma `public`, requise par validator-cli.jar (type `geometry`) et `/health/db`. Elle ne bloque jamais le démarrage de l'API :
+  - extension déjà installée : rien n'est fait, aucun droit n'est nécessaire ;
+  - extension absente du serveur, ou création refusée faute de droits (base managée) : un avertissement est affiché. Un administrateur doit alors exécuter `CREATE EXTENSION postgis SCHEMA public` ;
+  - la table `spatial_ref_sys` est exclue du schéma Doctrine (`schema_filter`).
 - Image Docker : derrière un reverse proxy qui termine le TLS (ingress), Apache positionne `HTTPS=on` quand `X-Forwarded-Proto: https` vient d'un proxy du réseau privé. Sans ça, les URLs générées étaient en `http://`, dont la redirect URI OIDC refusée par Keycloak, dès que le client avait une IP publique : `mod_remoteip` masque le proxy à Symfony.
 
 ### Sécurité

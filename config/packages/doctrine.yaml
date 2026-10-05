@@ -3,8 +3,9 @@ doctrine:
         # server version is defined in DATABASE_URL (serverVersion)
         url: '%env(resolve:DATABASE_URL)%'
         # ignore the "validation<uid>" schemas created by validator-cli.jar (otherwise schema:update and
-        # migrations:diff would drop the tables of the validations) and the "sessions" table (PdoSessionHandler)
-        schema_filter: '~^(?!validation[a-z0-9]{24}\.|(public\.)?sessions$)~'
+        # migrations:diff would drop the tables of the validations), the "sessions" table (PdoSessionHandler)
+        # and the "spatial_ref_sys" table of the PostGIS extension
+        schema_filter: '~^(?!validation[a-z0-9]{24}\.|(public\.)?(sessions|spatial_ref_sys)$)~'
     orm:
         naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
         auto_mapping: true
