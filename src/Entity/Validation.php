@@ -5,10 +5,12 @@ namespace App\Entity;
 use App\Repository\ValidationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation as Serializer;
 
 #[ORM\Entity(repositoryClass: ValidationRepository::class)]
 #[ORM\Table(name: 'validation')]
 #[ORM\Index(name: 'validation_uid_idx', columns: ['uid'])]
+#[ORM\Index(name: 'validation_owner_idx', columns: ['owner'])]
 class Validation
 {
     /**
@@ -115,6 +117,21 @@ class Validation
      */
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
     private bool $deleteData = false;
+
+    /**
+     * Identifier (OIDC "sub") of the user who created the validation (null when OIDC is disabled).
+     * Not exposed by the API (only to the admins, see ValidationsController::listValidations).
+     */
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Serializer\Exclude]
+    private ?string $owner = null;
+
+    /**
+     * Name of the user who created the validation (when created), displayed to the admins.
+     */
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Serializer\Exclude]
+    private ?string $ownerName = null;
 
     /**
      * Constructor.
@@ -269,6 +286,30 @@ class Validation
     public function setDeleteData(bool $deleteData): self
     {
         $this->deleteData = $deleteData;
+
+        return $this;
+    }
+
+    public function getOwner(): ?string
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?string $owner): self
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getOwnerName(): ?string
+    {
+        return $this->ownerName;
+    }
+
+    public function setOwnerName(?string $ownerName): self
+    {
+        $this->ownerName = $ownerName;
 
         return $this;
     }

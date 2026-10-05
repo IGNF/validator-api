@@ -1,0 +1,54 @@
+# OIDC authentication (see OIDC_* in .env and docs/developer-guide.md), only required when OIDC_ENABLED=1 :
+# - browser (demo) : login with Keycloak on the server side (/login -> /login_check), user kept in the session
+# - scripts : "Authorization: Bearer <access_token>" (stateless)
+# Permissions on the validations are checked by App\Security\ValidationVoter.
+security:
+    providers:
+        oidc:
+            id: App\Security\OidcUserProvider
+
+    firewalls:
+        dev:
+            # Ensure dev tools and static assets are always allowed
+            pattern: ^/(_profiler|_wdt|assets|build|vendor|css|img|font)/
+            security: false
+        health:
+            pattern: ^/health
+            security: false
+        # requests with "Authorization: Bearer ..." (no session, no cookie)
+        bearer:
+            request_matcher: App\Security\BearerRequestMatcher
+            stateless: true
+            provider: oidc
+            access_token:
+                token_handler:
+                    oidc:
+                        claim: sub
+                        audience: '%env(OIDC_CLIENT_ID)%'
+                        issuers: ['%env(OIDC_ISSUER_URL)%']
+                        algorithms: ['RS256', 'ES256']
+                        discovery:
+                            # trailing slash required to resolve ".well-known/openid-configuration"
+                            base_uri: '%env(OIDC_ISSUER_URL)%/'
+                            cache:
+                                id: cache.app
+            entry_point: App\Security\ApiEntryPoint
+        # browser (session cookie, see framework.session)
+        main:
+            lazy: true
+            provider: oidc
+            oidc:
+                login_path: /login
+                check_path: /login_check
+                enable_end_session_listener: true
+                # the validator api only needs the claims of the ID token
+                user_identifier_from_idtoken: true
+                user_info_from_idtoken: true
+                enable_retrieve_user_info: false
+                # back to the demo with an error message (the default, login_path, would loop with the provider)
+                failure_path: /?login_error=1
+            logout:
+                path: /logout
+                target: /
+            entry_point: App\Security\ApiEntryPoint
+

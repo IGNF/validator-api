@@ -1,5 +1,18 @@
 # Guide utilisateur
 
+## Authentification
+
+Sur une instance où l'authentification est activée (voir `GET /api/me`), la création, la modification et la suppression d'une validation nécessitent un jeton d'accès OIDC :
+
+```bash
+curl --request POST \
+  --url ${base_url}/api/validations/ \
+  --header "Authorization: Bearer ${access_token}" \
+  --form dataset=@92022_PLU_20200415.zip
+```
+
+Seuls le créateur d'une validation et les administrateurs peuvent ensuite la modifier ou la supprimer (sinon `403`). Sans jeton, ces requêtes répondent `401`. La consultation d'une validation reste possible sans authentification.
+
 ## Demander une validation
 
 Exemple de requête :

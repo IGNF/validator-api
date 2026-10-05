@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion factice (dev) - API Validator - IGN{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {# dev only page : inline styles allowed (no CSP in debug mode) #}
+    <style>
+        .dev-login-notice {
+            border-left: 4px solid #f0ad4e;
+            background: #fdf6ec;
+            padding: .75rem 1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <header class="header header-principal" role="banner">
+        <div class="header-principal--left">
+            <div class="header-principal__logo">
+                <a class="header-principal__logo-link" title="Validateur" href="{{ target_path }}">
+                    <img src="{{ asset('img/logo_IGN.png') }}" alt="Logo IGN"/>
+                    <span class="header-principal__name">Validateur</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main" role="main" tabindex="-1">
+        <header class="o-page-title">
+            <div class="o-page-title__inner">
+                <div class="container-content container-content--smaller">
+                    <h1>Connexion factice</h1>
+                </div>
+            </div>
+        </header>
+
+        <div class="container-content container-content--smaller">
+            <p class="dev-login-notice">
+                <strong>Environnement de développement uniquement.</strong>
+                Cette page remplace la connexion Keycloak pour tester les droits en local (<code>OIDC_DEV_LOGIN</code>).
+                L'utilisateur a pour identifiant <code>dev-&lt;nom&gt;</code>.
+            </p>
+
+            <form method="get" action="{{ path('validator_dev_login') }}" novalidate>
+                <input type="hidden" name="_target_path" value="{{ target_path }}"/>
+
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" value="{{ username }}"
+                           class="form-control{% if invalid %} is-invalid{% endif %}"
+                           required pattern="[A-Za-z0-9_.\-]{1,50}" maxlength="50" autocomplete="off" autofocus
+                           aria-describedby="usernameHelp"/>
+                    {% if invalid %}
+                        <div class="invalid-feedback">Nom invalide : 1 à 50 caractères parmi lettres, chiffres, « _ », « . » et « - ».</div>
+                    {% else %}
+                        <small id="usernameHelp" class="form-text text-muted">1 à 50 caractères : lettres, chiffres, « _ », « . » et « - ».</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="admin" name="admin" value="1"{% if admin %} checked{% endif %}/>
+                        <label class="custom-control-label" for="admin">Administrateur (liste et suppression de toutes les validations)</label>
+                    </div>
+                </div>
+
+                <div class="form-group text-center">
+                    <button type="submit" class="btn btn--plain btn--primary btn-width--lg">Se connecter</button>
+                </div>
+            </form>
+
+            <p class="text-center">
+                <a href="{{ target_path }}">Annuler</a>
+            </p>
+        </div>
+    </main>
+{% endblock %}

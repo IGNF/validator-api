@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Validation;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use SortDirection;
 
@@ -96,6 +97,29 @@ class ValidationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult()
         ;
+    }
+
+    /**
+     * Finds a page of validations, most recent first (see ValidationsController::listValidations).
+     *
+     * @return array{0: array<Validation>, 1: int} the validations and the total number of matching validations
+     */
+    public function findPage(int $offset, int $limit, ?string $status = null, ?string $owner = null): array
+    {
+        $qb = $this->createQueryBuilder('v')
+            ->orderBy('v.dateCreation', SortDirection::Descending)
+            ->addOrderBy('v.uid', SortDirection::Ascending)
+            ->setFirstResult($offset)
+            ->setMaxResults($limit);
+        if (null !== $status) {
+            $qb->andWhere('v.status = :status')->setParameter('status', $status);
+        }
+        if (null !== $owner) {
+            $qb->andWhere('v.owner = :owner')->setParameter('owner', $owner);
+        }
+        $paginator = new Paginator($qb->getQuery(), false);
+
+        return [iterator_to_array($paginator), count($paginator)];
     }
 
     /**

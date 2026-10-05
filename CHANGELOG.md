@@ -24,6 +24,20 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - **Adresse IP des clients dans les logs** : derrière un reverse proxy, c'est l'IP du client (`X-Forwarded-For`) qui est enregistrée, et non plus celle du proxy. C'est le cas dans les logs applicatifs (`extra.ip`, à partir de `TRUSTED_PROXIES`) comme dans le log d'accès Apache (`mod_remoteip`, proxys des réseaux privés).
 - **Tests** : la base `validator_api_test` est désormais utilisée. Auparavant ils tournaient, par erreur, sur la base `validator_api` et la purgeaient. `make test` crée la base si besoin.
 
+### Authentification OIDC
+
+- **Authentification OIDC optionnelle** (`OIDC_ENABLED`, désactivée par défaut, voir [docs/developer-guide/oidc.md](docs/developer-guide/oidc.md)). Quand elle est activée :
+  - la création d'une validation nécessite d'être authentifié, par session dans la démo (`/login`, `/logout`) ou avec un jeton `Authorization: Bearer` ;
+  - seuls le créateur (colonne `owner`) et les administrateurs (rôle client `OIDC_ADMIN_ROLE`) peuvent modifier ou supprimer une validation ;
+  - la consultation reste publique.
+- Nouvelles routes :
+  - `GET /api/me` : utilisateur courant ;
+  - `GET /api/validations/` : liste paginée des validations de l'utilisateur, de toutes les validations pour les administrateurs (`405` sans authentification).
+- Les validations exposent `can_edit`.
+- Le téléchargement des données sources et normalisées est réservé au créateur et aux administrateurs.
+- Migration : colonnes `owner` et `owner_name` dans `validation`, table `sessions` pour les sessions (`PdoSessionHandler`).
+- La limite de débit s'applique par utilisateur une fois authentifié.
+
 ### Sécurité
 
 - Contrôle des archives zip avant extraction : seul le répertoire central est lu, sans décompression.

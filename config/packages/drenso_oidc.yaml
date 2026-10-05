@@ -1,0 +1,9 @@
+# OIDC client used to log in the browser users (see security.yaml, firewall "main")
+drenso_oidc:
+    clients:
+        default:
+            well_known_url: '%env(OIDC_ISSUER_URL)%/.well-known/openid-configuration'
+            client_id: '%env(OIDC_CLIENT_ID)%'
+            client_secret: '%env(OIDC_CLIENT_SECRET)%'
+            redirect_route: '/login_check'
+            code_challenge_method: 'S256'

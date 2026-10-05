@@ -4,8 +4,17 @@ framework:
     http_method_override: false
     handle_all_throwables: true
 
-    # stateless API (no session, no cookie)
-    session: false
+    # session only used by the browser users logged in with OIDC (no session for anonymous and bearer requests),
+    # stored in the database to be shared by the replicas (see the "sessions" table in migrations)
+    session:
+        handler_id: Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler
+        cookie_secure: auto
+        cookie_samesite: lax
+        cookie_httponly: true
+        # expired sessions removed from the database on 1 % of the requests
+        # (php.ini session.gc_probability is often 0, ex : Debian)
+        gc_probability: 1
+        gc_divisor: 100
 
     php_errors:
         log: true

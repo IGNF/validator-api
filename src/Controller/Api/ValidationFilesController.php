@@ -7,6 +7,7 @@ use App\Exception\ApiException;
 use App\Export\CsvReportWriter;
 use App\Export\HtmlReportWriter;
 use App\Repository\ValidationRepository;
+use App\Security\ValidationVoter;
 use App\Storage\ValidationsStorage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\HeaderUtils;
@@ -95,6 +96,8 @@ class ValidationFilesController extends AbstractController
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+        // the datasets are private when OIDC is enabled (owner and admins only)
+        $this->denyAccessUnlessGranted(ValidationVoter::DOWNLOAD_DATA, $validation, 'Only the owner of the validation can download its data');
 
         if (Validation::STATUS_ARCHIVED == $validation->getStatus()) {
             throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);
@@ -123,6 +126,8 @@ class ValidationFilesController extends AbstractController
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+        // the datasets are private when OIDC is enabled (owner and admins only)
+        $this->denyAccessUnlessGranted(ValidationVoter::DOWNLOAD_DATA, $validation, 'Only the owner of the validation can download its data');
 
         if (Validation::STATUS_ARCHIVED == $validation->getStatus()) {
             throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);

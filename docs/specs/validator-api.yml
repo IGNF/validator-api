@@ -6,6 +6,12 @@ info:
 
 
     Pour signaler un problème : [tickets GitHub](https://github.com/IGNF/validator-api/issues).
+
+
+    **Authentification** : quand elle est activée sur l'instance (`OIDC_ENABLED=1`), créer, modifier et supprimer une validation
+    nécessite d'être authentifié, avec un jeton OIDC (`Authorization: Bearer <access_token>`) ou la session de la démo.
+    Seuls le créateur d'une validation et les administrateurs peuvent la modifier ou la supprimer.
+    La consultation d'une validation (et de ses rapports) reste publique. Voir `GET /api/me`.
   version: "0.7.2"
   title: "API Validator"
   license:
@@ -15,15 +21,88 @@ info:
 tags:
   - name: "Validation"
     description: "Une demande de validation de documents"
+  - name: "Authentification"
+    description: "Authentification OIDC (si activée sur l'instance)"
 
 paths:
+  /api/me:
+    get:
+      tags:
+        - Authentification
+      operationId: get_current_user
+      summary: "Utilisateur courant"
+      description: "Indique si l'authentification est activée et retourne l'utilisateur authentifié (session de la démo ou jeton)"
+      security:
+        - {}
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        200:
+          description: "Utilisateur courant"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+
   /api/validations/:
+    get:
+      tags:
+        - Validation
+      operationId: list_validations
+      summary: "Lister les validations"
+      description: "Liste paginée des validations de l'utilisateur authentifié, ou de toutes les validations pour les administrateurs (rôle client OIDC_ADMIN_ROLE), des plus récentes aux plus anciennes. Indisponible (405) sans authentification activée."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: "Numéro de page (à partir de 1)"
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: "Nombre de validations par page"
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: status
+          in: query
+          description: "Filtre sur le statut"
+          schema:
+            type: string
+        - name: owner
+          in: query
+          description: "Filtre sur l'identifiant (sub) du créateur (administrateurs uniquement, ignoré pour les autres utilisateurs)"
+          schema:
+            type: string
+      responses:
+        200:
+          description: "Page de validations"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationPage"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        405:
+          description: "Authentification désactivée sur l'instance"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       tags:
         - Validation
       operationId: upload_dataset
       summary: "Téléverser un jeu de données à faire valider"
       description: "Téléverser un jeu de données sur le serveur afin demander une validation plus tard"
+      security:
+        - {}
+        - bearerAuth: []
+        - cookieAuth: []
       requestBody:
         content:
           multipart/form-data:
@@ -46,8 +125,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        401:
+          $ref: "#/components/responses/Unauthorized"
         429:
-          description: Trop de demandes depuis cette adresse IP (VALIDATION_RATE_LIMIT par heure)
+          description: Trop de demandes depuis cette adresse IP ou pour cet utilisateur (VALIDATION_RATE_LIMIT par heure)
           content:
             application/json:
               schema:
@@ -91,6 +172,10 @@ paths:
     patch:
       tags:
         - Validation
+      security:
+        - {}
+        - bearerAuth: []
+        - cookieAuth: []
       operationId: update_arguments
       summary: "Préciser les arguments de validator"
       description: "Préciser les arguments et les options pour le programme ligne de commandes Validator"
@@ -120,8 +205,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        401:
+          $ref: "#/components/responses/Unauthorized"
         403:
-          description: La validation a été archivée (par défaut 5 jours après la création)
+          description: La validation a été archivée (par défaut 5 jours après la création), ou l'utilisateur n'est ni le créateur de la validation ni un administrateur
           content:
             application/json:
               schema:
@@ -139,7 +226,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         429:
-          description: Trop de demandes depuis cette adresse IP (VALIDATION_RATE_LIMIT par heure)
+          description: Trop de demandes depuis cette adresse IP ou pour cet utilisateur (VALIDATION_RATE_LIMIT par heure)
           content:
             application/json:
               schema:
@@ -149,6 +236,10 @@ paths:
       tags:
         - Validation
       operationId: delete_validation
+      security:
+        - {}
+        - bearerAuth: []
+        - cookieAuth: []
       summary: "Supprimer une validation"
       description: "Demander la suppression de la validation et tous les fichiers qui lui sont associés"
       parameters:
@@ -174,6 +265,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
         409:
           description: La validation est en cours de traitement
           content:
@@ -357,6 +452,32 @@ paths:
 
 
 components:
+  securitySchemes:
+    bearerAuth:
+      description: "Jeton d'accès (JWT) délivré par le fournisseur OIDC (OIDC_ISSUER_URL), dont l'audience contient OIDC_CLIENT_ID"
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    cookieAuth:
+      description: "Session de la démo, après connexion sur /login"
+      type: apiKey
+      in: cookie
+      name: PHPSESSID
+
+  responses:
+    Unauthorized:
+      description: "Authentification requise (authentification activée sur l'instance)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: "Seuls le créateur de la validation et les administrateurs peuvent la modifier ou la supprimer"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
   schemas:
 
     Validation:
@@ -420,6 +541,67 @@ components:
           description: "Suppression des données à la fin de la validation (argument delete-data)"
           type: boolean
           example: false
+        can_edit:
+          description: "L'utilisateur courant peut modifier et supprimer la validation (toujours vrai sans authentification)"
+          type: boolean
+          example: true
+
+    ValidationPage:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/Validation"
+              - type: object
+                properties:
+                  owner:
+                    description: "Identifiant (sub) du créateur"
+                    type: string
+                    nullable: true
+                  owner_name:
+                    description: "Nom du créateur à la création"
+                    type: string
+                    nullable: true
+        total:
+          type: integer
+          example: 42
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+
+    Me:
+      type: object
+      properties:
+        enabled:
+          description: "Authentification activée sur l'instance (OIDC_ENABLED)"
+          type: boolean
+        authenticated:
+          type: boolean
+        user:
+          type: object
+          nullable: true
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+              nullable: true
+            is_admin:
+              type: boolean
+        login_url:
+          description: "Connexion depuis un navigateur (paramètre _target_path : chemin de retour)"
+          type: string
+          nullable: true
+          example: /login
+        logout_url:
+          type: string
+          nullable: true
+          example: /logout
 
     Error:
       type: object

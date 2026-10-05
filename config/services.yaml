@@ -26,6 +26,9 @@ services:
       $dataDownloadEnabled: "%env(bool:DATA_DOWNLOAD_ENABLED)%"
       $modelAllowedHosts: "%env(VALIDATOR_MODEL_ALLOWED_HOSTS)%"
       $storageType: "%env(STORAGE_TYPE)%"
+      $oidcEnabled: "%env(bool:OIDC_ENABLED)%"
+      $oidcClientId: "%env(OIDC_CLIENT_ID)%"
+      $oidcAdminRole: "%env(OIDC_ADMIN_ROLE)%"
 
   # makes classes in src/ available to be used as services
   # this creates a service per class whose id is the fully-qualified class name
@@ -43,6 +46,15 @@ services:
       $extraFields: { url: REQUEST_URI, ip: REMOTE_ADDR, http_method: REQUEST_METHOD, user_agent: HTTP_USER_AGENT }
     tags: [monolog.processor]
 
+  # sessions of the users logged in with OIDC (see framework.session)
+  Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
+    arguments:
+      - '%env(DATABASE_URL)%'
+
 when@test:
   parameters:
     validations_dir: '%env(resolve:DATA_DIR)%/validations-test'
+  services:
+    # bearer tokens without Keycloak (see tests/Controller/Api/OidcAuthTest.php)
+    App\Tests\Security\FakeAccessTokenHandler:
+      decorates: security.access_token_handler.bearer

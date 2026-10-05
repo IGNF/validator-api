@@ -5,6 +5,8 @@ namespace App\Controller\Api;
 use App\Entity\Validation;
 use App\Exception\ApiException;
 use App\Repository\ValidationRepository;
+use App\Security\OidcUserProvider;
+use App\Security\ValidationVoter;
 use App\Service\MimeTypeGuesserService;
 use App\Service\ValidatorArgumentsService;
 use App\Storage\ValidationsStorage;
@@ -18,10 +20,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Core\User\OidcUser;
 
 #[Route('/api/validations')]
 class ValidationsController extends AbstractController
 {
+    private const LIST_DEFAULT_LIMIT = 20;
+    private const LIST_MAX_LIMIT = 100;
+
     public function __construct(
         private ValidationRepository $repository,
         private ArrayTransformerInterface $serializer,
@@ -34,13 +40,48 @@ class ValidationsController extends AbstractController
         private RateLimiterFactory $validationLimiter,
         // "audit" channel (see monolog.yaml), always logged with the client IP
         private LoggerInterface $auditLogger,
+        private bool $oidcEnabled,
     ) {
     }
 
-    #[Route('/', name: 'validator_api_disabled_routes', methods: ['GET', 'DELETE', 'PATCH', 'PUT'])]
+    #[Route('/', name: 'validator_api_disabled_routes', methods: ['DELETE', 'PATCH', 'PUT'])]
     public function disabledRoutes()
     {
         return new JsonResponse(['error' => 'This route is not allowed'], Response::HTTP_METHOD_NOT_ALLOWED);
+    }
+
+    /**
+     * Lists the validations of the current user (all the validations for the admins, see ValidationVoter),
+     * most recent first. Not available when OIDC is disabled.
+     */
+    #[Route('/', name: 'validator_api_list_validations', methods: ['GET'])]
+    public function listValidations(Request $request)
+    {
+        if (!$this->oidcEnabled) {
+            return $this->disabledRoutes();
+        }
+        $this->denyAccessUnlessGranted(ValidationVoter::LIST, null, 'Authentication required to list the validations');
+
+        $page = max(1, $request->query->getInt('page', 1));
+        $limit = min(self::LIST_MAX_LIMIT, max(1, $request->query->getInt('limit', self::LIST_DEFAULT_LIMIT)));
+        $status = $request->query->get('status') ?: null;
+        $owner = $request->query->get('owner') ?: null;
+        if (!$this->isGranted(ValidationVoter::LIST_ALL)) {
+            // users only see their validations
+            $owner = $this->getUser()->getUserIdentifier();
+        }
+
+        [$validations, $total] = $this->repository->findPage(($page - 1) * $limit, $limit, $status, $owner);
+
+        return new JsonResponse([
+            'items' => array_map(fn (Validation $validation) => $this->toArray($validation) + [
+                'owner' => $validation->getOwner(),
+                'owner_name' => $validation->getOwnerName(),
+            ], $validations),
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+        ], Response::HTTP_OK);
     }
 
     #[Route('/{uid}', name: 'validator_api_get_validation', methods: ['GET'])]
@@ -51,12 +92,13 @@ class ValidationsController extends AbstractController
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
 
-        return new JsonResponse($this->serializer->toArray($validation), Response::HTTP_OK);
+        return new JsonResponse($this->toArray($validation), Response::HTTP_OK);
     }
 
     #[Route('/', name: 'validator_api_upload_dataset', methods: ['POST'])]
     public function uploadDataset(Request $request)
     {
+        $this->denyAccessUnlessGranted(ValidationVoter::CREATE, null, 'Authentication required to create a validation');
         $this->denyIfRateLimitExceeded($request);
 
         $files = $request->files;
@@ -94,6 +136,11 @@ class ValidationsController extends AbstractController
          */
         $validation = new Validation();
         $validation->setDatasetName($datasetName);
+        $user = $this->getUser();
+        if ($user instanceof OidcUser) {
+            $validation->setOwner($user->getUserIdentifier());
+            $validation->setOwnerName(OidcUserProvider::getDisplayName($user));
+        }
 
         // Save file to storage
         $uploadDirectory = $this->storage->getUploadDirectory($validation);
@@ -120,13 +167,10 @@ class ValidationsController extends AbstractController
         $this->entityManager->flush();
         $this->entityManager->refresh($validation);
 
-        $this->auditLogger->info('Validation[{uid}] : created', [
-            'uid' => $validation->getUid(),
-            'dataset_name' => $validation->getDatasetName(),
-        ]);
+        $this->auditLogger->info('Validation[{uid}] : created', $this->getAuditContext($validation));
 
         return new JsonResponse(
-            $this->serializer->toArray($validation),
+            $this->toArray($validation),
             Response::HTTP_CREATED
         );
     }
@@ -146,6 +190,7 @@ class ValidationsController extends AbstractController
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted(ValidationVoter::EDIT, $validation, 'Only the owner of the validation can update it');
 
         if (Validation::STATUS_ARCHIVED == $validation->getStatus()) {
             throw new ApiException('Validation has been archived', Response::HTTP_FORBIDDEN);
@@ -165,14 +210,12 @@ class ValidationsController extends AbstractController
         $this->entityManager->flush();
         $this->entityManager->refresh($validation);
 
-        $this->auditLogger->info('Validation[{uid}] : arguments updated', [
-            'uid' => $validation->getUid(),
-            'dataset_name' => $validation->getDatasetName(),
+        $this->auditLogger->info('Validation[{uid}] : arguments updated', $this->getAuditContext($validation) + [
             'model' => $arguments['model'] ?? null,
         ]);
 
         return new JsonResponse(
-            $this->serializer->toArray($validation),
+            $this->toArray($validation),
             Response::HTTP_OK
         );
     }
@@ -184,26 +227,49 @@ class ValidationsController extends AbstractController
         if (!$validation) {
             throw new ApiException("No record found for uid=$uid", Response::HTTP_NOT_FOUND);
         }
+        $this->denyAccessUnlessGranted(ValidationVoter::EDIT, $validation, 'Only the owner of the validation can delete it');
 
         $this->denyIfProcessing($validation);
 
-        $this->auditLogger->info('Validation[{uid}] : deleted', [
-            'uid' => $validation->getUid(),
-            'dataset_name' => $validation->getDatasetName(),
-        ]);
+        $this->auditLogger->info('Validation[{uid}] : deleted', $this->getAuditContext($validation));
         $this->validationManager->delete($validation);
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 
     /**
-     * Limits the number of validations created or updated per client IP (VALIDATION_RATE_LIMIT per hour).
+     * Serializes a validation with "can_edit" (whether the current user can update or delete it).
+     */
+    private function toArray(Validation $validation): array
+    {
+        return $this->serializer->toArray($validation) + [
+            'can_edit' => $this->isGranted(ValidationVoter::EDIT, $validation),
+        ];
+    }
+
+    /**
+     * Context of the "audit" logs (the client IP is added by the WebProcessor).
+     */
+    private function getAuditContext(Validation $validation): array
+    {
+        return [
+            'uid' => $validation->getUid(),
+            'dataset_name' => $validation->getDatasetName(),
+            'user' => $this->getUser()?->getUserIdentifier(),
+        ];
+    }
+
+    /**
+     * Limits the number of validations created or updated per user (when authenticated) or per client IP
+     * (VALIDATION_RATE_LIMIT per hour).
      *
      * @throws ApiException
      */
     private function denyIfRateLimitExceeded(Request $request): void
     {
-        $limit = $this->validationLimiter->create($request->getClientIp())->consume();
+        $user = $this->getUser();
+        $key = $user ? 'user:'.$user->getUserIdentifier() : $request->getClientIp();
+        $limit = $this->validationLimiter->create($key)->consume();
         if (!$limit->isAccepted()) {
             throw new ApiException(sprintf('Too many requests, retry after %s', $limit->getRetryAfter()->format(\DateTimeInterface::ATOM)), Response::HTTP_TOO_MANY_REQUESTS);
         }

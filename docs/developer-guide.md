@@ -20,3 +20,7 @@
 * [Documentation développeur pour développement avec docker](developer-guide/docker.md)
 * [Documentation développeur pour le développement du front (JavaScript)](developer-guide/front.md)
 
+## Authentification
+
+* [Authentification OIDC](developer-guide/oidc.md)
+
