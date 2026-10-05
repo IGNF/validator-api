@@ -37,6 +37,7 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - Le téléchargement des données sources et normalisées est réservé au créateur et aux administrateurs.
 - Migration : colonnes `owner` et `owner_name` dans `validation`, table `sessions` pour les sessions (`PdoSessionHandler`).
 - La limite de débit s'applique par utilisateur une fois authentifié.
+- Image Docker : derrière un reverse proxy qui termine le TLS (ingress), Apache positionne `HTTPS=on` quand `X-Forwarded-Proto: https` vient d'un proxy du réseau privé. Sans ça, les URLs générées étaient en `http://`, dont la redirect URI OIDC refusée par Keycloak, dès que le client avait une IP publique : `mod_remoteip` masque le proxy à Symfony.
 
 ### Sécurité
 
