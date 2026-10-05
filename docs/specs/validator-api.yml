@@ -11,7 +11,7 @@ info:
     **Authentification** : créer, modifier et supprimer une validation nécessite d'être authentifié.
     Seul le créateur d'une validation peut la modifier ou la supprimer.
     La consultation d'une validation (et de ses rapports) reste publique.
-  version: "0.7.6"
+  version: "0.7.7"
   title: "API Validator"
   license:
     name: "AGPL-3.0-or-later"
