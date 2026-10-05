@@ -23,6 +23,16 @@ class OidcAuthTest extends WebTestCase
     private const OTHER = 'other-sub';
     private const ADMIN = 'admin-sub';
 
+    /**
+     * OIDC configuration of the tests (independent of the .env files, ex : on the CI).
+     */
+    private const ENV = [
+        'OIDC_ENABLED' => '1',
+        'OIDC_CLIENT_ID' => 'validator-test',
+        'OIDC_ADMIN_ROLE' => 'admin',
+        'OIDC_DEV_LOGIN' => '0',
+    ];
+
     private const ARGS = ['srs' => 'EPSG:2154', 'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/cnig_SUP_PM3_2016.json'];
 
     /**
@@ -30,9 +40,19 @@ class OidcAuthTest extends WebTestCase
      */
     private $client;
 
+    /**
+     * Values of ENV before the test.
+     *
+     * @var array<string,mixed>
+     */
+    private array $previousEnv = [];
+
     public function setUp(): void
     {
-        $_ENV['OIDC_ENABLED'] = $_SERVER['OIDC_ENABLED'] = '1';
+        foreach (self::ENV as $name => $value) {
+            $this->previousEnv[$name] = $_SERVER[$name] ?? null;
+            $_ENV[$name] = $_SERVER[$name] = $value;
+        }
 
         static::ensureKernelShutdown();
         $this->client = static::createClient();
@@ -46,7 +66,13 @@ class OidcAuthTest extends WebTestCase
 
     public function tearDown(): void
     {
-        $_ENV['OIDC_ENABLED'] = $_SERVER['OIDC_ENABLED'] = '0';
+        foreach ($this->previousEnv as $name => $value) {
+            if (null === $value) {
+                unset($_ENV[$name], $_SERVER[$name]);
+            } else {
+                $_ENV[$name] = $_SERVER[$name] = $value;
+            }
+        }
 
         parent::tearDown();
     }
@@ -167,7 +193,7 @@ class OidcAuthTest extends WebTestCase
     public function testAdminRoleFromBearer()
     {
         $uid = $this->getOwnedValidation()->getUid();
-        $claims = ['sub' => self::ADMIN, 'resource_access' => ['validator-test' => ['roles' => ['admin']]]];
+        $claims = ['sub' => self::ADMIN, 'resource_access' => [self::ENV['OIDC_CLIENT_ID'] => ['roles' => ['admin']]]];
 
         $this->client->request('DELETE', '/api/validations/'.$uid, [], [], [
             'HTTP_AUTHORIZATION' => 'Bearer '.FakeAccessTokenHandler::createToken($claims),
