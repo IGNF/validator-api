@@ -93,6 +93,16 @@
       "description": "geometry simplification method",
       "example": true
     },
+    "dgpr-skip-inclusion": {
+      "type": "boolean",
+      "description": "Plugin DGPR : ne pas exécuter le contrôle d'inclusion des surfaces inondables entre scénarios (DGPR_INOND_INCLUSION_*)",
+      "example": true
+    },
+    "dgpr-skip-graph-topology": {
+      "type": "boolean",
+      "description": "Plugin DGPR : ne pas exécuter le contrôle de topologie des ISO_HT et ISO_DEB (DGPR_ISO_HT_FUSION_NOT_SURFACE_INOND, DGPR_ISO_HT_INTERSECTS, DGPR_ISO_HT_GEOM_ERROR)",
+      "example": true
+    },
     "delete-data": {
       "type": "boolean",
       "description": "Donnees à supprimer immédiatement après la validation.",

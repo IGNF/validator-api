@@ -82,6 +82,7 @@ Branche `upgrade/php85-symfony74` : montée de version PHP 8.5 / Symfony 7.4 et 
 - Documentation OpenAPI : route `/logs`, réponses `403`, `404` et `429`, schémas `Error` et `Validation` (`results`, `delete_data`) conformes aux réponses réelles.
 - Réponse `409 Conflict` sur `PATCH` et `DELETE` d'une validation en cours de traitement.
 - Fichier `CHANGELOG.md`.
+- Arguments `dgpr-skip-inclusion` et `dgpr-skip-graph-topology` (plugin DGPR) : ne pas exécuter les contrôles d'inclusion entre scénarios et de topologie des ISO_HT / ISO_DEB. Ils nécessitent validator-cli.jar >= 4.6.2.
 
 ### Modifié
 

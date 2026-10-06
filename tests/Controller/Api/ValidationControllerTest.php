@@ -523,6 +523,36 @@ class ValidationControllerTest extends WebTestCase
     }
 
     /**
+     * Updating arguments with the options skipping DGPR controls.
+     */
+    public function testUpdateArgumentsDgprSkipControls()
+    {
+        $validation = $this->getValidationFixture(ValidationsFixtures::VALIDATION_NO_ARGS);
+
+        $data = [
+            'srs' => 'EPSG:2154',
+            'model' => 'https://www.geoportail-urbanisme.gouv.fr/standard/covadis_di_2018.json',
+            'plugins' => 'DGPR',
+            'dgpr-skip-inclusion' => true,
+            'dgpr-skip-graph-topology' => true,
+        ];
+
+        $this->client->request(
+            'PATCH',
+            '/api/validations/'.$validation->getUid(),
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode($data)
+        );
+
+        $this->assertStatusCode(200, $this->client);
+        $arguments = \json_decode($this->client->getResponse()->getContent(), true)['arguments'];
+        $this->assertTrue($arguments['dgpr-skip-inclusion']);
+        $this->assertTrue($arguments['dgpr-skip-graph-topology']);
+    }
+
+    /**
      * Updating arguments with invalid boolean values.
      */
     public function testUpdateArgumentsInvalidBoolean()
