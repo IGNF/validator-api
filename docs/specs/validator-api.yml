@@ -11,7 +11,7 @@ info:
     **Authentification** : créer, modifier et supprimer une validation nécessite d'être authentifié.
     Seul le créateur d'une validation peut la modifier ou la supprimer.
     La consultation d'une validation (et de ses rapports) reste publique.
-  version: "0.7.12"
+  version: "0.7.13"
   title: "API Validator"
   license:
     name: "AGPL-3.0-or-later"
@@ -20,28 +20,8 @@ info:
 tags:
   - name: "Validation"
     description: "Une demande de validation de documents"
-  - name: "Authentification"
-    description: "Authentification OIDC (si activée sur l'instance)"
 
 paths:
-  /api/me:
-    get:
-      tags:
-        - Authentification
-      operationId: get_current_user
-      summary: "Utilisateur courant"
-      description: "Indique si l'authentification est activée et retourne l'utilisateur authentifié (session de la démo ou jeton)"
-      security:
-        - {}
-        - bearerAuth: []
-        - cookieAuth: []
-      responses:
-        200:
-          description: "Utilisateur courant"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Me"
 
   /api/validations/:
     get:
@@ -572,35 +552,6 @@ components:
         limit:
           type: integer
           example: 20
-
-    Me:
-      type: object
-      properties:
-        enabled:
-          description: "Authentification activée sur l'instance (OIDC_ENABLED)"
-          type: boolean
-        authenticated:
-          type: boolean
-        user:
-          type: object
-          nullable: true
-          properties:
-            name:
-              type: string
-            email:
-              type: string
-              nullable: true
-            is_admin:
-              type: boolean
-        login_url:
-          description: "Connexion depuis un navigateur (paramètre _target_path : chemin de retour)"
-          type: string
-          nullable: true
-          example: /login
-        logout_url:
-          type: string
-          nullable: true
-          example: /logout
 
     Error:
       type: object

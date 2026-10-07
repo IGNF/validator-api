@@ -4,9 +4,9 @@
 # Usage : bin/install-validator.sh [fichier cible, defaut bin/validator-cli.jar]
 set -eu
 
-VALIDATOR_VERSION=4.6.2
+VALIDATOR_VERSION=4.6.3
 # sha256 de validator-cli.jar (a mettre a jour avec VALIDATOR_VERSION)
-VALIDATOR_SHA256=2672fc49df50c8a85058ac2b1272a800e7ec17dc2b46eddd67c2115be0576b3b
+VALIDATOR_SHA256=09dc2b1447365ecf72ab6fed9a7f1e134314a7d0192865bae9e5cb861e87132f
 
 TARGET="${1:-bin/validator-cli.jar}"
 
