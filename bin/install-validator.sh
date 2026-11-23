@@ -4,9 +4,9 @@
 # Usage : sh bin/install-validator.sh [fichier cible, defaut bin/validator-cli.jar]
 set -eu
 
-VALIDATOR_VERSION=4.7.1
+VALIDATOR_VERSION=4.7.2
 # sha256 de validator-cli.jar (a mettre a jour avec VALIDATOR_VERSION)
-VALIDATOR_SHA256=a8cd719c3f689dccbbac187bffa15642b57cf25e00bb192aadcd6501853329d5
+VALIDATOR_SHA256=b44bccfa1e099ba171af9a3f2fe3fd5212bd7cbbe72ce66f0705c1b73423075b
 
 BIN_DIR=$(cd "$(dirname "$0")" && pwd)
 TARGET="${1:-$BIN_DIR/validator-cli.jar}"
