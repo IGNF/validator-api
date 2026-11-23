@@ -33,6 +33,7 @@ class DocumentationController extends AbstractController
     public function __construct(
         $projectDir,
         private bool $dataDownloadEnabled,
+        private string $appVersion,
     ) {
         $this->specsDir = $projectDir.'/docs/specs';
     }
@@ -47,27 +48,28 @@ class DocumentationController extends AbstractController
     }
 
     /**
-     * Get OpenAPI specifications.
+     * Get OpenAPI specifications, with the version of the release (APP_VERSION, ex : "v0.7.16" => "0.7.16").
      */
     #[Route('/api/validator-api.yml', name: 'validator_api_swagger', methods: ['GET'])]
     public function swagger()
     {
-        $swaggerPath = $this->specsDir.'/validator-api.yml';
+        $specs = (new Parser())->parseFile($this->specsDir.'/validator-api.yml');
 
-        if ($this->dataDownloadEnabled) {
-            return new BinaryFileResponse($swaggerPath);
+        if ('' !== $this->appVersion) {
+            $specs['info']['version'] = preg_replace('/^v(?=\d)/', '', $this->appVersion);
         }
 
-        // disabled routes stay documented, flagged as deprecated (greyed out by swagger-ui)
-        // and with "x-disabled" (read by the demo client to hide the matching downloads)
-        $specs = (new Parser())->parseFile($swaggerPath);
-        foreach (self::DATA_DOWNLOAD_PATHS as $path) {
-            foreach ($specs['paths'][$path] as $method => $operation) {
-                $operation['deprecated'] = true;
-                $operation['x-disabled'] = true;
-                $operation['summary'] = '[Désactivé] '.($operation['summary'] ?? '');
-                $operation['description'] = '**'.self::DISABLED_MESSAGE."**\n\n".($operation['description'] ?? '');
-                $specs['paths'][$path][$method] = $operation;
+        if (!$this->dataDownloadEnabled) {
+            // disabled routes stay documented, flagged as deprecated (greyed out by swagger-ui)
+            // and with "x-disabled" (read by the demo client to hide the matching downloads)
+            foreach (self::DATA_DOWNLOAD_PATHS as $path) {
+                foreach ($specs['paths'][$path] as $method => $operation) {
+                    $operation['deprecated'] = true;
+                    $operation['x-disabled'] = true;
+                    $operation['summary'] = '[Désactivé] '.($operation['summary'] ?? '');
+                    $operation['description'] = '**'.self::DISABLED_MESSAGE."**\n\n".($operation['description'] ?? '');
+                    $specs['paths'][$path][$method] = $operation;
+                }
             }
         }
 

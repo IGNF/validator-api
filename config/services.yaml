@@ -27,6 +27,7 @@ services:
       $validatorTimeout: "%env(int:default:validator_timeout_default:VALIDATOR_TIMEOUT)%"
       $gmlasConfigPath: "%env(resolve:GMLAS_CONFIG)%"
       $dataDownloadEnabled: "%env(bool:DATA_DOWNLOAD_ENABLED)%"
+      $appVersion: "%env(APP_VERSION)%"
       $modelAllowedHosts: "%env(VALIDATOR_MODEL_ALLOWED_HOSTS)%"
       $storageType: "%env(STORAGE_TYPE)%"
       $oidcEnabled: "%env(bool:OIDC_ENABLED)%"

@@ -189,6 +189,11 @@ USER www-data
 
 ENV APP_ENV=prod
 
+# Version displayed in the OpenAPI specification (git tag, see .github/workflows/docker-publish.yml)
+# (declared at the end not to invalidate the cache of the previous layers)
+ARG APP_VERSION=dev
+ENV APP_VERSION=${APP_VERSION}
+
 EXPOSE 8000
 
 # Use exec form for better signal handling

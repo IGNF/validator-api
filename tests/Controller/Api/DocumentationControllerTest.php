@@ -2,6 +2,7 @@
 
 namespace App\Tests\Controller\Api;
 
+use App\Controller\Api\DocumentationController;
 use App\Tests\WebTestCase;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\Routing\Exception\ResourceNotFoundException;
@@ -39,13 +40,26 @@ class DocumentationControllerTest extends WebTestCase
 
         $this->assertResponseIsSuccessful();
 
-        $response = $client->getResponse();
-        $this->assertInstanceOf(BinaryFileResponse::class, $response);
-
         $this->assertStringContainsString(
             "API permettant d'appeler [IGNF/validator](https://github.com/IGNF/validator)",
             $client->getInternalResponse()->getContent()
         );
+        // APP_VERSION=dev (.env)
+        $specs = Yaml::parse($client->getResponse()->getContent());
+        $this->assertSame('dev', $specs['info']['version']);
+    }
+
+    /**
+     * The version of the specification is the version of the release (git tag of the docker image).
+     */
+    public function testSwaggerVersion()
+    {
+        $projectDir = dirname(__DIR__, 3);
+        foreach (['v0.7.16' => '0.7.16', '0.7.16-rc.1' => '0.7.16-rc.1', 'pr-12' => 'pr-12'] as $appVersion => $expected) {
+            $controller = new DocumentationController($projectDir, true, $appVersion);
+            $specs = Yaml::parse($controller->swagger()->getContent());
+            $this->assertSame($expected, $specs['info']['version']);
+        }
     }
 
     /**
