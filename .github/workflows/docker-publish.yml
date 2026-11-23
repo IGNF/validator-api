@@ -1,15 +1,11 @@
 name: Docker
 
 on:
-  #schedule:
-  #  - cron: '40 18 * * *'
   push:
-    branches:
-      - "master"
-      - "valitri"
-      - "validator-publi"
-    # Publish semver tags as releases.
+    # Publish only the releases (ex : v0.7.16, or v0.7.16-rc.1 to test before the release),
+    # the deployments use these image tags (validator-deploiement)
     tags: [ 'v*.*.*' ]
+  # Build without publishing to check the Dockerfile
   pull_request:
     branches: [ "master" ]
 
